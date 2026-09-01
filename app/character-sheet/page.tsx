@@ -267,6 +267,14 @@ export default function CharacterSheetPage() {
     });
   };
 
+  // キャラクターAとBの入れ替え（スワップ）
+  const handleSwapCharacters = () => {
+    const tempFrom = newRelFrom;
+    const tempTo = newRelTo;
+    setNewRelFrom(tempTo);
+    setNewRelTo(tempFrom);
+  };
+
   // 関係性の追加
   const handleAddRelation = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1344,33 +1352,66 @@ export default function CharacterSheetPage() {
               </h2>
 
               <form onSubmit={handleAddRelation} className="space-y-4">
-                {/* 2人のキャラクター選択 */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">キャラクター A</label>
-                    <select
-                      value={newRelFrom}
-                      onChange={(e) => setNewRelFrom(e.target.value)}
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                {/* 2人のキャラクター選択 (中央に ⇄ スワップボタン) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-slate-700">関係を結ぶキャラクター</label>
+                    <button
+                      type="button"
+                      onClick={handleSwapCharacters}
+                      className="text-[11px] text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-md hover:bg-blue-100 transition active:scale-95 border border-blue-200"
+                      title="発信側(A)と対象側(B)を入れ替える"
                     >
-                      <option value="">選択してください</option>
-                      {characters.map((c) => (
-                        <option key={c.id} value={c.id}>{c.name}</option>
-                      ))}
-                    </select>
+                      <span>⇄</span> 向きを入れ替える
+                    </button>
                   </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">キャラクター B</label>
-                    <select
-                      value={newRelTo}
-                      onChange={(e) => setNewRelTo(e.target.value)}
-                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                      <option value="">選択してください</option>
-                      {characters.map((c) => (
-                        <option key={c.id} value={c.id} disabled={c.id === newRelFrom}>{c.name}</option>
-                      ))}
-                    </select>
+
+                  <div className="flex items-center gap-2">
+                    {/* キャラクター A */}
+                    <div className="flex-1">
+                      <div className="text-[10px] text-slate-400 font-bold mb-0.5 flex items-center gap-1">
+                        <span>👤</span> 発信側 (From)
+                      </div>
+                      <select
+                        value={newRelFrom}
+                        onChange={(e) => setNewRelFrom(e.target.value)}
+                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-xs"
+                      >
+                        <option value="">選択してください</option>
+                        {characters.map((c) => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* 中央の入れ替えボタン */}
+                    <div className="pt-4 flex flex-col items-center">
+                      <button
+                        type="button"
+                        onClick={handleSwapCharacters}
+                        className="w-8 h-8 rounded-full bg-slate-100 hover:bg-blue-600 hover:text-white border border-slate-300 flex items-center justify-center text-slate-600 text-sm font-bold shadow-sm transition-all active:scale-90"
+                        title="ワンクリックで A と B を入れ替え"
+                      >
+                        ⇄
+                      </button>
+                    </div>
+
+                    {/* キャラクター B */}
+                    <div className="flex-1">
+                      <div className="text-[10px] text-slate-400 font-bold mb-0.5 flex items-center gap-1">
+                        <span>🎯</span> 対象側 (To)
+                      </div>
+                      <select
+                        value={newRelTo}
+                        onChange={(e) => setNewRelTo(e.target.value)}
+                        className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-xs"
+                      >
+                        <option value="">選択してください</option>
+                        {characters.map((c) => (
+                          <option key={c.id} value={c.id} disabled={c.id === newRelFrom}>{c.name}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
 
@@ -1382,7 +1423,7 @@ export default function CharacterSheetPage() {
                       type="button"
                       onClick={() => setNewRelType('bidirectional')}
                       className={`py-1.5 px-3 text-xs font-bold rounded-lg border text-center transition ${
-                        newRelType === 'bidirectional' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-slate-200 text-slate-600'
+                        newRelType === 'bidirectional' ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-xs' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
                       ⇄ 双方向の関係
@@ -1391,7 +1432,7 @@ export default function CharacterSheetPage() {
                       type="button"
                       onClick={() => setNewRelType('unidirectional')}
                       className={`py-1.5 px-3 text-xs font-bold rounded-lg border text-center transition ${
-                        newRelType === 'unidirectional' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-slate-200 text-slate-600'
+                        newRelType === 'unidirectional' ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-xs' : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                       }`}
                     >
                       ➔ 一方向の関係
@@ -1402,7 +1443,7 @@ export default function CharacterSheetPage() {
                 {/* 関係ラベル */}
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">
-                    {newRelType === 'bidirectional' ? 'AからBへの関係 / 感情' : '関係の名称 *'}
+                    {newRelType === 'bidirectional' ? 'AからBへの関係 / 感情 *' : '関係の名称 *'}
                   </label>
                   <input
                     type="text"
@@ -1453,12 +1494,22 @@ export default function CharacterSheetPage() {
                   />
                 </div>
 
-                <button
-                  type="submit"
-                  className="w-full py-2 px-4 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition shadow-sm"
-                >
-                  ＋ 関係性を追加して相関図に反映
-                </button>
+                <div className="space-y-2 pt-1">
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 px-4 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition shadow-sm flex items-center justify-center gap-1.5"
+                  >
+                    <span>＋</span> 関係性を追加して相関図に反映
+                  </button>
+                  
+                  <button
+                    type="button"
+                    onClick={handleSwapCharacters}
+                    className="w-full py-1.5 px-3 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition flex items-center justify-center gap-1"
+                  >
+                    <span>⇄</span> 向き（AとB）を反転して続けて入力
+                  </button>
+                </div>
               </form>
             </div>
 
@@ -1479,32 +1530,48 @@ export default function CharacterSheetPage() {
                       key={rel.id} 
                       className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 hover:bg-slate-100/60 transition"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="font-bold text-slate-800 text-xs px-2.5 py-1 bg-white border border-slate-200 rounded-lg">
+                          <span className="font-bold text-slate-800 text-xs px-2.5 py-1 bg-white border border-slate-200 rounded-lg shadow-xs">
                             {fromChar.name}
                           </span>
-                          <span className="text-slate-400 font-bold">
+                          <span className="text-slate-400 font-bold text-sm">
                             {rel.type === 'bidirectional' ? '⇄' : '➔'}
                           </span>
-                          <span className="font-bold text-slate-800 text-xs px-2.5 py-1 bg-white border border-slate-200 rounded-lg">
+                          <span className="font-bold text-slate-800 text-xs px-2.5 py-1 bg-white border border-slate-200 rounded-lg shadow-xs">
                             {toChar.name}
                           </span>
                           <span 
-                            className="px-2.5 py-0.5 text-xs font-bold text-white rounded-full ml-1"
+                            className="px-2.5 py-0.5 text-xs font-bold text-white rounded-full ml-1 shadow-xs"
                             style={{ backgroundColor: rel.color || '#3b82f6' }}
                           >
                             {rel.fromLabel}
                             {rel.type === 'bidirectional' && rel.toLabel && rel.toLabel !== rel.fromLabel && ` / ${rel.toLabel}`}
                           </span>
                         </div>
-                        <button
-                          onClick={() => handleDeleteRelation(rel.id)}
-                          className="text-xs text-red-500 hover:text-red-700 font-bold px-2 py-1"
-                          title="関係性を削除"
-                        >
-                          削除
-                        </button>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setNewRelFrom(rel.toId);
+                              setNewRelTo(rel.fromId);
+                              setNewRelFromLabel('');
+                              setNewRelType('unidirectional');
+                            }}
+                            className="text-[11px] text-blue-600 hover:text-blue-800 font-bold px-2 py-1 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition flex items-center gap-1"
+                            title="逆向き（B ➔ A）の関係性を追加"
+                          >
+                            <span>⇄</span> 逆向きを追加
+                          </button>
+                          <button
+                            onClick={() => handleDeleteRelation(rel.id)}
+                            className="text-xs text-red-500 hover:text-red-700 font-bold px-2 py-1"
+                            title="関係性を削除"
+                          >
+                            削除
+                          </button>
+                        </div>
                       </div>
 
                       {rel.detail && (
