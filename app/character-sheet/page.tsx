@@ -28,7 +28,7 @@ interface Character {
   dislikes: string;
   quote: string;
   story: string;
-  // 相関図用座標
+  // 相関図用座標 (1600x1200 空間)
   x: number;
   y: number;
 }
@@ -49,18 +49,18 @@ const SAMPLE_GROUPS: Group[] = [
   {
     id: 'grp-1',
     name: 'アジトの仲間（風の旅団）',
-    color: '#0284c7', // スカイブルー
+    color: '#06b6d4', // シアン・水色
     description: '未開の地や天空の謎を調査する拠点メンバーたち'
   },
   {
     id: 'grp-2',
     name: '王族・聖樹騎士団',
-    color: '#dc2626', // クリムゾンレッド
+    color: '#ef4444', // レッド
     description: '王都の秩序と平和を守る正統派の統治・護衛組織'
   }
 ];
 
-// サンプルデータ: 冒険ファンタジー
+// サンプルデータ: 冒険ファンタジー (1600x1200 空間の中心 800, 600 付近)
 const SAMPLE_CHARACTERS: Character[] = [
   {
     id: 'char-1',
@@ -71,7 +71,7 @@ const SAMPLE_CHARACTERS: Character[] = [
     role: '風の魔法使い / 主人公',
     age: '17歳',
     gender: '女性',
-    themeColor: '#0284c7',
+    themeColor: '#06b6d4',
     groupId: 'grp-1', // アジトの仲間
     personality: '明るく好奇心旺盛。少しおっちょこちょいだが、一度決めたら曲げない芯の強さを持つ。',
     appearance: '透き通るような青髪のショートボブ。羽根のついたベレー帽とスケッチブックを携帯。',
@@ -80,8 +80,8 @@ const SAMPLE_CHARACTERS: Character[] = [
     dislikes: 'じめじめした洞窟、約束を破ること',
     quote: '「迷ったら、風が吹く方へ進んでみようよ！」',
     story: '天空の街で生まれ育ち、地上に広がる未開の自然や生き物を記録するために旅に出た少女。手にしたペンで描いたものが風となって具現化する不思議な魔法を使う。',
-    x: 180,
-    y: 180,
+    x: 480,
+    y: 440,
   },
   {
     id: 'char-2',
@@ -101,8 +101,8 @@ const SAMPLE_CHARACTERS: Character[] = [
     dislikes: '不意打ち、甘えた態度',
     quote: '「お前の背中は俺が守る。前だけを見て走れ。」',
     story: '没落した名門騎士家の若き当主。ルシアの真っ直ぐな瞳に救われ、彼女の旅の護衛役兼相棒として同行している。',
-    x: 320,
-    y: 180,
+    x: 720,
+    y: 440,
   },
   {
     id: 'char-3',
@@ -113,7 +113,7 @@ const SAMPLE_CHARACTERS: Character[] = [
     role: '錬金術師 / 参謀',
     age: '16歳',
     gender: '男性',
-    themeColor: '#059669',
+    themeColor: '#10b981',
     groupId: 'grp-1', // アジトの仲間
     personality: '冷静沈着で理屈っぽい毒舌家。だが仲間がピンチの時は誰よりも素早く手を打つツンデレ。',
     appearance: '深緑の髪に丸メガネ。白衣と怪しげな薬品フラスコを腰に提げている。',
@@ -122,8 +122,8 @@ const SAMPLE_CHARACTERS: Character[] = [
     dislikes: '非論理的な行動、運動、騒がしい場所',
     quote: '「やれやれ、僕の計算外で勝手な無茶をしないでください。」',
     story: '最年少で王立アカデミーを卒業した天才研究者。ルシアの持つ不思議な魔法の正体を解き明かすという名目でパーティに加わる。',
-    x: 250,
-    y: 350,
+    x: 600,
+    y: 720,
   },
   {
     id: 'char-4',
@@ -134,7 +134,7 @@ const SAMPLE_CHARACTERS: Character[] = [
     role: '第一王女 / 依頼人',
     age: '18歳',
     gender: '女性',
-    themeColor: '#dc2626',
+    themeColor: '#ef4444',
     groupId: 'grp-2', // 王族
     personality: '気品に満ち、民を愛する誇り高き王女。お忍びでルシアたちのアジトに依頼を持ち込む。',
     appearance: '黄金の波打つロングヘアに赤いリボン。純白のドレスと細身のレイピアを帯びる。',
@@ -143,8 +143,8 @@ const SAMPLE_CHARACTERS: Character[] = [
     dislikes: '不正、無意味な争い',
     quote: '「あなた方の力を貸してください。この国を救うために。」',
     story: '王宮内の陰謀に気付き、信頼できる民間の実力者としてルシアたちの旅団に極秘任務を依頼する。',
-    x: 600,
-    y: 250,
+    x: 1120,
+    y: 560,
   }
 ];
 
@@ -157,7 +157,7 @@ const SAMPLE_RELATIONS: Relation[] = [
     toLabel: '守るべき存在 / 敬意',
     type: 'bidirectional',
     detail: '旅の最初期に出会い、幾多の死線を共に乗り越えてきた一番の相棒関係。',
-    color: '#0284c7'
+    color: '#06b6d4'
   },
   {
     id: 'rel-2',
@@ -167,7 +167,7 @@ const SAMPLE_RELATIONS: Relation[] = [
     toLabel: '頼もしい盾（脳筋扱い）',
     type: 'bidirectional',
     detail: '性格は正反対でよく言い争うが、実力は認め合っている凸凹コンビ。',
-    color: '#059669'
+    color: '#10b981'
   },
   {
     id: 'rel-3',
@@ -177,7 +177,7 @@ const SAMPLE_RELATIONS: Relation[] = [
     toLabel: '博識な頼れる仲間',
     type: 'bidirectional',
     detail: '無茶ばかりするルシアに小言を言いつつも、いつも的確なサポートをする。',
-    color: '#059669'
+    color: '#10b981'
   },
   {
     id: 'rel-4',
@@ -187,7 +187,7 @@ const SAMPLE_RELATIONS: Relation[] = [
     toLabel: '依頼人・助けたい存在',
     type: 'bidirectional',
     detail: '身分の違いを超えて強い絆を結びつつある協力関係。',
-    color: '#dc2626'
+    color: '#ef4444'
   }
 ];
 
@@ -233,6 +233,12 @@ export default function CharacterSheetPage() {
   const [selectedCharId, setSelectedCharId] = useState<string>(SAMPLE_CHARACTERS[0].id);
   const [activeTab, setActiveTab] = useState<'profile' | 'chart' | 'relations_list' | 'groups'>('chart');
   
+  // ズーム＆パン（キャンバス拡大縮小・移動）
+  const [zoom, setZoom] = useState<number>(1.0);
+  const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState<boolean>(false);
+  const panStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
   // 新規・編集関係性フォーム用
   const [editingRelId, setEditingRelId] = useState<string | null>(null);
   const [newRelFrom, setNewRelFrom] = useState<string>('');
@@ -245,7 +251,7 @@ export default function CharacterSheetPage() {
   // グループ編集フォーム用
   const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
   const [groupName, setGroupName] = useState('');
-  const [groupColor, setGroupColor] = useState('#0284c7');
+  const [groupColor, setGroupColor] = useState('#06b6d4');
   const [groupDesc, setGroupDesc] = useState('');
 
   // モチーフ追加用
@@ -255,7 +261,7 @@ export default function CharacterSheetPage() {
   // ファイル入力参照
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // ドラッグ操作用
+  // ノードドラッグ操作用
   const [draggingCharId, setDraggingCharId] = useState<string | null>(null);
   const dragOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const svgRef = useRef<SVGSVGElement | null>(null);
@@ -327,7 +333,7 @@ export default function CharacterSheetPage() {
     reader.readAsDataURL(file);
   };
 
-  // キャラクターの新規追加
+  // キャラクターの新規追加 (1600x1200 空間内に配置)
   const handleAddCharacter = () => {
     const count = characters.length + 1;
     const newChar: Character = {
@@ -348,8 +354,8 @@ export default function CharacterSheetPage() {
       dislikes: '',
       quote: '',
       story: '',
-      x: 200 + (count % 3) * 150,
-      y: 150 + Math.floor(count / 3) * 150
+      x: 600 + ((count - 1) % 4) * 200,
+      y: 400 + Math.floor((count - 1) / 4) * 200
     };
     const updated = [...characters, newChar];
     saveAll(updated, relations, groups);
@@ -522,6 +528,8 @@ export default function CharacterSheetPage() {
     if (window.confirm('初期のサンプルデータに戻しますか？')) {
       saveAll(SAMPLE_CHARACTERS, SAMPLE_RELATIONS, SAMPLE_GROUPS);
       setSelectedCharId(SAMPLE_CHARACTERS[0].id);
+      setZoom(1.0);
+      setPan({ x: 0, y: 0 });
     }
   };
 
@@ -537,7 +545,7 @@ export default function CharacterSheetPage() {
         role: '主人公',
         age: '',
         gender: '',
-        themeColor: '#0284c7',
+        themeColor: '#06b6d4',
         personality: '',
         appearance: '',
         motifs: [],
@@ -545,19 +553,21 @@ export default function CharacterSheetPage() {
         dislikes: '',
         quote: '',
         story: '',
-        x: 350,
-        y: 250
+        x: 800,
+        y: 600
       };
       saveAll([initialChar], [], []);
       setSelectedCharId(initialChar.id);
+      setZoom(1.0);
+      setPan({ x: 0, y: 0 });
     }
   };
 
-  // 相関図の円形自動整列
+  // 相関図の円形自動整列 (1600x1200 空間)
   const handleAutoAlignCircle = () => {
-    const centerX = 400;
-    const centerY = 300;
-    const radius = Math.min(240, 120 + characters.length * 20);
+    const centerX = 800;
+    const centerY = 600;
+    const radius = Math.min(460, 260 + characters.length * 30);
     const updated = characters.map((c, idx) => {
       const angle = (idx / characters.length) * 2 * Math.PI - Math.PI / 2;
       return {
@@ -569,37 +579,107 @@ export default function CharacterSheetPage() {
     saveAll(updated, relations, groups);
   };
 
-  // ドラッグ操作（SVG相関図内）
+  // 全体表示（Fit to screen）
+  const handleFitToScreen = () => {
+    if (characters.length === 0) return;
+    const minX = Math.min(...characters.map((c) => c.x)) - 100;
+    const maxX = Math.max(...characters.map((c) => c.x)) + 100;
+    const minY = Math.min(...characters.map((c) => c.y)) - 100;
+    const maxY = Math.max(...characters.map((c) => c.y)) + 100;
+    const width = Math.max(400, maxX - minX);
+    const height = Math.max(300, maxY - minY);
+
+    const scaleX = 1600 / width;
+    const scaleY = 1200 / height;
+    const newZoom = Math.min(1.6, Math.max(0.45, Math.min(scaleX, scaleY) * 0.8));
+    
+    const newPanX = (1600 - (minX + maxX) * newZoom) / 2;
+    const newPanY = (1200 - (minY + maxY) * newZoom) / 2;
+    setZoom(+newZoom.toFixed(2));
+    setPan({ x: Math.round(newPanX), y: Math.round(newPanY) });
+  };
+
+  // スクリーン座標 ➔ SVG 1600x1200 ワールド座標変換
+  const screenToWorld = (clientX: number, clientY: number) => {
+    if (!svgRef.current) return { x: 0, y: 0 };
+    const rect = svgRef.current.getBoundingClientRect();
+    const svgScaleX = 1600 / rect.width;
+    const svgScaleY = 1200 / rect.height;
+    const localX = (clientX - rect.left) * svgScaleX;
+    const localY = (clientY - rect.top) * svgScaleY;
+    const worldX = (localX - pan.x) / zoom;
+    const worldY = (localY - pan.y) / zoom;
+    return { x: worldX, y: worldY };
+  };
+
+  // ノードドラッグ開始
   const handleMouseDownNode = (charId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const char = characters.find((c) => c.id === charId);
     if (!char) return;
     setDraggingCharId(charId);
+    const worldPos = screenToWorld(e.clientX, e.clientY);
     dragOffset.current = {
-      x: e.clientX - char.x,
-      y: e.clientY - char.y
+      x: worldPos.x - char.x,
+      y: worldPos.y - char.y
     };
   };
 
-  const handleMouseMoveSvg = (e: React.MouseEvent) => {
-    if (!draggingCharId || !svgRef.current) return;
-    const rect = svgRef.current.getBoundingClientRect();
-    const currentX = e.clientX - rect.left;
-    const currentY = e.clientY - rect.top;
-
-    const boundedX = Math.max(70, Math.min(730, currentX));
-    const boundedY = Math.max(60, Math.min(540, currentY));
-
-    setCharacters((prev) =>
-      prev.map((c) => (c.id === draggingCharId ? { ...c, x: boundedX, y: boundedY } : c))
-    );
+  // 背景ドラッグ（パン移動）開始
+  const handleMouseDownBackground = (e: React.MouseEvent) => {
+    if (e.button !== 0) return; // 左クリックのみ
+    setIsPanning(true);
+    panStartRef.current = {
+      x: e.clientX - pan.x,
+      y: e.clientY - pan.y
+    };
   };
 
+  // SVGマウス移動
+  const handleMouseMoveSvg = (e: React.MouseEvent) => {
+    if (draggingCharId) {
+      const worldPos = screenToWorld(e.clientX, e.clientY);
+      const boundedX = Math.round(Math.max(60, Math.min(1540, worldPos.x - dragOffset.current.x)));
+      const boundedY = Math.round(Math.max(60, Math.min(1140, worldPos.y - dragOffset.current.y)));
+
+      setCharacters((prev) =>
+        prev.map((c) => (c.id === draggingCharId ? { ...c, x: boundedX, y: boundedY } : c))
+      );
+    } else if (isPanning) {
+      const newPanX = e.clientX - panStartRef.current.x;
+      const newPanY = e.clientY - panStartRef.current.y;
+      setPan({ x: newPanX, y: newPanY });
+    }
+  };
+
+  // マウスアップ
   const handleMouseUpSvg = () => {
     if (draggingCharId) {
       setDraggingCharId(null);
       saveAll(characters, relations, groups);
     }
+    if (isPanning) {
+      setIsPanning(false);
+    }
+  };
+
+  // マウスホイールによる滑らかなズーム
+  const handleWheelSvg = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
+    const newZoom = Math.min(2.5, Math.max(0.4, +(zoom * zoomFactor).toFixed(2)));
+    
+    // マウスカーソル位置を中心にズーム
+    if (svgRef.current) {
+      const rect = svgRef.current.getBoundingClientRect();
+      const mouseSvgX = (e.clientX - rect.left) * (1600 / rect.width);
+      const mouseSvgY = (e.clientY - rect.top) * (1200 / rect.height);
+      
+      const newPanX = mouseSvgX - (mouseSvgX - pan.x) * (newZoom / zoom);
+      const newPanY = mouseSvgY - (mouseSvgY - pan.y) * (newZoom / zoom);
+      setPan({ x: Math.round(newPanX), y: Math.round(newPanY) });
+    }
+    setZoom(newZoom);
   };
 
   // テキストエクスポート
@@ -662,7 +742,7 @@ export default function CharacterSheetPage() {
               <span>🕸️</span> キャラクター設定 & 相関図ジェネレーター
             </h1>
             <p className="text-xs md:text-sm text-slate-500 mt-1">
-              画像付きキャラクターシート、所属勢力・グループ（アジト・王族等）、および関係マップを直感的に作成できる創作支援ツール
+              画像付きキャラクターシート、所属勢力・グループ（アジト・王族等）、および拡大縮小可能な広大相関図マップを作成できる創作支援ツール
             </p>
           </div>
 
@@ -756,7 +836,10 @@ export default function CharacterSheetPage() {
                       className="w-4 h-4 rounded-full object-cover border border-white/40"
                     />
                   ) : (
-                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: c.themeColor }} />
+                    <span 
+                      className="w-2 h-2 rounded-full border border-slate-300" 
+                      style={{ backgroundColor: c.themeColor }} 
+                    />
                   )}
                   <span>{c.name || '無名'}</span>
                   {grp && (
@@ -785,16 +868,55 @@ export default function CharacterSheetPage() {
         {activeTab === 'chart' && (
           <div className="space-y-4">
             <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                 <div>
                   <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <span>🕸️</span> インタラクティブ相関図マップ
+                    <span>🕸️</span> インタラクティブ広大相関図マップ
                   </h2>
                   <p className="text-xs text-slate-500">
-                    💡 キャラクター画像がマップ上に直接反映されます。ドラッグして自由に配置でき、グループ枠も自動追従します。
+                    💡 マウスホイールでズーム、余白ドラッグで画面移動、キャラクターをドラッグして広々配置できます。
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* ズーム＆パン コントロールUI */}
+                  <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs shadow-2xs">
+                    <button
+                      onClick={() => setZoom((z) => Math.min(2.5, +(z + 0.15).toFixed(2)))}
+                      className="px-2 py-1 bg-white hover:bg-slate-200 rounded font-bold text-slate-700 shadow-xs"
+                      title="ズームイン（拡大）"
+                    >
+                      ＋
+                    </button>
+                    <span className="font-mono font-bold px-1 text-slate-700 min-w-[42px] text-center">
+                      {Math.round(zoom * 100)}%
+                    </span>
+                    <button
+                      onClick={() => setZoom((z) => Math.max(0.4, +(z - 0.15).toFixed(2)))}
+                      className="px-2 py-1 bg-white hover:bg-slate-200 rounded font-bold text-slate-700 shadow-xs"
+                      title="ズームアウト（縮小）"
+                    >
+                      －
+                    </button>
+                    <button
+                      onClick={handleFitToScreen}
+                      className="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded font-bold shadow-xs ml-1"
+                      title="全体が収まるようにズーム"
+                    >
+                      全体表示
+                    </button>
+                    <button
+                      onClick={() => {
+                        setZoom(1.0);
+                        setPan({ x: 0, y: 0 });
+                      }}
+                      className="px-2 py-1 bg-white hover:bg-slate-200 text-slate-600 rounded font-medium shadow-xs"
+                      title="100%・初期位置にリセット"
+                    >
+                      100%
+                    </button>
+                  </div>
+
                   <button
                     onClick={handleAutoAlignCircle}
                     className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition flex items-center gap-1"
@@ -819,193 +941,263 @@ export default function CharacterSheetPage() {
                 </div>
               </div>
 
-              {/* 相関図SVGキャンバス */}
-              <div className="relative w-full h-[620px] bg-slate-900/5 rounded-xl border-2 border-dashed border-slate-300 overflow-hidden select-none">
+              {/* 相関図SVGキャンバス（広大 1600x1200 空間、ズーム＆パン対応） */}
+              <div 
+                className="relative w-full h-[680px] md:h-[750px] bg-slate-900/5 rounded-xl border-2 border-dashed border-slate-300 overflow-hidden select-none"
+              >
                 <svg
                   ref={svgRef}
-                  className="w-full h-full cursor-crosshair"
+                  className={`w-full h-full ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
+                  onMouseDown={handleMouseDownBackground}
                   onMouseMove={handleMouseMoveSvg}
                   onMouseUp={handleMouseUpSvg}
-                  viewBox="0 0 800 600"
+                  onWheel={handleWheelSvg}
+                  viewBox="0 0 1600 1200"
                 >
                   {/* クリップパスとグリッド定義 */}
                   <defs>
-                    <pattern id="dotGrid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                      <circle cx="2" cy="2" r="1" fill="#cbd5e1" />
+                    <pattern id="dotGrid" x="0" y="0" width="30" height="30" patternUnits="userSpaceOnUse">
+                      <circle cx="3" cy="3" r="1.5" fill="#cbd5e1" />
                     </pattern>
                     {/* キャラクターアイコン円形クリップパス */}
                     {characters.map((char) => (
                       <clipPath key={`clip-${char.id}`} id={`avatar-clip-${char.id}`}>
-                        <circle r="28" cx="0" cy="0" />
+                        <circle r="30" cx="0" cy="0" />
                       </clipPath>
                     ))}
                   </defs>
 
                   <rect width="100%" height="100%" fill="url(#dotGrid)" />
 
-                  {/* 1. グループゾーン（勢力・所属枠）の描画 */}
-                  {groups.map((grp) => {
-                    const groupChars = characters.filter((c) => c.groupId === grp.id);
-                    if (groupChars.length === 0) return null;
+                  {/* ズーム＆パンの変換グループ */}
+                  <g transform={`translate(${pan.x}, ${pan.y}) scale(${zoom})`}>
 
-                    const padX = 58;
-                    const padY = 52;
-                    const minX = Math.min(...groupChars.map((c) => c.x)) - padX;
-                    const maxX = Math.max(...groupChars.map((c) => c.x)) + padX;
-                    const minY = Math.min(...groupChars.map((c) => c.y)) - padY;
-                    const maxY = Math.max(...groupChars.map((c) => c.y)) + padY + 10;
-                    const width = maxX - minX;
-                    const height = maxY - minY;
+                    {/* 1. グループゾーン（勢力・所属枠）の描画 */}
+                    {groups.map((grp) => {
+                      const groupChars = characters.filter((c) => c.groupId === grp.id);
+                      if (groupChars.length === 0) return null;
 
-                    return (
-                      <g key={grp.id} className="transition-all duration-300">
-                        {/* グループ背景矩形 */}
-                        <rect
-                          x={minX}
-                          y={minY}
-                          width={width}
-                          height={height}
-                          rx="22"
-                          fill={grp.color}
-                          fillOpacity="0.06"
-                          stroke={grp.color}
-                          strokeWidth="2"
-                          strokeDasharray="6 4"
-                          className="pointer-events-none"
-                        />
-                        {/* グループ見出しタグ */}
-                        <foreignObject
-                          x={minX + 10}
-                          y={minY - 13}
-                          width={Math.max(160, width - 20)}
-                          height="30"
-                          className="overflow-visible pointer-events-none"
-                        >
-                          <div className="flex items-center">
-                            <span 
-                              className="px-2.5 py-0.5 text-[10px] font-extrabold rounded-full text-white shadow-sm flex items-center gap-1 border border-white/80"
-                              style={{ backgroundColor: grp.color }}
-                            >
-                              <span>🏰</span>
-                              <span>{grp.name}</span>
-                            </span>
-                          </div>
-                        </foreignObject>
-                      </g>
-                    );
-                  })}
+                      const padX = 65;
+                      const padY = 60;
+                      const minX = Math.min(...groupChars.map((c) => c.x)) - padX;
+                      const maxX = Math.max(...groupChars.map((c) => c.x)) + padX;
+                      const minY = Math.min(...groupChars.map((c) => c.y)) - padY;
+                      const maxY = Math.max(...groupChars.map((c) => c.y)) + padY + 12;
+                      const width = maxX - minX;
+                      const height = maxY - minY;
 
-                  {/* 2. 描画用エッジリストの生成（A→B, B→Aが重ならないよう曲線化＆ハイライト） */}
-                  {(() => {
-                    interface RenderEdge {
-                      id: string;
-                      fromChar: Character;
-                      toChar: Character;
-                      label: string;
-                      detail?: string;
-                      color: string;
-                      hasReverse: boolean;
-                    }
+                      return (
+                        <g key={grp.id} className="transition-all duration-300">
+                          {/* グループ背景矩形 */}
+                          <rect
+                            x={minX}
+                            y={minY}
+                            width={width}
+                            height={height}
+                            rx="26"
+                            fill={grp.color}
+                            fillOpacity="0.06"
+                            stroke={grp.color}
+                            strokeWidth="2.5"
+                            strokeDasharray="8 5"
+                            className="pointer-events-none"
+                          />
+                          {/* グループ見出しタグ */}
+                          <foreignObject
+                            x={minX + 14}
+                            y={minY - 14}
+                            width={Math.max(180, width - 28)}
+                            height="34"
+                            className="overflow-visible pointer-events-none"
+                          >
+                            <div className="flex items-center">
+                              <span 
+                                className="px-3 py-1 text-[11px] font-extrabold rounded-full text-white shadow-sm flex items-center gap-1.5 border border-white/80"
+                                style={{ backgroundColor: grp.color }}
+                              >
+                                <span>🏰</span>
+                                <span>{grp.name}</span>
+                              </span>
+                            </div>
+                          </foreignObject>
+                        </g>
+                      );
+                    })}
 
-                    const renderEdges: RenderEdge[] = [];
-
-                    relations.forEach((rel) => {
-                      const fromChar = characters.find((c) => c.id === rel.fromId);
-                      const toChar = characters.find((c) => c.id === rel.toId);
-                      if (!fromChar || !toChar) return;
-
-                      if (rel.type === 'bidirectional') {
-                        renderEdges.push({
-                          id: `${rel.id}-f2t`,
-                          fromChar,
-                          toChar,
-                          label: rel.fromLabel,
-                          detail: rel.detail,
-                          color: rel.color || fromChar.themeColor || '#3b82f6',
-                          hasReverse: true,
-                        });
-                        renderEdges.push({
-                          id: `${rel.id}-t2f`,
-                          fromChar: toChar,
-                          toChar: fromChar,
-                          label: rel.toLabel || rel.fromLabel,
-                          detail: rel.detail,
-                          color: toChar.themeColor || '#dc2626',
-                          hasReverse: true,
-                        });
-                      } else {
-                        const hasReverse = relations.some(
-                          (r) =>
-                            (r.id !== rel.id && r.fromId === rel.toId && r.toId === rel.fromId) ||
-                            (r.id !== rel.id && r.type === 'bidirectional' && (
-                              (r.fromId === rel.toId && r.toId === rel.fromId) ||
-                              (r.fromId === rel.fromId && r.toId === rel.toId)
-                            ))
-                        );
-                        renderEdges.push({
-                          id: rel.id,
-                          fromChar,
-                          toChar,
-                          label: rel.fromLabel,
-                          detail: rel.detail,
-                          color: rel.color || fromChar.themeColor || '#3b82f6',
-                          hasReverse,
-                        });
+                    {/* 2. 描画用エッジリストの生成（A→B, B→Aが重ならないよう曲線化＆ハイライト） */}
+                    {(() => {
+                      interface RenderEdge {
+                        id: string;
+                        fromChar: Character;
+                        toChar: Character;
+                        label: string;
+                        detail?: string;
+                        color: string;
+                        hasReverse: boolean;
                       }
-                    });
 
-                    // 選択中の矢印が最前面に来るようソート
-                    renderEdges.sort((a, b) => {
-                      const aScore = a.fromChar.id === selectedCharId ? 2 : (a.toChar.id === selectedCharId ? 1 : 0);
-                      const bScore = b.fromChar.id === selectedCharId ? 2 : (b.toChar.id === selectedCharId ? 1 : 0);
-                      return aScore - bScore;
-                    });
+                      const renderEdges: RenderEdge[] = [];
 
-                    return renderEdges.map((edge) => {
-                      const { fromChar, toChar, label, detail, color, hasReverse } = edge;
+                      relations.forEach((rel) => {
+                        const fromChar = characters.find((c) => c.id === rel.fromId);
+                        const toChar = characters.find((c) => c.id === rel.toId);
+                        if (!fromChar || !toChar) return;
 
-                      // 選択キャラとの関係判定
-                      const isOutGoingFromSelected = selectedCharId === fromChar.id;
-                      const isInComingToSelected = selectedCharId === toChar.id;
-                      const isRelated = isOutGoingFromSelected || isInComingToSelected;
-
-                      // 太さと不透明度の計算（選択中のキャラから出る矢印を太く強調）
-                      let strokeWidth = 2.5;
-                      let opacity = 0.85;
-                      let markerSize = 7;
-                      let badgeScaleClass = '';
-
-                      if (selectedCharId) {
-                        if (isOutGoingFromSelected) {
-                          strokeWidth = 5; // 太線化！
-                          opacity = 1;
-                          markerSize = 9.5;
-                          badgeScaleClass = 'scale-110 ring-2 ring-white shadow-xl z-20';
-                        } else if (isInComingToSelected) {
-                          strokeWidth = 3.5;
-                          opacity = 0.9;
-                          markerSize = 8;
-                          badgeScaleClass = 'z-10 shadow-md';
+                        if (rel.type === 'bidirectional') {
+                          renderEdges.push({
+                            id: `${rel.id}-f2t`,
+                            fromChar,
+                            toChar,
+                            label: rel.fromLabel,
+                            detail: rel.detail,
+                            color: rel.color || fromChar.themeColor || '#3b82f6',
+                            hasReverse: true,
+                          });
+                          renderEdges.push({
+                            id: `${rel.id}-t2f`,
+                            fromChar: toChar,
+                            toChar: fromChar,
+                            label: rel.toLabel || rel.fromLabel,
+                            detail: rel.detail,
+                            color: toChar.themeColor || '#dc2626',
+                            hasReverse: true,
+                          });
                         } else {
-                          strokeWidth = 1.5;
-                          opacity = 0.18; // 無関係な矢印は薄く
-                          markerSize = 5;
-                          badgeScaleClass = 'opacity-30';
+                          const hasReverse = relations.some(
+                            (r) =>
+                              (r.id !== rel.id && r.fromId === rel.toId && r.toId === rel.fromId) ||
+                              (r.id !== rel.id && r.type === 'bidirectional' && (
+                                (r.fromId === rel.toId && r.toId === rel.fromId) ||
+                                (r.fromId === rel.fromId && r.toId === rel.toId)
+                              ))
+                          );
+                          renderEdges.push({
+                            id: rel.id,
+                            fromChar,
+                            toChar,
+                            label: rel.fromLabel,
+                            detail: rel.detail,
+                            color: rel.color || fromChar.themeColor || '#3b82f6',
+                            hasReverse,
+                          });
                         }
-                      }
+                      });
 
-                      // 自己ループの場合
-                      if (fromChar.id === toChar.id) {
-                        const sx = fromChar.x - 18;
-                        const sy = fromChar.y - 32;
-                        const ex = fromChar.x + 18;
-                        const ey = fromChar.y - 32;
-                        const pathD = `M ${sx} ${sy} C ${sx - 35} ${sy - 60}, ${ex + 35} ${ey - 60}, ${ex} ${ey}`;
-                        const midX = fromChar.x;
-                        const midY = fromChar.y - 70;
+                      // 選択中の矢印が最前面に来るようソート
+                      renderEdges.sort((a, b) => {
+                        const aScore = a.fromChar.id === selectedCharId ? 2 : (a.toChar.id === selectedCharId ? 1 : 0);
+                        const bScore = b.fromChar.id === selectedCharId ? 2 : (b.toChar.id === selectedCharId ? 1 : 0);
+                        return aScore - bScore;
+                      });
+
+                      return renderEdges.map((edge) => {
+                        const { fromChar, toChar, label, detail, color, hasReverse } = edge;
+
+                        // 選択キャラとの関係判定
+                        const isOutGoingFromSelected = selectedCharId === fromChar.id;
+                        const isInComingToSelected = selectedCharId === toChar.id;
+                        const isRelated = isOutGoingFromSelected || isInComingToSelected;
+
+                        // 太さと不透明度の計算（選択中のキャラから出る矢印を太く強調）
+                        let strokeWidth = 3;
+                        let opacity = 0.85;
+                        let markerSize = 8;
+                        let badgeScaleClass = '';
+
+                        if (selectedCharId) {
+                          if (isOutGoingFromSelected) {
+                            strokeWidth = 5.5; // 太線化！
+                            opacity = 1;
+                            markerSize = 10;
+                            badgeScaleClass = 'scale-110 ring-2 ring-white shadow-xl z-20';
+                          } else if (isInComingToSelected) {
+                            strokeWidth = 4;
+                            opacity = 0.9;
+                            markerSize = 8.5;
+                            badgeScaleClass = 'z-10 shadow-md';
+                          } else {
+                            strokeWidth = 1.8;
+                            opacity = 0.18; // 無関係な矢印は薄く
+                            markerSize = 5;
+                            badgeScaleClass = 'opacity-30';
+                          }
+                        }
+
+                        // 自己ループの場合
+                        if (fromChar.id === toChar.id) {
+                          const sx = fromChar.x - 20;
+                          const sy = fromChar.y - 36;
+                          const ex = fromChar.x + 20;
+                          const ey = fromChar.y - 36;
+                          const pathD = `M ${sx} ${sy} C ${sx - 40} ${sy - 70}, ${ex + 40} ${ey - 70}, ${ex} ${ey}`;
+                          const midX = fromChar.x;
+                          const midY = fromChar.y - 80;
+
+                          return (
+                            <g key={edge.id} className="transition-all duration-200">
+                              <defs>
+                                <marker
+                                  id={`arrow-${edge.id}`}
+                                  viewBox="0 0 10 10"
+                                  refX="6"
+                                  refY="5"
+                                  markerWidth={markerSize}
+                                  markerHeight={markerSize}
+                                  orient="auto"
+                                >
+                                  <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill={color} />
+                                </marker>
+                              </defs>
+                              <path
+                                d={pathD}
+                                fill="none"
+                                stroke={color}
+                                strokeWidth={strokeWidth}
+                                markerEnd={`url(#arrow-${edge.id})`}
+                                opacity={opacity}
+                              />
+                              <foreignObject x={midX - 75} y={midY - 14} width="150" height="36" className="overflow-visible pointer-events-auto">
+                                <div className="flex justify-center">
+                                  <span 
+                                    className={`px-3 py-0.5 rounded-full text-[11px] font-bold text-white shadow transition-all ${badgeScaleClass}`} 
+                                    style={{ backgroundColor: color }}
+                                  >
+                                    {label}
+                                  </span>
+                                </div>
+                              </foreignObject>
+                            </g>
+                          );
+                        }
+
+                        // 2点間の幾何計算
+                        const dx = toChar.x - fromChar.x;
+                        const dy = toChar.y - fromChar.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+
+                        const ux = dx / dist;
+                        const uy = dy / dist;
+                        const nx = -uy;
+                        const ny = ux;
+
+                        const nodeRadius = 42;
+                        const curveHeight = hasReverse ? 60 : 32;
+
+                        const startX = fromChar.x + ux * nodeRadius + nx * 10;
+                        const startY = fromChar.y + uy * nodeRadius + ny * 10;
+                        const endX = toChar.x - ux * (nodeRadius + 6) + nx * 10;
+                        const endY = toChar.y - uy * (nodeRadius + 6) + ny * 10;
+
+                        const ctrlX = (fromChar.x + toChar.x) / 2 + nx * (curveHeight * 2);
+                        const ctrlY = (fromChar.y + toChar.y) / 2 + ny * (curveHeight * 2);
+
+                        const pathD = `M ${startX} ${startY} Q ${ctrlX} ${ctrlY} ${endX} ${endY}`;
+
+                        const midX = 0.25 * startX + 0.5 * ctrlX + 0.25 * endX;
+                        const midY = 0.25 * startY + 0.5 * ctrlY + 0.25 * endY;
 
                         return (
-                          <g key={edge.id} className="transition-all duration-200">
+                          <g key={edge.id} className="transition-all duration-200 group">
                             <defs>
                               <marker
                                 id={`arrow-${edge.id}`}
@@ -1019,6 +1211,8 @@ export default function CharacterSheetPage() {
                                 <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill={color} />
                               </marker>
                             </defs>
+
+                            {/* 湾曲した矢印パス */}
                             <path
                               d={pathD}
                               fill="none"
@@ -1026,203 +1220,144 @@ export default function CharacterSheetPage() {
                               strokeWidth={strokeWidth}
                               markerEnd={`url(#arrow-${edge.id})`}
                               opacity={opacity}
+                              strokeLinecap="round"
+                              className="transition-all duration-200"
                             />
-                            <foreignObject x={midX - 70} y={midY - 14} width="140" height="36" className="overflow-visible pointer-events-auto">
-                              <div className="flex justify-center">
-                                <span 
-                                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white shadow transition-all ${badgeScaleClass}`} 
+
+                            {/* ラベル背景バッジ（カーブ頂点に配置・クリックで編集） */}
+                            <foreignObject
+                              x={midX - 80}
+                              y={midY - 14}
+                              width="160"
+                              height="44"
+                              className="overflow-visible pointer-events-auto"
+                            >
+                              <div className="flex flex-col items-center justify-center">
+                                <div 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const orig = relations.find((r) => r.id === edge.id || edge.id.startsWith(r.id));
+                                    if (orig) handleStartEditRelation(orig);
+                                  }}
+                                  className={`px-3 py-0.5 rounded-full text-[11px] font-bold text-white flex items-center gap-1 border border-white/80 max-w-[155px] truncate cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm ${badgeScaleClass}`}
                                   style={{ backgroundColor: color }}
+                                  title={`クリックして編集: ${fromChar.name} ➔ ${toChar.name}: ${label}`}
                                 >
-                                  {label}
-                                </span>
+                                  <span>➔ {label}</span>
+                                  <span className="opacity-70 text-[9px]">✏️</span>
+                                </div>
+                                {detail && isRelated && (
+                                  <span className="text-[10px] text-slate-700 bg-white/95 font-medium px-2 py-0.5 rounded shadow-xs mt-0.5 border border-slate-200 truncate max-w-[150px]">
+                                    {detail}
+                                  </span>
+                                )}
                               </div>
                             </foreignObject>
                           </g>
                         );
-                      }
+                      });
+                    })()}
 
-                      // 2点間の幾何計算
-                      const dx = toChar.x - fromChar.x;
-                      const dy = toChar.y - fromChar.y;
-                      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-
-                      const ux = dx / dist;
-                      const uy = dy / dist;
-                      const nx = -uy;
-                      const ny = ux;
-
-                      const nodeRadius = 38;
-                      const curveHeight = hasReverse ? 52 : 30;
-
-                      const startX = fromChar.x + ux * nodeRadius + nx * 8;
-                      const startY = fromChar.y + uy * nodeRadius + ny * 8;
-                      const endX = toChar.x - ux * (nodeRadius + 6) + nx * 8;
-                      const endY = toChar.y - uy * (nodeRadius + 6) + ny * 8;
-
-                      const ctrlX = (fromChar.x + toChar.x) / 2 + nx * (curveHeight * 2);
-                      const ctrlY = (fromChar.y + toChar.y) / 2 + ny * (curveHeight * 2);
-
-                      const pathD = `M ${startX} ${startY} Q ${ctrlX} ${ctrlY} ${endX} ${endY}`;
-
-                      const midX = 0.25 * startX + 0.5 * ctrlX + 0.25 * endX;
-                      const midY = 0.25 * startY + 0.5 * ctrlY + 0.25 * endY;
+                    {/* 3. キャラクターノード (Draggable Nodes with Avatar Image Support) */}
+                    {characters.map((char) => {
+                      const isSelected = char.id === selectedCharId;
+                      const isConnected = relations.some(
+                        (r) =>
+                          (r.fromId === selectedCharId && r.toId === char.id) ||
+                          (r.toId === selectedCharId && r.fromId === char.id)
+                      );
+                      const nodeOpacity = selectedCharId
+                        ? (isSelected || isConnected ? 1 : 0.4)
+                        : 1;
+                      const grp = groups.find((g) => g.id === char.groupId);
 
                       return (
-                        <g key={edge.id} className="transition-all duration-200 group">
-                          <defs>
-                            <marker
-                              id={`arrow-${edge.id}`}
-                              viewBox="0 0 10 10"
-                              refX="6"
-                              refY="5"
-                              markerWidth={markerSize}
-                              markerHeight={markerSize}
-                              orient="auto"
-                            >
-                              <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill={color} />
-                            </marker>
-                          </defs>
+                        <g
+                          key={char.id}
+                          transform={`translate(${char.x}, ${char.y})`}
+                          onMouseDown={(e) => handleMouseDownNode(char.id, e)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedCharId(char.id);
+                          }}
+                          className="cursor-grab active:cursor-grabbing group transition-opacity duration-200"
+                          opacity={nodeOpacity}
+                        >
+                          {/* 選択リング */}
+                          {isSelected && (
+                            <>
+                              <circle r="50" fill="none" stroke={char.themeColor === '#ffffff' ? '#94a3b8' : char.themeColor} strokeWidth="2.5" opacity="0.4" className="animate-ping" />
+                              <circle r="48" fill="none" stroke={char.themeColor === '#ffffff' ? '#94a3b8' : char.themeColor} strokeWidth="3" strokeDasharray="6 3" className="animate-spin" />
+                            </>
+                          )}
 
-                          {/* 湾曲した矢印パス */}
-                          <path
-                            d={pathD}
-                            fill="none"
-                            stroke={color}
-                            strokeWidth={strokeWidth}
-                            markerEnd={`url(#arrow-${edge.id})`}
-                            opacity={opacity}
-                            strokeLinecap="round"
-                            className="transition-all duration-200"
+                          {/* メイン外枠円 */}
+                          <circle
+                            r="38"
+                            fill="white"
+                            stroke={char.themeColor === '#ffffff' ? '#94a3b8' : char.themeColor}
+                            strokeWidth={isSelected ? "5" : "3.5"}
+                            className="drop-shadow-md group-hover:scale-105 transition-transform"
                           />
 
-                          {/* ラベル背景バッジ（カーブ頂点に配置・クリックで編集） */}
-                          <foreignObject
-                            x={midX - 75}
-                            y={midY - 14}
-                            width="150"
-                            height="40"
-                            className="overflow-visible pointer-events-auto"
-                          >
-                            <div className="flex flex-col items-center justify-center">
-                              <div 
-                                onClick={() => {
-                                  const orig = relations.find((r) => r.id === edge.id || edge.id.startsWith(r.id));
-                                  if (orig) handleStartEditRelation(orig);
-                                }}
-                                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white flex items-center gap-1 border border-white/80 max-w-[145px] truncate cursor-pointer hover:scale-105 transition-all duration-200 ${badgeScaleClass}`}
-                                style={{ backgroundColor: color }}
-                                title={`クリックして編集: ${fromChar.name} ➔ ${toChar.name}: ${label}`}
+                          {/* キャラクター画像 または イニシャル円 */}
+                          {char.avatarUrl ? (
+                            <g clipPath={`url(#avatar-clip-${char.id})`}>
+                              <circle r="30" fill={char.themeColor} opacity="0.2" />
+                              <image
+                                href={char.avatarUrl}
+                                x="-30"
+                                y="-30"
+                                width="60"
+                                height="60"
+                                preserveAspectRatio="xMidYMid slice"
+                              />
+                            </g>
+                          ) : (
+                            <>
+                              <circle 
+                                r="30" 
+                                fill={char.themeColor} 
+                                stroke={char.themeColor === '#ffffff' ? '#cbd5e1' : 'none'}
+                                strokeWidth={char.themeColor === '#ffffff' ? '1.5' : '0'}
+                                opacity={char.themeColor === '#ffffff' ? 1 : 0.92} 
+                              />
+                              <text
+                                textAnchor="middle"
+                                dy="6"
+                                fill={isLightColor(char.themeColor) ? '#0f172a' : 'white'}
+                                fontSize="16"
+                                fontWeight="bold"
+                                pointerEvents="none"
                               >
-                                <span>➔ {label}</span>
-                                <span className="opacity-70 text-[9px]">✏️</span>
-                              </div>
-                              {detail && isRelated && (
-                                <span className="text-[9px] text-slate-700 bg-white/95 font-medium px-1.5 py-0.5 rounded shadow-xs mt-0.5 border border-slate-200 truncate max-w-[140px]">
-                                  {detail}
+                                {char.name ? char.name.slice(0, 2) : '無名'}
+                              </text>
+                            </>
+                          )}
+
+                          {/* 名前・所属ラベル */}
+                          <foreignObject x="-85" y="44" width="170" height="56" className="overflow-visible pointer-events-none">
+                            <div className="flex flex-col items-center">
+                              <span className={`px-2.5 py-0.5 text-[12px] font-bold rounded-md shadow-sm whitespace-nowrap max-w-[160px] truncate transition-colors ${
+                                isSelected ? 'bg-blue-600 text-white ring-2 ring-blue-300' : 'bg-slate-900 text-white'
+                              }`}>
+                                {char.name}
+                              </span>
+                              {grp && (
+                                <span 
+                                  className="text-[10px] px-2 py-0.2 rounded font-bold shadow-xs truncate max-w-[150px] mt-0.5"
+                                  style={{ backgroundColor: `${grp.color}20`, color: grp.color }}
+                                >
+                                  {grp.name}
                                 </span>
                               )}
                             </div>
                           </foreignObject>
                         </g>
                       );
-                    });
-                  })()}
+                    })}
 
-                  {/* 3. キャラクターノード (Draggable Nodes with Avatar Image Support) */}
-                  {characters.map((char) => {
-                    const isSelected = char.id === selectedCharId;
-                    const isConnected = relations.some(
-                      (r) =>
-                        (r.fromId === selectedCharId && r.toId === char.id) ||
-                        (r.toId === selectedCharId && r.fromId === char.id)
-                    );
-                    const nodeOpacity = selectedCharId
-                      ? (isSelected || isConnected ? 1 : 0.4)
-                      : 1;
-                    const grp = groups.find((g) => g.id === char.groupId);
-
-                    return (
-                      <g
-                        key={char.id}
-                        transform={`translate(${char.x}, ${char.y})`}
-                        onMouseDown={(e) => handleMouseDownNode(char.id, e)}
-                        onClick={() => setSelectedCharId(char.id)}
-                        className="cursor-grab active:cursor-grabbing group transition-opacity duration-200"
-                        opacity={nodeOpacity}
-                      >
-                        {/* 選択リング */}
-                        {isSelected && (
-                          <>
-                            <circle r="46" fill="none" stroke={char.themeColor} strokeWidth="2.5" opacity="0.4" className="animate-ping" />
-                            <circle r="44" fill="none" stroke={char.themeColor} strokeWidth="3" strokeDasharray="6 3" className="animate-spin" />
-                          </>
-                        )}
-
-                        {/* メイン外枠円 */}
-                        <circle
-                          r="36"
-                          fill="white"
-                          stroke={char.themeColor === '#ffffff' ? '#94a3b8' : char.themeColor}
-                          strokeWidth={isSelected ? "5" : "3.5"}
-                          className="drop-shadow-md group-hover:scale-105 transition-transform"
-                        />
-
-                        {/* キャラクター画像 または イニシャル円 */}
-                        {char.avatarUrl ? (
-                          <g clipPath={`url(#avatar-clip-${char.id})`}>
-                            <circle r="28" fill={char.themeColor} opacity="0.2" />
-                            <image
-                              href={char.avatarUrl}
-                              x="-28"
-                              y="-28"
-                              width="56"
-                              height="56"
-                              preserveAspectRatio="xMidYMid slice"
-                            />
-                          </g>
-                        ) : (
-                          <>
-                            <circle 
-                              r="28" 
-                              fill={char.themeColor} 
-                              stroke={char.themeColor === '#ffffff' ? '#cbd5e1' : 'none'}
-                              strokeWidth={char.themeColor === '#ffffff' ? '1.5' : '0'}
-                              opacity={char.themeColor === '#ffffff' ? 1 : 0.92} 
-                            />
-                            <text
-                              textAnchor="middle"
-                              dy="6"
-                              fill={isLightColor(char.themeColor) ? '#0f172a' : 'white'}
-                              fontSize="15"
-                              fontWeight="bold"
-                              pointerEvents="none"
-                            >
-                              {char.name ? char.name.slice(0, 2) : '無名'}
-                            </text>
-                          </>
-                        )}
-
-                        {/* 名前・所属ラベル */}
-                        <foreignObject x="-75" y="40" width="150" height="52" className="overflow-visible pointer-events-none">
-                          <div className="flex flex-col items-center">
-                            <span className={`px-2 py-0.5 text-[11px] font-bold rounded-md shadow-sm whitespace-nowrap max-w-[140px] truncate transition-colors ${
-                              isSelected ? 'bg-blue-600 text-white ring-2 ring-blue-300' : 'bg-slate-900 text-white'
-                            }`}>
-                              {char.name}
-                            </span>
-                            {grp && (
-                              <span 
-                                className="text-[9px] px-1.5 py-0.2 rounded font-bold shadow-xs truncate max-w-[130px] mt-0.5"
-                                style={{ backgroundColor: `${grp.color}20`, color: grp.color }}
-                              >
-                                {grp.name}
-                              </span>
-                            )}
-                          </div>
-                        </foreignObject>
-                      </g>
-                    );
-                  })}
+                  </g>
                 </svg>
               </div>
             </div>
