@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
 interface Character {
@@ -19,91 +19,304 @@ interface Character {
   dislikes: string;
   quote: string;
   story: string;
+  // 相関図用座標
+  x: number;
+  y: number;
 }
 
-const DEFAULT_CHARACTER: Character = {
-  id: 'default',
-  name: 'ルシア・シルフィード',
-  nameKana: 'るしあ・しるふぃーど',
-  catchphrase: '風を味方に、まだ見ぬ世界を描く旅人',
-  role: '風の魔法使い / 見習い測量士',
-  age: '17歳',
-  gender: '女性',
-  themeColor: '#0284c7',
-  personality: '明るく好奇心旺盛。少しおっちょこちょいだが、一度決めたら曲げない芯の強さを持つ。',
-  appearance: '透き通るような青髪のショートボブ。羽根のついたベレー帽とスケッチブックを携帯。',
-  motifs: ['風', '羽根', 'スケッチブック', '青空'],
-  likes: '高い場所からの景色、甘い焼き菓子、新しいインク',
-  dislikes: 'じめじめした洞窟、約束を破ること',
-  quote: '「迷ったら、風が吹く方へ進んでみようよ！」',
-  story: '天空の街で生まれ育ち、地上に広がる未開の自然や生き物を記録するために旅に出た少女。手にしたペンで描いたものが風となって具現化する不思議な魔法を使う。'
-};
+interface Relation {
+  id: string;
+  fromId: string;
+  toId: string;
+  fromLabel: string; // fromからtoへの感情/関係（例: 信頼・相棒）
+  toLabel?: string;   // toからfromへの感情/関係（双方向の場合）
+  type: 'bidirectional' | 'unidirectional'; // 双方向 or 一方向
+  detail?: string;
+  color?: string;
+}
+
+// サンプルデータ: 冒険ファンタジー
+const SAMPLE_CHARACTERS: Character[] = [
+  {
+    id: 'char-1',
+    name: 'ルシア・シルフィード',
+    nameKana: 'るしあ・しるふぃーど',
+    catchphrase: '風を味方に、まだ見ぬ世界を描く旅人',
+    role: '風の魔法使い / 主人公',
+    age: '17歳',
+    gender: '女性',
+    themeColor: '#0284c7', // スカイブルー
+    personality: '明るく好奇心旺盛。少しおっちょこちょいだが、一度決めたら曲げない芯の強さを持つ。',
+    appearance: '透き通るような青髪のショートボブ。羽根のついたベレー帽とスケッチブックを携帯。',
+    motifs: ['風', '羽根', 'スケッチブック', '青空'],
+    likes: '高い場所からの景色、甘い焼き菓子、新しいインク',
+    dislikes: 'じめじめした洞窟、約束を破ること',
+    quote: '「迷ったら、風が吹く方へ進んでみようよ！」',
+    story: '天空の街で生まれ育ち、地上に広がる未開の自然や生き物を記録するために旅に出た少女。手にしたペンで描いたものが風となって具現化する不思議な魔法を使う。',
+    x: 180,
+    y: 180,
+  },
+  {
+    id: 'char-2',
+    name: 'レオン・ヴァルハイト',
+    nameKana: 'れおん・ゔぁるはいと',
+    catchphrase: '誇り高き剣で、仲間と誓いを守り抜く',
+    role: '守護騎士 / 相棒',
+    age: '19歳',
+    gender: '男性',
+    themeColor: '#dc2626', // レッド
+    personality: '生真面目で義理堅い。口数は少ないが仲間思いで、危険な前線に真っ先に立つ。',
+    appearance: '銀髪の短髪に琥珀色の瞳。歴戦の傷跡がある白銀の鎧を身にまとう。',
+    motifs: ['剣', '盾', '獅子', '炎'],
+    likes: '武具の手入れ、肉料理、静かな朝',
+    dislikes: '不意打ち、甘えた態度',
+    quote: '「お前の背中は俺が守る。前だけを見て走れ。」',
+    story: '没落した名門騎士家の若き当主。ルシアの真っ直ぐな瞳に救われ、彼女の旅の護衛役兼相棒として同行している。',
+    x: 520,
+    y: 180,
+  },
+  {
+    id: 'char-3',
+    name: 'ノア・クローバー',
+    nameKana: 'のあ・くろーばー',
+    catchphrase: '万物の真理を解き明かす、毒舌な天才学者',
+    role: '錬金術師 / 参謀',
+    age: '16歳',
+    gender: '男性',
+    themeColor: '#059669', // エメラルド
+    personality: '冷静沈着で理屈っぽい毒舌家。だが仲間がピンチの時は誰よりも素早く手を打つツンデレ。',
+    appearance: '深緑の髪に丸メガネ。白衣と怪しげな薬品フラスコを腰に提げている。',
+    motifs: ['四つ葉', '薬瓶', '歯車', '書物'],
+    likes: '古代文献の解読、ブラックコーヒー、静寂',
+    dislikes: '非論理的な行動、運動、騒がしい場所',
+    quote: '「やれやれ、僕の計算外で勝手な無茶をしないでください。」',
+    story: '最年少で王立アカデミーを卒業した天才研究者。ルシアの持つ不思議な魔法の正体を解き明かすという名目でパーティに加わる。',
+    x: 350,
+    y: 420,
+  }
+];
+
+const SAMPLE_RELATIONS: Relation[] = [
+  {
+    id: 'rel-1',
+    fromId: 'char-1',
+    toId: 'char-2',
+    fromLabel: '絶対的な信頼 / 相棒',
+    toLabel: '守るべき存在 / 敬意',
+    type: 'bidirectional',
+    detail: '旅の最初期に出会い、幾多の死線を共に乗り越えてきた一番の相棒関係。',
+    color: '#3b82f6'
+  },
+  {
+    id: 'rel-2',
+    fromId: 'char-2',
+    toId: 'char-3',
+    fromLabel: '頼れる頭脳（口喧嘩相手）',
+    toLabel: '頼もしい盾（脳筋扱い）',
+    type: 'bidirectional',
+    detail: '性格は正反対でよく言い争うが、実力は認め合っている凸凹コンビ。',
+    color: '#8b5cf6'
+  },
+  {
+    id: 'rel-3',
+    fromId: 'char-3',
+    toId: 'char-1',
+    fromLabel: '研究対象 兼 放っておけない',
+    toLabel: '博識な頼れる仲間',
+    type: 'bidirectional',
+    detail: '無茶ばかりするルシアに小言を言いつつも、いつも的確なサポートをする。',
+    color: '#10b981'
+  }
+];
 
 const COLOR_PRESETS = [
   { name: 'スカイブルー', color: '#0284c7' },
+  { name: 'クリムゾンレッド', color: '#dc2626' },
+  { name: 'エメラルドグリーン', color: '#059669' },
+  { name: 'アンバーゴールド', color: '#d97706' },
+  { name: 'パープルバイオレット', color: '#7c3aed' },
   { name: 'ローズピンク', color: '#e11d48' },
-  { name: 'エメラルド', color: '#059669' },
-  { name: 'アンバーオレンジ', color: '#d97706' },
-  { name: 'バイオレット', color: '#7c3aed' },
   { name: 'ミッドナイト', color: '#1e293b' },
 ];
 
+const RELATION_TAG_SUGGESTIONS = [
+  '信頼・相棒', 'ライバル', '親友・幼馴染', '片思い', '好意・両思い',
+  '主従関係', '師弟関係', '敵対・因縁', '憧れ・尊敬', '腐れ縁', 'ビジネス仲間'
+];
+
 export default function CharacterSheetPage() {
-  const [character, setCharacter] = useState<Character>(DEFAULT_CHARACTER);
+  const [characters, setCharacters] = useState<Character[]>(SAMPLE_CHARACTERS);
+  const [relations, setRelations] = useState<Relation[]>(SAMPLE_RELATIONS);
+  const [selectedCharId, setSelectedCharId] = useState<string>(SAMPLE_CHARACTERS[0].id);
+  const [activeTab, setActiveTab] = useState<'profile' | 'chart' | 'relations_list'>('chart');
+  
+  // 新規関係性フォーム用
+  const [newRelFrom, setNewRelFrom] = useState<string>('');
+  const [newRelTo, setNewRelTo] = useState<string>('');
+  const [newRelFromLabel, setNewRelFromLabel] = useState<string>('');
+  const [newRelToLabel, setNewRelToLabel] = useState<string>('');
+  const [newRelType, setNewRelType] = useState<'bidirectional' | 'unidirectional'>('bidirectional');
+  const [newRelDetail, setNewRelDetail] = useState<string>('');
+
+  // モチーフ追加用
   const [newMotif, setNewMotif] = useState('');
   const [copied, setCopied] = useState(false);
 
+  // ドラッグ操作用
+  const [draggingCharId, setDraggingCharId] = useState<string | null>(null);
+  const dragOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const svgRef = useRef<SVGSVGElement | null>(null);
+
   // LocalStorageから復元
   useEffect(() => {
-    const saved = localStorage.getItem('saved_character_sheet');
-    if (saved) {
+    const savedChars = localStorage.getItem('cb_characters');
+    const savedRels = localStorage.getItem('cb_relations');
+    if (savedChars) {
       try {
-        setCharacter(JSON.parse(saved));
+        const parsed = JSON.parse(savedChars);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCharacters(parsed);
+          setSelectedCharId(parsed[0].id);
+        }
       } catch (e) {
-        console.error('Failed to parse saved character', e);
+        console.error(e);
+      }
+    }
+    if (savedRels) {
+      try {
+        const parsedR = JSON.parse(savedRels);
+        if (Array.isArray(parsedR)) setRelations(parsedR);
+      } catch (e) {
+        console.error(e);
       }
     }
   }, []);
 
-  // 自動保存
-  const updateCharacter = (fields: Partial<Character>) => {
-    setCharacter((prev) => {
-      const updated = { ...prev, ...fields };
-      localStorage.setItem('saved_character_sheet', JSON.stringify(updated));
-      return updated;
-    });
+  // データ保存
+  const saveAll = (newChars: Character[], newRels: Relation[]) => {
+    setCharacters(newChars);
+    setRelations(newRels);
+    localStorage.setItem('cb_characters', JSON.stringify(newChars));
+    localStorage.setItem('cb_relations', JSON.stringify(newRels));
   };
 
+  const selectedCharacter = characters.find((c) => c.id === selectedCharId) || characters[0];
+
+  const updateSelectedCharacter = (fields: Partial<Character>) => {
+    const updated = characters.map((c) => (c.id === selectedCharId ? { ...c, ...fields } : c));
+    saveAll(updated, relations);
+  };
+
+  // キャラクターの新規追加
+  const handleAddCharacter = () => {
+    const count = characters.length + 1;
+    const newChar: Character = {
+      id: `char-${Date.now()}`,
+      name: `新規キャラクター${count}`,
+      nameKana: `しんききゃらくたー${count}`,
+      catchphrase: '設定を入力してください',
+      role: '役割 / 肩書',
+      age: '18歳',
+      gender: '不明',
+      themeColor: COLOR_PRESETS[count % COLOR_PRESETS.length].color,
+      personality: '',
+      appearance: '',
+      motifs: [],
+      likes: '',
+      dislikes: '',
+      quote: '',
+      story: '',
+      x: 200 + (count % 3) * 150,
+      y: 150 + Math.floor(count / 3) * 150
+    };
+    const updated = [...characters, newChar];
+    saveAll(updated, relations);
+    setSelectedCharId(newChar.id);
+  };
+
+  // キャラクターの削除
+  const handleDeleteCharacter = (idToDelete: string) => {
+    if (characters.length <= 1) {
+      alert('最低1人のキャラクターが必要です。');
+      return;
+    }
+    if (!window.confirm('このキャラクターと関連する関係性を削除しますか？')) return;
+    
+    const updatedChars = characters.filter((c) => c.id !== idToDelete);
+    const updatedRels = relations.filter((r) => r.fromId !== idToDelete && r.toId !== idToDelete);
+    saveAll(updatedChars, updatedRels);
+    if (selectedCharId === idToDelete) {
+      setSelectedCharId(updatedChars[0].id);
+    }
+  };
+
+  // モチーフの追加・削除
   const handleAddMotif = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMotif.trim()) return;
-    if (!character.motifs.includes(newMotif.trim())) {
-      updateCharacter({ motifs: [...character.motifs, newMotif.trim()] });
+    if (!newMotif.trim() || !selectedCharacter) return;
+    if (!selectedCharacter.motifs.includes(newMotif.trim())) {
+      updateSelectedCharacter({ motifs: [...selectedCharacter.motifs, newMotif.trim()] });
     }
     setNewMotif('');
   };
 
   const handleRemoveMotif = (indexToRemove: number) => {
-    updateCharacter({
-      motifs: character.motifs.filter((_, idx) => idx !== indexToRemove)
+    if (!selectedCharacter) return;
+    updateSelectedCharacter({
+      motifs: selectedCharacter.motifs.filter((_, idx) => idx !== indexToRemove)
     });
   };
 
-  const handleReset = () => {
-    if (window.confirm('入力内容を初期サンプルに戻しますか？')) {
-      setCharacter(DEFAULT_CHARACTER);
-      localStorage.setItem('saved_character_sheet', JSON.stringify(DEFAULT_CHARACTER));
+  // 関係性の追加
+  const handleAddRelation = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRelFrom || !newRelTo || newRelFrom === newRelTo || !newRelFromLabel.trim()) {
+      alert('関係を結ぶ2人のキャラクターと関係名を入力してください。');
+      return;
+    }
+
+    const fromChar = characters.find((c) => c.id === newRelFrom);
+    const newRel: Relation = {
+      id: `rel-${Date.now()}`,
+      fromId: newRelFrom,
+      toId: newRelTo,
+      fromLabel: newRelFromLabel.trim(),
+      toLabel: newRelType === 'bidirectional' ? (newRelToLabel.trim() || newRelFromLabel.trim()) : undefined,
+      type: newRelType,
+      detail: newRelDetail.trim() || undefined,
+      color: fromChar?.themeColor || '#64748b'
+    };
+
+    const updated = [...relations, newRel];
+    saveAll(characters, updated);
+    setNewRelFromLabel('');
+    setNewRelToLabel('');
+    setNewRelDetail('');
+  };
+
+  // 関係性の削除
+  const handleDeleteRelation = (relId: string) => {
+    const updated = relations.filter((r) => r.id !== relId);
+    saveAll(characters, updated);
+  };
+
+  // サンプルリセット
+  const handleResetSample = () => {
+    if (window.confirm('初期のサンプルデータに戻しますか？')) {
+      saveAll(SAMPLE_CHARACTERS, SAMPLE_RELATIONS);
+      setSelectedCharId(SAMPLE_CHARACTERS[0].id);
     }
   };
 
-  const handleClear = () => {
-    if (window.confirm('すべての項目をクリアして新しく作成しますか？')) {
-      const emptyChar: Character = {
-        id: Date.now().toString(),
-        name: '',
-        nameKana: '',
+  // 全クリア
+  const handleClearAll = () => {
+    if (window.confirm('すべてのキャラクターと相関図をリセットして新しく作り直しますか？')) {
+      const initialChar: Character = {
+        id: `char-${Date.now()}`,
+        name: '主人公',
+        nameKana: 'しゅじんこう',
         catchphrase: '',
-        role: '',
+        role: '主人公',
         age: '',
         gender: '',
         themeColor: '#0284c7',
@@ -113,40 +326,93 @@ export default function CharacterSheetPage() {
         likes: '',
         dislikes: '',
         quote: '',
-        story: ''
+        story: '',
+        x: 350,
+        y: 250
       };
-      setCharacter(emptyChar);
-      localStorage.setItem('saved_character_sheet', JSON.stringify(emptyChar));
+      saveAll([initialChar], []);
+      setSelectedCharId(initialChar.id);
     }
   };
 
-  const handleCopyText = () => {
-    const text = `
-【キャラクター設定シート】
-■ 名前: ${character.name}（${character.nameKana}）
-■ キャッチコピー: ${character.catchphrase}
-■ 役割・肩書: ${character.role}
-■ 年齢/性別: ${character.age} / ${character.gender}
-■ モチーフ: ${character.motifs.join(', ')}
-■ 外見特徴:
-${character.appearance}
-■ 性格・特徴:
-${character.personality}
-■ 好きなもの / 苦手なもの:
-好き: ${character.likes} / 苦手: ${character.dislikes}
-■ 代表セリフ:
-${character.quote}
-■ 背景設定・ストーリー:
-${character.story}
-    `.trim();
+  // 相関図の円形自動整列
+  const handleAutoAlignCircle = () => {
+    const centerX = 380;
+    const centerY = 280;
+    const radius = Math.min(220, 100 + characters.length * 25);
+    const updated = characters.map((c, idx) => {
+      const angle = (idx / characters.length) * 2 * Math.PI - Math.PI / 2;
+      return {
+        ...c,
+        x: Math.round(centerX + radius * Math.cos(angle)),
+        y: Math.round(centerY + radius * Math.sin(angle))
+      };
+    });
+    saveAll(updated, relations);
+  };
+
+  // ドラッグ操作（SVG相関図内）
+  const handleMouseDownNode = (charId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const char = characters.find((c) => c.id === charId);
+    if (!char) return;
+    setDraggingCharId(charId);
+    dragOffset.current = {
+      x: e.clientX - char.x,
+      y: e.clientY - char.y
+    };
+  };
+
+  const handleMouseMoveSvg = (e: React.MouseEvent) => {
+    if (!draggingCharId || !svgRef.current) return;
+    const rect = svgRef.current.getBoundingClientRect();
+    const currentX = e.clientX - rect.left;
+    const currentY = e.clientY - rect.top;
+
+    const boundedX = Math.max(70, Math.min(730, currentX));
+    const boundedY = Math.max(60, Math.min(540, currentY));
+
+    setCharacters((prev) =>
+      prev.map((c) => (c.id === draggingCharId ? { ...c, x: boundedX, y: boundedY } : c))
+    );
+  };
+
+  const handleMouseUpSvg = () => {
+    if (draggingCharId) {
+      setDraggingCharId(null);
+      saveAll(characters, relations);
+    }
+  };
+
+  // テキストエクスポート
+  const handleExportText = () => {
+    let text = `【作品・キャラクター相関図設定】\n\n`;
+    text += `■ 登場キャラクター一覧 (${characters.length}名)\n`;
+    characters.forEach((c) => {
+      text += `---------------------------------\n`;
+      text += `【${c.name}】（${c.nameKana}） - ${c.role}\n`;
+      if (c.catchphrase) text += `キャッチコピー: ${c.catchphrase}\n`;
+      text += `年齢/性別: ${c.age || '未設定'} / ${c.gender || '未設定'}\n`;
+      if (c.motifs.length > 0) text += `モチーフ: ${c.motifs.join(', ')}\n`;
+      if (c.quote) text += `代表セリフ: ${c.quote}\n`;
+      if (c.personality) text += `性格: ${c.personality}\n`;
+      if (c.story) text += `背景設定: ${c.story}\n`;
+    });
+
+    text += `\n■ キャラクター相関・関係性一覧 (${relations.length}件)\n`;
+    relations.forEach((r) => {
+      const from = characters.find((c) => c.id === r.fromId)?.name || '不明';
+      const to = characters.find((c) => c.id === r.toId)?.name || '不明';
+      text += `・ [${from}] ➔ [${to}]: ${r.fromLabel}\n`;
+      if (r.type === 'bidirectional' && r.toLabel) {
+        text += `  [${to}] ➔ [${from}]: ${r.toLabel}\n`;
+      }
+      if (r.detail) text += `  補足: ${r.detail}\n`;
+    });
 
     navigator.clipboard.writeText(text);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handlePrint = () => {
-    window.print();
+    setTimeout(() => setCopied(false), 2500);
   };
 
   return (
@@ -154,7 +420,7 @@ ${character.story}
       <div className="max-w-7xl mx-auto space-y-6">
         
         {/* ナビゲーション・ヘッダー */}
-        <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 md:p-6 rounded-2xl shadow-sm border border-slate-200">
           <div>
             <Link 
               href="/"
@@ -162,35 +428,35 @@ ${character.story}
             >
               ← ポートフォリオトップへ戻る
             </Link>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 flex items-center gap-2">
-              <span>🎭</span> キャラクター設定シート ジェネレーター
+            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 flex items-center gap-2">
+              <span>🕸️</span> キャラクター設定 & 相関図ジェネレーター
             </h1>
             <p className="text-xs md:text-sm text-slate-500 mt-1">
-              オリジナルキャラクターの設定や魅力を整理し、洗練されたカード形式で出力・保存できる創作支援ツール
+              複数キャラクターの設定整理と、直感的なビジュアル相関図（関係マップ）をワンストップで作成できる創作支援ツール
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
             <button
-              onClick={handleReset}
+              onClick={handleResetSample}
               className="px-3 py-1.5 text-xs font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
             >
               サンプル読込
             </button>
             <button
-              onClick={handleClear}
+              onClick={handleClearAll}
               className="px-3 py-1.5 text-xs font-medium text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition"
             >
               新規クリア
             </button>
             <button
-              onClick={handleCopyText}
+              onClick={handleExportText}
               className="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition flex items-center gap-1"
             >
-              {copied ? '✓ コピー完了！' : '📋 テキストコピー'}
+              {copied ? '✓ 相関図設定をコピー！' : '📋 全設定をコピー'}
             </button>
             <button
-              onClick={handlePrint}
+              onClick={() => window.print()}
               className="px-4 py-1.5 text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition flex items-center gap-1 shadow-sm"
             >
               🖨️ 印刷 / PDF保存
@@ -198,382 +464,880 @@ ${character.story}
           </div>
         </header>
 
-        {/* メインレイアウト: 入力フォーム (左) + リアルタイムプレビュー (右) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          
-          {/* 左側: 入力フォーム (lg:col-span-5) */}
-          <div className="lg:col-span-5 space-y-5 bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-sm overflow-y-auto max-h-[85vh]">
-            <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2">
-              <span>✏️</span> 設定を入力する
-            </h2>
-
-            {/* テーマカラー */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-700">テーマカラー</label>
-              <div className="flex items-center gap-2 flex-wrap">
-                {COLOR_PRESETS.map((p) => (
-                  <button
-                    key={p.color}
-                    type="button"
-                    onClick={() => updateCharacter({ themeColor: p.color })}
-                    className={`w-7 h-7 rounded-full border-2 transition-transform ${
-                      character.themeColor === p.color ? 'scale-110 border-slate-900 ring-2 ring-slate-400' : 'border-white'
-                    }`}
-                    style={{ backgroundColor: p.color }}
-                    title={p.name}
-                  />
-                ))}
-                <div className="flex items-center gap-1.5 pl-2">
-                  <input
-                    type="color"
-                    value={character.themeColor}
-                    onChange={(e) => updateCharacter({ themeColor: e.target.value })}
-                    className="w-8 h-8 rounded cursor-pointer border-0 p-0"
-                  />
-                  <span className="text-xs text-slate-400 font-mono">{character.themeColor}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* 基本情報 */}
-            <div className="space-y-3 pt-2">
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">キャラクター名 *</label>
-                <input
-                  type="text"
-                  value={character.name}
-                  onChange={(e) => updateCharacter({ name: e.target.value })}
-                  placeholder="例: ルシア・シルフィード"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">ふりがな / ローマ字</label>
-                <input
-                  type="text"
-                  value={character.nameKana}
-                  onChange={(e) => updateCharacter({ nameKana: e.target.value })}
-                  placeholder="例: るしあ・しるふぃーど"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">キャッチコピー / 一言</label>
-                <input
-                  type="text"
-                  value={character.catchphrase}
-                  onChange={(e) => updateCharacter({ catchphrase: e.target.value })}
-                  placeholder="例: 風を味方に、まだ見ぬ世界を描く旅人"
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-2">
-                <div className="col-span-1">
-                  <label className="text-xs font-bold text-slate-700 block mb-1">年齢</label>
-                  <input
-                    type="text"
-                    value={character.age}
-                    onChange={(e) => updateCharacter({ age: e.target.value })}
-                    placeholder="例: 17歳"
-                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div className="col-span-1">
-                  <label className="text-xs font-bold text-slate-700 block mb-1">性別</label>
-                  <input
-                    type="text"
-                    value={character.gender}
-                    onChange={(e) => updateCharacter({ gender: e.target.value })}
-                    placeholder="例: 女性"
-                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div className="col-span-1">
-                  <label className="text-xs font-bold text-slate-700 block mb-1">役割/肩書</label>
-                  <input
-                    type="text"
-                    value={character.role}
-                    onChange={(e) => updateCharacter({ role: e.target.value })}
-                    placeholder="例: 魔法使い"
-                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* モチーフ・タグ */}
-            <div className="space-y-2 pt-2">
-              <label className="text-xs font-bold text-slate-700 block">モチーフ / 連想キーワード</label>
-              <form onSubmit={handleAddMotif} className="flex gap-2">
-                <input
-                  type="text"
-                  value={newMotif}
-                  onChange={(e) => setNewMotif(e.target.value)}
-                  placeholder="例: 羽根, 星, 鍵 (Enterで追加)"
-                  className="flex-1 px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                <button
-                  type="submit"
-                  className="px-3 py-1.5 text-xs font-bold bg-slate-800 text-white rounded-lg hover:bg-slate-700"
-                >
-                  追加
-                </button>
-              </form>
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                {character.motifs.map((motif, idx) => (
-                  <span
-                    key={idx}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-700 text-xs rounded-md"
-                  >
-                    #{motif}
-                    <button
-                      type="button"
-                      onClick={() => handleRemoveMotif(idx)}
-                      className="text-slate-400 hover:text-red-500 font-bold ml-1"
-                    >
-                      ×
-                    </button>
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {/* 外見・性格 */}
-            <div className="space-y-3 pt-2">
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">外見・ビジュアル特徴</label>
-                <textarea
-                  rows={2}
-                  value={character.appearance}
-                  onChange={(e) => updateCharacter({ appearance: e.target.value })}
-                  placeholder="髪型、目の色、服装、持ち物などの特徴"
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">性格・特徴</label>
-                <textarea
-                  rows={2}
-                  value={character.personality}
-                  onChange={(e) => updateCharacter({ personality: e.target.value })}
-                  placeholder="性格の傾向、長所、短所、癖など"
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">好きなもの</label>
-                  <input
-                    type="text"
-                    value={character.likes}
-                    onChange={(e) => updateCharacter({ likes: e.target.value })}
-                    placeholder="例: 甘いお菓子、読書"
-                    className="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">苦手なもの</label>
-                  <input
-                    type="text"
-                    value={character.dislikes}
-                    onChange={(e) => updateCharacter({ dislikes: e.target.value })}
-                    placeholder="例: 暗い場所、虫"
-                    className="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">代表セリフ / 口癖</label>
-                <input
-                  type="text"
-                  value={character.quote}
-                  onChange={(e) => updateCharacter({ quote: e.target.value })}
-                  placeholder="例: 「迷ったら、風が吹く方へ進んでみようよ！」"
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-serif"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-700 block mb-1">生い立ち・背景ストーリー</label>
-                <textarea
-                  rows={3}
-                  value={character.story}
-                  onChange={(e) => updateCharacter({ story: e.target.value })}
-                  placeholder="世界観における立ち位置、過去の出来事、目標や動機など"
-                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
+        {/* タブ切り替えバー */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+            <button
+              onClick={() => setActiveTab('chart')}
+              className={`px-4 py-1.5 text-xs font-bold rounded-md transition ${
+                activeTab === 'chart' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              🕸️ ビジュアル相関図
+            </button>
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`px-4 py-1.5 text-xs font-bold rounded-md transition ${
+                activeTab === 'profile' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              👤 個別設定シート ({characters.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('relations_list')}
+              className={`px-4 py-1.5 text-xs font-bold rounded-md transition ${
+                activeTab === 'relations_list' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              📝 関係性一覧・追加 ({relations.length})
+            </button>
           </div>
 
-          {/* 右側: リアルタイムプレビュー (lg:col-span-7) */}
-          <div className="lg:col-span-7">
-            <div className="sticky top-6">
-              
-              {/* プレビューカード（印刷対象） */}
-              <div 
-                id="character-card"
-                className="bg-white rounded-2xl border-2 shadow-md overflow-hidden transition-all duration-300"
-                style={{ borderColor: character.themeColor || '#cbd5e1' }}
+          {/* キャラクター切り替えクイックバー */}
+          <div className="flex items-center gap-1.5 overflow-x-auto max-w-full py-1">
+            <span className="text-xs text-slate-400 font-medium whitespace-nowrap">キャラ:</span>
+            {characters.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => {
+                  setSelectedCharId(c.id);
+                  if (activeTab === 'relations_list') setActiveTab('profile');
+                }}
+                className={`px-2.5 py-1 text-xs rounded-full font-medium flex items-center gap-1.5 transition whitespace-nowrap border ${
+                  selectedCharId === c.id
+                    ? 'border-slate-800 bg-slate-800 text-white shadow-sm'
+                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
+                }`}
               >
-                {/* カード上部バナー */}
-                <div 
-                  className="p-6 text-white relative overflow-hidden"
-                  style={{ backgroundColor: character.themeColor || '#0284c7' }}
+                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: c.themeColor }} />
+                <span>{c.name || '無名'}</span>
+              </button>
+            ))}
+            <button
+              onClick={handleAddCharacter}
+              className="px-2.5 py-1 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-full transition whitespace-nowrap flex items-center gap-1"
+            >
+              <span>＋</span> 追加
+            </button>
+          </div>
+        </div>
+
+        {/* ======================================================== */}
+        {/* 1. ビジュアル相関図タブ */}
+        {/* ======================================================== */}
+        {activeTab === 'chart' && (
+          <div className="space-y-4">
+            <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                <div>
+                  <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <span>🕸️</span> インタラクティブ相関図マップ
+                  </h2>
+                  <p className="text-xs text-slate-500">
+                    💡 キャラクターの丸アイコンをドラッグ＆ドロップして自由に配置できます。クリックで個別設定を開きます。
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleAutoAlignCircle}
+                    className="px-3 py-1.5 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition flex items-center gap-1"
+                  >
+                    <span>🔄</span> 円形に整列
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('relations_list')}
+                    className="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition flex items-center gap-1"
+                  >
+                    <span>＋</span> 新しい関係性を結ぶ
+                  </button>
+                </div>
+              </div>
+
+              {/* 相関図SVGキャンバス */}
+              <div className="relative w-full h-[580px] bg-slate-900/5 rounded-xl border-2 border-dashed border-slate-300 overflow-hidden select-none">
+                <svg
+                  ref={svgRef}
+                  className="w-full h-full cursor-crosshair"
+                  onMouseMove={handleMouseMoveSvg}
+                  onMouseUp={handleMouseUpSvg}
+                  viewBox="0 0 800 600"
                 >
-                  <div className="relative z-10 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold tracking-widest uppercase opacity-90">
-                        Character Profile
-                      </span>
-                      {character.role && (
-                        <span className="px-2.5 py-0.5 bg-black/20 backdrop-blur-sm rounded-full text-xs font-medium">
-                          {character.role}
+                  <defs>
+                    {/* 矢印マーカー */}
+                    <marker
+                      id="arrow-end"
+                      viewBox="0 0 10 10"
+                      refX="22"
+                      refY="5"
+                      markerWidth="6"
+                      markerHeight="6"
+                      orient="auto-start-reverse"
+                    >
+                      <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
+                    </marker>
+                    <marker
+                      id="arrow-start"
+                      viewBox="0 0 10 10"
+                      refX="-12"
+                      refY="5"
+                      markerWidth="6"
+                      markerHeight="6"
+                      orient="auto"
+                    >
+                      <path d="M 10 1 L 0 5 L 10 9 z" fill="#64748b" />
+                    </marker>
+                  </defs>
+
+                  {/* グリッド背景ドット */}
+                  <pattern id="dotGrid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                    <circle cx="2" cy="2" r="1" fill="#cbd5e1" />
+                  </pattern>
+                  <rect width="100%" height="100%" fill="url(#dotGrid)" />
+
+                  {/* 関係線 (Lines & Arrows) */}
+                  {relations.map((rel) => {
+                    const fromChar = characters.find((c) => c.id === rel.fromId);
+                    const toChar = characters.find((c) => c.id === rel.toId);
+                    if (!fromChar || !toChar) return null;
+
+                    const midX = (fromChar.x + toChar.x) / 2;
+                    const midY = (fromChar.y + toChar.y) / 2;
+                    const strokeColor = rel.color || '#64748b';
+
+                    return (
+                      <g key={rel.id} className="transition-all">
+                        {/* 接続線 */}
+                        <line
+                          x1={fromChar.x}
+                          y1={fromChar.y}
+                          x2={toChar.x}
+                          y2={toChar.y}
+                          stroke={strokeColor}
+                          strokeWidth="2.5"
+                          strokeDasharray={rel.type === 'unidirectional' ? '4 2' : undefined}
+                          markerEnd="url(#arrow-end)"
+                          markerStart={rel.type === 'bidirectional' ? 'url(#arrow-start)' : undefined}
+                          opacity="0.85"
+                        />
+
+                        {/* ラベル背景バッジ */}
+                        <foreignObject
+                          x={midX - 85}
+                          y={midY - 24}
+                          width="170"
+                          height="48"
+                          className="overflow-visible pointer-events-auto"
+                        >
+                          <div className="flex flex-col items-center justify-center">
+                            <div 
+                              className="px-2.5 py-1 rounded-full text-[11px] font-bold text-white shadow-md flex items-center gap-1 border border-white/40 max-w-[160px] truncate"
+                              style={{ backgroundColor: strokeColor }}
+                              title={`${fromChar.name} ➔ ${toChar.name}: ${rel.fromLabel}${rel.toLabel ? ` / ${toChar.name} ➔ ${fromChar.name}: ${rel.toLabel}` : ''}`}
+                            >
+                              <span>{rel.fromLabel}</span>
+                              {rel.type === 'bidirectional' && rel.toLabel && rel.toLabel !== rel.fromLabel && (
+                                <span className="opacity-90 font-normal"> / {rel.toLabel}</span>
+                              )}
+                            </div>
+                            {rel.detail && (
+                              <span className="text-[9px] text-slate-500 bg-white/90 px-1.5 py-0.5 rounded shadow-xs mt-0.5 border border-slate-200 truncate max-w-[150px]">
+                                {rel.detail}
+                              </span>
+                            )}
+                          </div>
+                        </foreignObject>
+                      </g>
+                    );
+                  })}
+
+                  {/* キャラクターノード (Draggable Nodes) */}
+                  {characters.map((char) => {
+                    const isSelected = char.id === selectedCharId;
+                    return (
+                      <g
+                        key={char.id}
+                        transform={`translate(${char.x}, ${char.y})`}
+                        onMouseDown={(e) => handleMouseDownNode(char.id, e)}
+                        onClick={() => setSelectedCharId(char.id)}
+                        className="cursor-grab active:cursor-grabbing group"
+                      >
+                        {/* 選択リング */}
+                        {isSelected && (
+                          <circle r="44" fill="none" stroke={char.themeColor} strokeWidth="3" strokeDasharray="5 3" className="animate-spin" />
+                        )}
+
+                        {/* メイン円 */}
+                        <circle
+                          r="36"
+                          fill="white"
+                          stroke={char.themeColor}
+                          strokeWidth="4"
+                          className="drop-shadow-md group-hover:scale-105 transition-transform"
+                        />
+
+                        {/* キャラクターアイコン/イニシャル */}
+                        <circle r="26" fill={char.themeColor} opacity="0.9" />
+                        <text
+                          textAnchor="middle"
+                          dy="6"
+                          fill="white"
+                          fontSize="16"
+                          fontWeight="bold"
+                          pointerEvents="none"
+                        >
+                          {char.name ? char.name.slice(0, 2) : '無名'}
+                        </text>
+
+                        {/* 名前と役職ラベル */}
+                        <foreignObject x="-75" y="42" width="150" height="45" className="overflow-visible pointer-events-none">
+                          <div className="flex flex-col items-center">
+                            <span className="px-2 py-0.5 bg-slate-900 text-white text-[11px] font-bold rounded-md shadow-sm whitespace-nowrap max-w-[140px] truncate">
+                              {char.name}
+                            </span>
+                            {char.role && (
+                              <span className="text-[10px] text-slate-500 font-medium truncate max-w-[130px]">
+                                {char.role}
+                              </span>
+                            )}
+                          </div>
+                        </foreignObject>
+                      </g>
+                    );
+                  })}
+                </svg>
+              </div>
+            </div>
+
+            {/* 選択中のキャラクター詳細クイックプレビュー */}
+            {selectedCharacter && (
+              <div 
+                className="p-4 bg-white rounded-xl border-l-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4"
+                style={{ borderLeftColor: selectedCharacter.themeColor }}
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-400">{selectedCharacter.nameKana}</span>
+                    <h3 className="text-base font-bold text-slate-900">{selectedCharacter.name}</h3>
+                    <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
+                      {selectedCharacter.role}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-600 italic">
+                    {selectedCharacter.catchphrase || selectedCharacter.quote || selectedCharacter.personality || '設定を入力してください'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setActiveTab('profile')}
+                    className="px-3 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition"
+                  >
+                    ✏️ このキャラの設定を編集
+                  </button>
+                  <button
+                    onClick={() => {
+                      setNewRelFrom(selectedCharacter.id);
+                      setActiveTab('relations_list');
+                    }}
+                    className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+                  >
+                    🔗 このキャラの関係性を追加
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* 2. 個別キャラクター設定シートタブ */}
+        {/* ======================================================== */}
+        {activeTab === 'profile' && selectedCharacter && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* 左側: 入力フォーム (lg:col-span-5) */}
+            <div className="lg:col-span-5 space-y-5 bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-sm overflow-y-auto max-h-[85vh]">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <span>✏️</span> {selectedCharacter.name || 'キャラクター'}の設定
+                </h2>
+                <button
+                  onClick={() => handleDeleteCharacter(selectedCharacter.id)}
+                  className="text-xs text-red-500 hover:underline font-medium"
+                >
+                  このキャラを削除
+                </button>
+              </div>
+
+              {/* テーマカラー */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-700">テーマカラー</label>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {COLOR_PRESETS.map((p) => (
+                    <button
+                      key={p.color}
+                      type="button"
+                      onClick={() => updateSelectedCharacter({ themeColor: p.color })}
+                      className={`w-7 h-7 rounded-full border-2 transition-transform ${
+                        selectedCharacter.themeColor === p.color ? 'scale-110 border-slate-900 ring-2 ring-slate-400' : 'border-white'
+                      }`}
+                      style={{ backgroundColor: p.color }}
+                      title={p.name}
+                    />
+                  ))}
+                  <div className="flex items-center gap-1.5 pl-2">
+                    <input
+                      type="color"
+                      value={selectedCharacter.themeColor}
+                      onChange={(e) => updateSelectedCharacter({ themeColor: e.target.value })}
+                      className="w-8 h-8 rounded cursor-pointer border-0 p-0"
+                    />
+                    <span className="text-xs text-slate-400 font-mono">{selectedCharacter.themeColor}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 基本情報 */}
+              <div className="space-y-3 pt-2">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">キャラクター名 *</label>
+                  <input
+                    type="text"
+                    value={selectedCharacter.name}
+                    onChange={(e) => updateSelectedCharacter({ name: e.target.value })}
+                    placeholder="例: ルシア・シルフィード"
+                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">ふりがな / ローマ字</label>
+                  <input
+                    type="text"
+                    value={selectedCharacter.nameKana}
+                    onChange={(e) => updateSelectedCharacter({ nameKana: e.target.value })}
+                    placeholder="例: るしあ・しるふぃーど"
+                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">キャッチコピー / 一言</label>
+                  <input
+                    type="text"
+                    value={selectedCharacter.catchphrase}
+                    onChange={(e) => updateSelectedCharacter({ catchphrase: e.target.value })}
+                    placeholder="例: 風を味方に、まだ見ぬ世界を描く旅人"
+                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="col-span-1">
+                    <label className="text-xs font-bold text-slate-700 block mb-1">年齢</label>
+                    <input
+                      type="text"
+                      value={selectedCharacter.age}
+                      onChange={(e) => updateSelectedCharacter({ age: e.target.value })}
+                      placeholder="例: 17歳"
+                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="col-span-1">
+                    <label className="text-xs font-bold text-slate-700 block mb-1">性別</label>
+                    <input
+                      type="text"
+                      value={selectedCharacter.gender}
+                      onChange={(e) => updateSelectedCharacter({ gender: e.target.value })}
+                      placeholder="例: 女性"
+                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="col-span-1">
+                    <label className="text-xs font-bold text-slate-700 block mb-1">役割/肩書</label>
+                    <input
+                      type="text"
+                      value={selectedCharacter.role}
+                      onChange={(e) => updateSelectedCharacter({ role: e.target.value })}
+                      placeholder="例: 主人公"
+                      className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* モチーフ・タグ */}
+              <div className="space-y-2 pt-2">
+                <label className="text-xs font-bold text-slate-700 block">モチーフ / 連想キーワード</label>
+                <form onSubmit={handleAddMotif} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newMotif}
+                    onChange={(e) => setNewMotif(e.target.value)}
+                    placeholder="例: 風, 羽根 (Enterで追加)"
+                    className="flex-1 px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    type="submit"
+                    className="px-3 py-1.5 text-xs font-bold bg-slate-800 text-white rounded-lg hover:bg-slate-700"
+                  >
+                    追加
+                  </button>
+                </form>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {selectedCharacter.motifs.map((motif, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-700 text-xs rounded-md"
+                    >
+                      #{motif}
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveMotif(idx)}
+                        className="text-slate-400 hover:text-red-500 font-bold ml-1"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* 外見・性格 */}
+              <div className="space-y-3 pt-2">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">外見・ビジュアル特徴</label>
+                  <textarea
+                    rows={2}
+                    value={selectedCharacter.appearance}
+                    onChange={(e) => updateSelectedCharacter({ appearance: e.target.value })}
+                    placeholder="髪型、目の色、服装、持ち物などの特徴"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">性格・特徴</label>
+                  <textarea
+                    rows={2}
+                    value={selectedCharacter.personality}
+                    onChange={(e) => updateSelectedCharacter({ personality: e.target.value })}
+                    placeholder="性格の傾向、長所、短所、癖など"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">好きなもの</label>
+                    <input
+                      type="text"
+                      value={selectedCharacter.likes}
+                      onChange={(e) => updateSelectedCharacter({ likes: e.target.value })}
+                      placeholder="例: 甘いお菓子"
+                      className="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">苦手なもの</label>
+                    <input
+                      type="text"
+                      value={selectedCharacter.dislikes}
+                      onChange={(e) => updateSelectedCharacter({ dislikes: e.target.value })}
+                      placeholder="例: 暗い場所"
+                      className="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">代表セリフ / 口癖</label>
+                  <input
+                    type="text"
+                    value={selectedCharacter.quote}
+                    onChange={(e) => updateSelectedCharacter({ quote: e.target.value })}
+                    placeholder="例: 「迷ったら、風が吹く方へ進んでみようよ！」"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-serif"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">生い立ち・背景ストーリー</label>
+                  <textarea
+                    rows={3}
+                    value={selectedCharacter.story}
+                    onChange={(e) => updateSelectedCharacter({ story: e.target.value })}
+                    placeholder="世界観における立ち位置、過去の出来事、動機など"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+
+            </div>
+
+            {/* 右側: リアルタイムプレビュー (lg:col-span-7) */}
+            <div className="lg:col-span-7">
+              <div className="sticky top-6">
+                
+                {/* プレビューカード */}
+                <div 
+                  className="bg-white rounded-2xl border-2 shadow-md overflow-hidden transition-all duration-300"
+                  style={{ borderColor: selectedCharacter.themeColor || '#cbd5e1' }}
+                >
+                  {/* カード上部バナー */}
+                  <div 
+                    className="p-6 text-white relative overflow-hidden"
+                    style={{ backgroundColor: selectedCharacter.themeColor || '#0284c7' }}
+                  >
+                    <div className="relative z-10 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold tracking-widest uppercase opacity-90">
+                          Character Profile
                         </span>
+                        {selectedCharacter.role && (
+                          <span className="px-2.5 py-0.5 bg-black/20 backdrop-blur-sm rounded-full text-xs font-medium">
+                            {selectedCharacter.role}
+                          </span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-xs opacity-90">{selectedCharacter.nameKana || 'ふりがな'}</p>
+                        <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+                          {selectedCharacter.name || 'キャラクター名'}
+                        </h3>
+                      </div>
+                      {selectedCharacter.catchphrase && (
+                        <p className="text-xs md:text-sm font-medium opacity-95 pt-1 italic">
+                          “ {selectedCharacter.catchphrase} ”
+                        </p>
                       )}
                     </div>
-                    <div>
-                      <p className="text-xs opacity-90">{character.nameKana || 'ふりがな'}</p>
-                      <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-                        {character.name || 'キャラクター名'}
-                      </h3>
-                    </div>
-                    {character.catchphrase && (
-                      <p className="text-xs md:text-sm font-medium opacity-95 pt-1 italic">
-                        “ {character.catchphrase} ”
-                      </p>
+                  </div>
+
+                  {/* カード本文 */}
+                  <div className="p-6 md:p-8 space-y-6">
+
+                    {/* 代表セリフ */}
+                    {selectedCharacter.quote && (
+                      <div 
+                        className="p-4 rounded-xl border-l-4 bg-slate-50 italic font-serif text-slate-800 text-sm md:text-base leading-relaxed"
+                        style={{ borderLeftColor: selectedCharacter.themeColor || '#0284c7' }}
+                      >
+                        {selectedCharacter.quote}
+                      </div>
                     )}
-                  </div>
 
-                  {/* 背景装飾 */}
-                  <div className="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-white/10 blur-xl pointer-events-none" />
-                </div>
-
-                {/* カード本文 */}
-                <div className="p-6 md:p-8 space-y-6">
-
-                  {/* 代表セリフ */}
-                  {character.quote && (
-                    <div 
-                      className="p-4 rounded-xl border-l-4 bg-slate-50 italic font-serif text-slate-800 text-sm md:text-base leading-relaxed"
-                      style={{ borderLeftColor: character.themeColor || '#0284c7' }}
-                    >
-                      {character.quote}
-                    </div>
-                  )}
-
-                  {/* 基本スペック */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 bg-slate-50/80 rounded-xl border border-slate-100 text-xs">
-                    <div>
-                      <span className="text-slate-400 block mb-0.5">年齢</span>
-                      <span className="font-bold text-slate-700">{character.age || '未設定'}</span>
-                    </div>
-                    <div>
-                      <span className="text-slate-400 block mb-0.5">性別</span>
-                      <span className="font-bold text-slate-700">{character.gender || '未設定'}</span>
-                    </div>
-                    <div className="col-span-2 md:col-span-1">
-                      <span className="text-slate-400 block mb-0.5">テーマカラー</span>
-                      <div className="flex items-center gap-1.5 font-bold text-slate-700">
-                        <span 
-                          className="w-3 h-3 rounded-full inline-block border border-slate-200" 
-                          style={{ backgroundColor: character.themeColor }}
-                        />
-                        <span className="font-mono text-[11px]">{character.themeColor}</span>
+                    {/* 基本スペック */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 bg-slate-50/80 rounded-xl border border-slate-100 text-xs">
+                      <div>
+                        <span className="text-slate-400 block mb-0.5">年齢</span>
+                        <span className="font-bold text-slate-700">{selectedCharacter.age || '未設定'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400 block mb-0.5">性別</span>
+                        <span className="font-bold text-slate-700">{selectedCharacter.gender || '未設定'}</span>
+                      </div>
+                      <div className="col-span-2 md:col-span-1">
+                        <span className="text-slate-400 block mb-0.5">テーマカラー</span>
+                        <div className="flex items-center gap-1.5 font-bold text-slate-700">
+                          <span 
+                            className="w-3 h-3 rounded-full inline-block border border-slate-200" 
+                            style={{ backgroundColor: selectedCharacter.themeColor }}
+                          />
+                          <span className="font-mono text-[11px]">{selectedCharacter.themeColor}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* モチーフ */}
-                  {character.motifs.length > 0 && (
-                    <div className="space-y-1.5">
+                    {/* 他キャラとの関係性（このキャラが関わる関係一覧） */}
+                    <div className="space-y-2">
                       <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                        Motifs & Elements
+                        Relationships (他キャラとの相関)
                       </h4>
-                      <div className="flex flex-wrap gap-1.5">
-                        {character.motifs.map((motif, idx) => (
-                          <span
-                            key={idx}
-                            className="px-2.5 py-1 text-xs font-medium rounded-md border"
-                            style={{ 
-                              backgroundColor: `${character.themeColor}15`, 
-                              borderColor: `${character.themeColor}40`,
-                              color: character.themeColor 
-                            }}
-                          >
-                            #{motif}
-                          </span>
-                        ))}
+                      <div className="space-y-2">
+                        {relations
+                          .filter((r) => r.fromId === selectedCharacter.id || r.toId === selectedCharacter.id)
+                          .map((r) => {
+                            const isFrom = r.fromId === selectedCharacter.id;
+                            const targetChar = characters.find((c) => c.id === (isFrom ? r.toId : r.fromId));
+                            if (!targetChar) return null;
+                            const myLabel = isFrom ? r.fromLabel : (r.toLabel || r.fromLabel);
+
+                            return (
+                              <div key={r.id} className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: targetChar.themeColor }} />
+                                  <span className="font-bold text-slate-800">{targetChar.name}</span>
+                                  <span className="text-slate-400">に対して:</span>
+                                  <span className="px-2 py-0.5 bg-blue-100 text-blue-800 font-semibold rounded">
+                                    {myLabel}
+                                  </span>
+                                </div>
+                                {r.detail && <span className="text-slate-500 text-[11px] italic">{r.detail}</span>}
+                              </div>
+                            );
+                          })}
+                        {relations.filter((r) => r.fromId === selectedCharacter.id || r.toId === selectedCharacter.id).length === 0 && (
+                          <p className="text-xs text-slate-400 italic">まだ関係性が登録されていません。</p>
+                        )}
                       </div>
                     </div>
-                  )}
 
-                  {/* 外見・ビジュアル */}
-                  <div className="space-y-1.5">
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                      Appearance
-                    </h4>
-                    <p className="text-xs md:text-sm text-slate-700 leading-relaxed whitespace-pre-line bg-white p-3 rounded-lg border border-slate-100">
-                      {character.appearance || '（外見の特徴がここに入ります）'}
-                    </p>
+                    {/* モチーフ */}
+                    {selectedCharacter.motifs.length > 0 && (
+                      <div className="space-y-1.5">
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                          Motifs & Elements
+                        </h4>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedCharacter.motifs.map((motif, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2.5 py-1 text-xs font-medium rounded-md border"
+                              style={{ 
+                                backgroundColor: `${selectedCharacter.themeColor}15`, 
+                                borderColor: `${selectedCharacter.themeColor}40`,
+                                color: selectedCharacter.themeColor 
+                              }}
+                            >
+                              #{motif}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* 外見・性格 */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Appearance</h4>
+                        <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line bg-white p-3 rounded-lg border border-slate-100">
+                          {selectedCharacter.appearance || '（未設定）'}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Personality</h4>
+                        <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line bg-white p-3 rounded-lg border border-slate-100">
+                          {selectedCharacter.personality || '（未設定）'}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 背景ストーリー */}
+                    {selectedCharacter.story && (
+                      <div className="space-y-1.5 pt-2 border-t border-slate-100">
+                        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                          Background Story
+                        </h4>
+                        <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">
+                          {selectedCharacter.story}
+                        </p>
+                      </div>
+                    )}
+
                   </div>
-
-                  {/* 性格・特徴 */}
-                  <div className="space-y-1.5">
-                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                      Personality
-                    </h4>
-                    <p className="text-xs md:text-sm text-slate-700 leading-relaxed whitespace-pre-line bg-white p-3 rounded-lg border border-slate-100">
-                      {character.personality || '（性格や特徴がここに入ります）'}
-                    </p>
-                  </div>
-
-                  {/* 好き / 苦手 */}
-                  {(character.likes || character.dislikes) && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                      <div className="p-3 bg-emerald-50/50 border border-emerald-100 rounded-lg">
-                        <span className="font-bold text-emerald-800 block mb-1">❤️ 好きなもの</span>
-                        <p className="text-slate-600">{character.likes || '特になし'}</p>
-                      </div>
-                      <div className="p-3 bg-rose-50/50 border border-rose-100 rounded-lg">
-                        <span className="font-bold text-rose-800 block mb-1">💔 苦手なもの</span>
-                        <p className="text-slate-600">{character.dislikes || '特になし'}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* 背景・ストーリー */}
-                  {character.story && (
-                    <div className="space-y-1.5 pt-2 border-t border-slate-100">
-                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                        Background Story
-                      </h4>
-                      <p className="text-xs md:text-sm text-slate-700 leading-relaxed whitespace-pre-line">
-                        {character.story}
-                      </p>
-                    </div>
-                  )}
-
                 </div>
 
-                {/* カードフッター */}
-                <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                  <span>Created with Character Binder</span>
-                  <span>Designed by Yuki Hasegawa</span>
-                </div>
               </div>
-
             </div>
-          </div>
 
-        </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* 3. 関係性一覧・追加タブ */}
+        {/* ======================================================== */}
+        {activeTab === 'relations_list' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* 左側: 新規関係性追加フォーム (lg:col-span-5) */}
+            <div className="lg:col-span-5 bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2">
+                <span>➕</span> 新しい関係性を追加
+              </h2>
+
+              <form onSubmit={handleAddRelation} className="space-y-4">
+                {/* 2人のキャラクター選択 */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">キャラクター A</label>
+                    <select
+                      value={newRelFrom}
+                      onChange={(e) => setNewRelFrom(e.target.value)}
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">選択してください</option>
+                      {characters.map((c) => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">キャラクター B</label>
+                    <select
+                      value={newRelTo}
+                      onChange={(e) => setNewRelTo(e.target.value)}
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">選択してください</option>
+                      {characters.map((c) => (
+                        <option key={c.id} value={c.id} disabled={c.id === newRelFrom}>{c.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* 向き（双方向 or 一方向） */}
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">関係のタイプ</label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setNewRelType('bidirectional')}
+                      className={`py-1.5 px-3 text-xs font-bold rounded-lg border text-center transition ${
+                        newRelType === 'bidirectional' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-slate-200 text-slate-600'
+                      }`}
+                    >
+                      ⇄ 双方向の関係
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewRelType('unidirectional')}
+                      className={`py-1.5 px-3 text-xs font-bold rounded-lg border text-center transition ${
+                        newRelType === 'unidirectional' ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-slate-200 text-slate-600'
+                      }`}
+                    >
+                      ➔ 一方向の関係
+                    </button>
+                  </div>
+                </div>
+
+                {/* 関係ラベル */}
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    {newRelType === 'bidirectional' ? 'AからBへの関係 / 感情' : '関係の名称 *'}
+                  </label>
+                  <input
+                    type="text"
+                    value={newRelFromLabel}
+                    onChange={(e) => setNewRelFromLabel(e.target.value)}
+                    placeholder="例: 相棒、ライバル、幼馴染"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  {/* クイックサジェスト */}
+                  <div className="flex flex-wrap gap-1 pt-1.5">
+                    {RELATION_TAG_SUGGESTIONS.slice(0, 6).map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => setNewRelFromLabel(tag)}
+                        className="px-2 py-0.5 text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-600 rounded"
+                      >
+                        +{tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {newRelType === 'bidirectional' && (
+                  <div>
+                    <label className="text-xs font-bold text-slate-700 block mb-1">
+                      BからAへの関係 / 感情（空欄の場合は同名）
+                    </label>
+                    <input
+                      type="text"
+                      value={newRelToLabel}
+                      onChange={(e) => setNewRelToLabel(e.target.value)}
+                      placeholder="例: 守るべき存在、親友"
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                )}
+
+                {/* 関係の詳細・エピソード */}
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">関係の詳細・エピソード（任意）</label>
+                  <textarea
+                    rows={2}
+                    value={newRelDetail}
+                    onChange={(e) => setNewRelDetail(e.target.value)}
+                    placeholder="例: 幼い頃に助けられた恩義がある、いつも口喧嘩ばかりしているなど"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-2 px-4 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition shadow-sm"
+                >
+                  ＋ 関係性を追加して相関図に反映
+                </button>
+              </form>
+            </div>
+
+            {/* 右側: 登録済み関係性一覧 (lg:col-span-7) */}
+            <div className="lg:col-span-7 bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center justify-between">
+                <span>📋</span> 登録済みの相関・関係性 ({relations.length}件)
+              </h2>
+
+              <div className="space-y-3">
+                {relations.map((rel) => {
+                  const fromChar = characters.find((c) => c.id === rel.fromId);
+                  const toChar = characters.find((c) => c.id === rel.toId);
+                  if (!fromChar || !toChar) return null;
+
+                  return (
+                    <div 
+                      key={rel.id} 
+                      className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 hover:bg-slate-100/60 transition"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-slate-800 text-xs px-2.5 py-1 bg-white border border-slate-200 rounded-lg">
+                            {fromChar.name}
+                          </span>
+                          <span className="text-slate-400 font-bold">
+                            {rel.type === 'bidirectional' ? '⇄' : '➔'}
+                          </span>
+                          <span className="font-bold text-slate-800 text-xs px-2.5 py-1 bg-white border border-slate-200 rounded-lg">
+                            {toChar.name}
+                          </span>
+                          <span 
+                            className="px-2.5 py-0.5 text-xs font-bold text-white rounded-full ml-1"
+                            style={{ backgroundColor: rel.color || '#3b82f6' }}
+                          >
+                            {rel.fromLabel}
+                            {rel.type === 'bidirectional' && rel.toLabel && rel.toLabel !== rel.fromLabel && ` / ${rel.toLabel}`}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteRelation(rel.id)}
+                          className="text-xs text-red-500 hover:text-red-700 font-bold px-2 py-1"
+                          title="関係性を削除"
+                        >
+                          削除
+                        </button>
+                      </div>
+
+                      {rel.detail && (
+                        <p className="text-xs text-slate-600 bg-white p-2.5 rounded-lg border border-slate-100 leading-relaxed">
+                          {rel.detail}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {relations.length === 0 && (
+                  <p className="text-xs text-slate-400 italic py-8 text-center">
+                    まだ関係性が登録されていません。左のフォームから追加してください。
+                  </p>
+                )}
+              </div>
+            </div>
+
+          </div>
+        )}
 
       </div>
     </main>
