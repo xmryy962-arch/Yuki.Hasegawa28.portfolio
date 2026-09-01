@@ -21,12 +21,30 @@ export default function Home() {
         period: "実績",
         title: "書籍制作（Googleフォーム／Googleドキュメント関連）",
         description: "GoogleフォームおよびGoogleドキュメントに関する解説書籍の制作に携わりました。",
-        link: "https://www.amazon.co.jp/" // ← Amazonの商品URLに書き換えてください
+        link: "https://amzn.asia/d/0bAn35nt/" 
       },
       {
         period: "実績",
         title: "LightningMiniHack 本選出場",
         description: "ハッカソンイベント「LightningMiniHack」の本選に出場しました。"
+      }
+    ],
+
+    // 制作・出版書籍
+    books: [
+      {
+        title: "Googleフォームの教科書",
+        role: "制作・執筆協力",
+        description: "アンケート作成や集計の自動化など、Googleフォームの基本操作から実践的な活用法までを図解入りで分かりやすく解説した書籍です。",
+        link: "https://amzn.asia/d/0ckpZlEq",
+        tag: "Kindle / 書籍"
+      },
+      {
+        title: "Googleドキュメントの教科書",
+        role: "制作・執筆協力",
+        description: "文書作成やリアルタイムでの共同編集など、Googleドキュメントを効率的に使いこなすための実践的なノウハウを網羅した書籍です。",
+        link: "https://amzn.asia/d/0gQIcndy",
+        tag: "Kindle / 書籍"
       }
     ],
 
@@ -91,18 +109,51 @@ export default function Home() {
                 <p className="text-sm text-slate-600 leading-relaxed">
                   {item.description}
                 </p>
-                {item.link && (
-                  <div className="pt-1">
-                    <a 
-                      href={item.link} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 font-medium"
-                    >
-                      Amazon商品ページを見る ↗
-                    </a>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 出版・制作書籍 */}
+        <section className="space-y-6">
+          <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+            <h2 className="text-xl font-bold text-slate-900">
+              Publications & Books
+            </h2>
+            <span className="text-xs text-slate-500 font-medium">制作・執筆書籍</span>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            {profile.books.map((book, index) => (
+              <div 
+                key={index} 
+                className="p-5 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-shadow flex flex-col justify-between space-y-4"
+              >
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="px-2 py-0.5 bg-blue-50 text-blue-700 font-medium rounded">
+                      {book.tag}
+                    </span>
+                    <span className="text-slate-500">{book.role}</span>
                   </div>
-                )}
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-1.5">
+                    <span>📖</span>
+                    {book.title}
+                  </h3>
+                  <p className="text-sm text-slate-600 leading-relaxed">
+                    {book.description}
+                  </p>
+                </div>
+                <div className="pt-2 border-t border-slate-100">
+                  <a
+                    href={book.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center w-full px-4 py-2 text-xs font-semibold text-white bg-slate-900 hover:bg-slate-800 rounded-lg transition-colors gap-1.5"
+                  >
+                    <span>Amazonで見る</span>
+                    <span className="text-slate-400">↗</span>
+                  </a>
+                </div>
               </div>
             ))}
           </div>
