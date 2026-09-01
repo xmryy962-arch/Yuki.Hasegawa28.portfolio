@@ -15,7 +15,7 @@ export default function Home() {
       {
         period: "2026年2月 〜 現在",
         title: "株式会社Tekuru 長期インターン",
-        description: "Web制作やデジタルメディアに関わる実務経験を積んでいます。"
+        description: "書籍制作やデジタルメディアに関わる実務経験を積んでいます。"
       },
       {
         period: "実績",
@@ -41,7 +41,9 @@ export default function Home() {
       {
         period: "実績",
         title: "LightningMiniHack 本選出場",
-        description: "ハッカソンイベント「LightningMiniHack」の本選に出場しました。"
+        description: "ハッカソンイベント「LightningMiniHack」の本選に出場しました。",
+        link: "https://developer.salesforce.com/jpblogs/2026/04/lightning-minihack-live-2026-jp",
+        linkText: "イベント詳細を見る"
       }
     ],
 
@@ -143,6 +145,21 @@ export default function Home() {
                         </div>
                       </div>
                     ))}
+                  </div>
+                )}
+
+                {/* リンクがある場合の表示 */}
+                {item.link && (
+                  <div className="pt-1">
+                    <a 
+                      href={item.link} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 font-medium"
+                    >
+                      <span>{item.linkText || "詳細を見る"}</span>
+                      <span>↗</span>
+                    </a>
                   </div>
                 )}
               </div>
