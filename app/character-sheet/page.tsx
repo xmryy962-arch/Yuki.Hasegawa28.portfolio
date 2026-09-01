@@ -594,61 +594,192 @@ export default function CharacterSheetPage() {
                   </pattern>
                   <rect width="100%" height="100%" fill="url(#dotGrid)" />
 
-                  {/* 関係線 (Lines & Arrows) */}
-                  {relations.map((rel) => {
-                    const fromChar = characters.find((c) => c.id === rel.fromId);
-                    const toChar = characters.find((c) => c.id === rel.toId);
-                    if (!fromChar || !toChar) return null;
+                  {/* 描画用エッジリストの生成（A→B, B→Aが重ならないよう曲線化） */}
+                  {(() => {
+                    interface RenderEdge {
+                      id: string;
+                      fromChar: Character;
+                      toChar: Character;
+                      label: string;
+                      detail?: string;
+                      color: string;
+                      hasReverse: boolean;
+                    }
 
-                    const midX = (fromChar.x + toChar.x) / 2;
-                    const midY = (fromChar.y + toChar.y) / 2;
-                    const strokeColor = rel.color || '#64748b';
+                    const renderEdges: RenderEdge[] = [];
 
-                    return (
-                      <g key={rel.id} className="transition-all">
-                        {/* 接続線 */}
-                        <line
-                          x1={fromChar.x}
-                          y1={fromChar.y}
-                          x2={toChar.x}
-                          y2={toChar.y}
-                          stroke={strokeColor}
-                          strokeWidth="2.5"
-                          strokeDasharray={rel.type === 'unidirectional' ? '4 2' : undefined}
-                          markerEnd="url(#arrow-end)"
-                          markerStart={rel.type === 'bidirectional' ? 'url(#arrow-start)' : undefined}
-                          opacity="0.85"
-                        />
+                    relations.forEach((rel) => {
+                      const fromChar = characters.find((c) => c.id === rel.fromId);
+                      const toChar = characters.find((c) => c.id === rel.toId);
+                      if (!fromChar || !toChar) return;
 
-                        {/* ラベル背景バッジ */}
-                        <foreignObject
-                          x={midX - 85}
-                          y={midY - 24}
-                          width="170"
-                          height="48"
-                          className="overflow-visible pointer-events-auto"
-                        >
-                          <div className="flex flex-col items-center justify-center">
-                            <div 
-                              className="px-2.5 py-1 rounded-full text-[11px] font-bold text-white shadow-md flex items-center gap-1 border border-white/40 max-w-[160px] truncate"
-                              style={{ backgroundColor: strokeColor }}
-                              title={`${fromChar.name} ➔ ${toChar.name}: ${rel.fromLabel}${rel.toLabel ? ` / ${toChar.name} ➔ ${fromChar.name}: ${rel.toLabel}` : ''}`}
+                      if (rel.type === 'bidirectional') {
+                        renderEdges.push({
+                          id: `${rel.id}-f2t`,
+                          fromChar,
+                          toChar,
+                          label: rel.fromLabel,
+                          detail: rel.detail,
+                          color: rel.color || fromChar.themeColor || '#3b82f6',
+                          hasReverse: true,
+                        });
+                        renderEdges.push({
+                          id: `${rel.id}-t2f`,
+                          fromChar: toChar,
+                          toChar: fromChar,
+                          label: rel.toLabel || rel.fromLabel,
+                          detail: rel.detail,
+                          color: toChar.themeColor || '#dc2626',
+                          hasReverse: true,
+                        });
+                      } else {
+                        const hasReverse = relations.some(
+                          (r) =>
+                            (r.id !== rel.id && r.fromId === rel.toId && r.toId === rel.fromId) ||
+                            (r.id !== rel.id && r.type === 'bidirectional' && (
+                              (r.fromId === rel.toId && r.toId === rel.fromId) ||
+                              (r.fromId === rel.fromId && r.toId === rel.toId)
+                            ))
+                        );
+                        renderEdges.push({
+                          id: rel.id,
+                          fromChar,
+                          toChar,
+                          label: rel.fromLabel,
+                          detail: rel.detail,
+                          color: rel.color || fromChar.themeColor || '#3b82f6',
+                          hasReverse,
+                        });
+                      }
+                    });
+
+                    return renderEdges.map((edge) => {
+                      const { fromChar, toChar, label, detail, color, hasReverse } = edge;
+
+                      // 自己ループの場合
+                      if (fromChar.id === toChar.id) {
+                        const sx = fromChar.x - 18;
+                        const sy = fromChar.y - 32;
+                        const ex = fromChar.x + 18;
+                        const ey = fromChar.y - 32;
+                        const pathD = `M ${sx} ${sy} C ${sx - 30} ${sy - 50}, ${ex + 30} ${ey - 50}, ${ex} ${ey}`;
+                        const midX = fromChar.x;
+                        const midY = fromChar.y - 65;
+
+                        return (
+                          <g key={edge.id} className="transition-all">
+                            <defs>
+                              <marker
+                                id={`arrow-${edge.id}`}
+                                viewBox="0 0 10 10"
+                                refX="6"
+                                refY="5"
+                                markerWidth="6"
+                                markerHeight="6"
+                                orient="auto"
+                              >
+                                <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill={color} />
+                              </marker>
+                            </defs>
+                            <path
+                              d={pathD}
+                              fill="none"
+                              stroke={color}
+                              strokeWidth="2.5"
+                              markerEnd={`url(#arrow-${edge.id})`}
+                              opacity="0.9"
+                            />
+                            <foreignObject x={midX - 70} y={midY - 14} width="140" height="36" className="overflow-visible pointer-events-auto">
+                              <div className="flex justify-center">
+                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow" style={{ backgroundColor: color }}>
+                                  {label}
+                                </span>
+                              </div>
+                            </foreignObject>
+                          </g>
+                        );
+                      }
+
+                      // 2点間の幾何計算
+                      const dx = toChar.x - fromChar.x;
+                      const dy = toChar.y - fromChar.y;
+                      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+
+                      const ux = dx / dist;
+                      const uy = dy / dist;
+                      const nx = -uy;
+                      const ny = ux;
+
+                      const nodeRadius = 38;
+                      const curveHeight = hasReverse ? 38 : 22;
+
+                      const startX = fromChar.x + ux * nodeRadius + nx * 6;
+                      const startY = fromChar.y + uy * nodeRadius + ny * 6;
+                      const endX = toChar.x - ux * (nodeRadius + 6) + nx * 6;
+                      const endY = toChar.y - uy * (nodeRadius + 6) + ny * 6;
+
+                      const ctrlX = (fromChar.x + toChar.x) / 2 + nx * (curveHeight * 2);
+                      const ctrlY = (fromChar.y + toChar.y) / 2 + ny * (curveHeight * 2);
+
+                      const pathD = `M ${startX} ${startY} Q ${ctrlX} ${ctrlY} ${endX} ${endY}`;
+
+                      const midX = 0.25 * startX + 0.5 * ctrlX + 0.25 * endX;
+                      const midY = 0.25 * startY + 0.5 * ctrlY + 0.25 * endY;
+
+                      return (
+                        <g key={edge.id} className="transition-all group">
+                          <defs>
+                            <marker
+                              id={`arrow-${edge.id}`}
+                              viewBox="0 0 10 10"
+                              refX="6"
+                              refY="5"
+                              markerWidth="7"
+                              markerHeight="7"
+                              orient="auto"
                             >
-                              <span>{rel.fromLabel}</span>
-                              {rel.type === 'bidirectional' && rel.toLabel && rel.toLabel !== rel.fromLabel && (
-                                <span className="opacity-90 font-normal"> / {rel.toLabel}</span>
+                              <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill={color} />
+                            </marker>
+                          </defs>
+
+                          {/* 湾曲した矢印パス */}
+                          <path
+                            d={pathD}
+                            fill="none"
+                            stroke={color}
+                            strokeWidth="2.5"
+                            markerEnd={`url(#arrow-${edge.id})`}
+                            opacity="0.85"
+                            className="group-hover:opacity-100 group-hover:stroke-width-3 transition-all"
+                          />
+
+                          {/* ラベル背景バッジ（カーブ頂点に配置） */}
+                          <foreignObject
+                            x={midX - 80}
+                            y={midY - 16}
+                            width="160"
+                            height="44"
+                            className="overflow-visible pointer-events-auto"
+                          >
+                            <div className="flex flex-col items-center justify-center">
+                              <div 
+                                className="px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white shadow-md flex items-center gap-1 border border-white/60 max-w-[150px] truncate cursor-pointer hover:scale-105 transition-transform"
+                                style={{ backgroundColor: color }}
+                                title={`${fromChar.name} ➔ ${toChar.name}: ${label}`}
+                              >
+                                <span>➔ {label}</span>
+                              </div>
+                              {detail && (
+                                <span className="text-[9px] text-slate-600 bg-white/95 px-1.5 py-0.5 rounded shadow-xs mt-0.5 border border-slate-200 truncate max-w-[140px]">
+                                  {detail}
+                                </span>
                               )}
                             </div>
-                            {rel.detail && (
-                              <span className="text-[9px] text-slate-500 bg-white/90 px-1.5 py-0.5 rounded shadow-xs mt-0.5 border border-slate-200 truncate max-w-[150px]">
-                                {rel.detail}
-                              </span>
-                            )}
-                          </div>
-                        </foreignObject>
-                      </g>
-                    );
-                  })}
+                          </foreignObject>
+                        </g>
+                      );
+                    });
+                  })()}
 
                   {/* キャラクターノード (Draggable Nodes) */}
                   {characters.map((char) => {
