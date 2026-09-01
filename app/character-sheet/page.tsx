@@ -191,16 +191,35 @@ const SAMPLE_RELATIONS: Relation[] = [
   }
 ];
 
+// 色相環に基づいたカラープリセット（赤・橙・黄・黄緑・緑・水色・青・紫・ピンク・白・黒）
 const COLOR_PRESETS = [
-  { name: 'スカイブルー', color: '#0284c7' },
-  { name: 'ロイヤルブルー', color: '#2563eb' },
-  { name: 'クリムゾンレッド', color: '#dc2626' },
-  { name: 'エメラルドグリーン', color: '#059669' },
-  { name: 'アンバーゴールド', color: '#d97706' },
-  { name: 'パープルバイオレット', color: '#7c3aed' },
-  { name: 'ローズピンク', color: '#e11d48' },
-  { name: 'ミッドナイト', color: '#1e293b' },
+  { name: 'レッド', color: '#ef4444' },
+  { name: 'オレンジ', color: '#f97316' },
+  { name: 'イエロー', color: '#eab308' },
+  { name: 'ライムグリーン', color: '#84cc16' },
+  { name: 'グリーン', color: '#10b981' },
+  { name: 'シアン・水色', color: '#06b6d4' },
+  { name: 'ブルー', color: '#2563eb' },
+  { name: 'パープル・紫', color: '#8b5cf6' },
+  { name: 'ピンク', color: '#ec4899' },
+  { name: 'ホワイト', color: '#ffffff' },
+  { name: 'ブラック', color: '#0f172a' },
 ];
+
+// 明度判定（白や淡色時のテキスト視認性確保）
+const isLightColor = (hex: string) => {
+  if (!hex) return false;
+  if (hex.toLowerCase() === '#ffffff' || hex.toLowerCase() === '#fff') return true;
+  const c = hex.replace('#', '');
+  if (c.length === 6) {
+    const r = parseInt(c.substr(0, 2), 16);
+    const g = parseInt(c.substr(2, 2), 16);
+    const b = parseInt(c.substr(4, 2), 16);
+    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+    return brightness > 185;
+  }
+  return false;
+};
 
 const RELATION_TAG_SUGGESTIONS = [
   '信頼・相棒', 'ライバル', '親友・幼馴染', '片思い', '好意・両思い',
@@ -1143,7 +1162,7 @@ export default function CharacterSheetPage() {
                         <circle
                           r="36"
                           fill="white"
-                          stroke={char.themeColor}
+                          stroke={char.themeColor === '#ffffff' ? '#94a3b8' : char.themeColor}
                           strokeWidth={isSelected ? "5" : "3.5"}
                           className="drop-shadow-md group-hover:scale-105 transition-transform"
                         />
@@ -1163,11 +1182,17 @@ export default function CharacterSheetPage() {
                           </g>
                         ) : (
                           <>
-                            <circle r="28" fill={char.themeColor} opacity="0.92" />
+                            <circle 
+                              r="28" 
+                              fill={char.themeColor} 
+                              stroke={char.themeColor === '#ffffff' ? '#cbd5e1' : 'none'}
+                              strokeWidth={char.themeColor === '#ffffff' ? '1.5' : '0'}
+                              opacity={char.themeColor === '#ffffff' ? 1 : 0.92} 
+                            />
                             <text
                               textAnchor="middle"
                               dy="6"
-                              fill="white"
+                              fill={isLightColor(char.themeColor) ? '#0f172a' : 'white'}
                               fontSize="15"
                               fontWeight="bold"
                               pointerEvents="none"
@@ -1206,7 +1231,7 @@ export default function CharacterSheetPage() {
             {selectedCharacter && (
               <div 
                 className="p-4 bg-white rounded-xl border-l-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4"
-                style={{ borderLeftColor: selectedCharacter.themeColor }}
+                style={{ borderLeftColor: selectedCharacter.themeColor === '#ffffff' ? '#94a3b8' : selectedCharacter.themeColor }}
               >
                 <div className="flex items-center gap-3.5">
                   {selectedCharacter.avatarUrl ? (
@@ -1214,11 +1239,13 @@ export default function CharacterSheetPage() {
                       src={selectedCharacter.avatarUrl}
                       alt={selectedCharacter.name}
                       className="w-12 h-12 rounded-full object-cover border-2 shadow-xs shrink-0"
-                      style={{ borderColor: selectedCharacter.themeColor }}
+                      style={{ borderColor: selectedCharacter.themeColor === '#ffffff' ? '#cbd5e1' : selectedCharacter.themeColor }}
                     />
                   ) : (
                     <div 
-                      className="w-12 h-12 rounded-full text-white font-bold flex items-center justify-center shrink-0 shadow-xs"
+                      className={`w-12 h-12 rounded-full font-bold flex items-center justify-center shrink-0 shadow-xs border ${
+                        isLightColor(selectedCharacter.themeColor) ? 'text-slate-900 border-slate-300' : 'text-white border-transparent'
+                      }`}
                       style={{ backgroundColor: selectedCharacter.themeColor }}
                     >
                       {selectedCharacter.name ? selectedCharacter.name.slice(0, 2) : '無名'}
@@ -1316,7 +1343,7 @@ export default function CharacterSheetPage() {
                         src={selectedCharacter.avatarUrl}
                         alt="Avatar Preview"
                         className="w-16 h-16 rounded-xl object-cover border-2 shadow-xs"
-                        style={{ borderColor: selectedCharacter.themeColor }}
+                        style={{ borderColor: selectedCharacter.themeColor === '#ffffff' ? '#cbd5e1' : selectedCharacter.themeColor }}
                       />
                     ) : (
                       <div 
@@ -1361,18 +1388,23 @@ export default function CharacterSheetPage() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-700">テーマカラー</label>
                   <div className="flex items-center gap-2 flex-wrap">
-                    {COLOR_PRESETS.map((p) => (
-                      <button
-                        key={p.color}
-                        type="button"
-                        onClick={() => updateSelectedCharacter({ themeColor: p.color })}
-                        className={`w-7 h-7 rounded-full border-2 transition-transform ${
-                          selectedCharacter.themeColor === p.color ? 'scale-110 border-slate-900 ring-2 ring-slate-400' : 'border-white'
-                        }`}
-                        style={{ backgroundColor: p.color }}
-                        title={p.name}
-                      />
-                    ))}
+                    {COLOR_PRESETS.map((p) => {
+                      const isSelectedColor = selectedCharacter.themeColor === p.color;
+                      return (
+                        <button
+                          key={p.color}
+                          type="button"
+                          onClick={() => updateSelectedCharacter({ themeColor: p.color })}
+                          className={`w-7 h-7 rounded-full border-2 transition-transform shadow-2xs ${
+                            isSelectedColor
+                              ? 'scale-110 border-slate-900 ring-2 ring-blue-500'
+                              : (p.color === '#ffffff' ? 'border-slate-300 hover:border-slate-400' : 'border-white hover:scale-105')
+                          }`}
+                          style={{ backgroundColor: p.color }}
+                          title={p.name}
+                        />
+                      );
+                    })}
                     <div className="flex items-center gap-1.5 pl-2">
                       <input
                         type="color"
@@ -1586,11 +1618,13 @@ export default function CharacterSheetPage() {
                 {/* プレビューカード */}
                 <div 
                   className="bg-white rounded-2xl border-2 shadow-md overflow-hidden transition-all duration-300"
-                  style={{ borderColor: selectedCharacter.themeColor || '#cbd5e1' }}
+                  style={{ borderColor: selectedCharacter.themeColor === '#ffffff' ? '#cbd5e1' : (selectedCharacter.themeColor || '#cbd5e1') }}
                 >
                   {/* カード上部バナー */}
                   <div 
-                    className="p-6 text-white relative overflow-hidden"
+                    className={`p-6 relative overflow-hidden transition-colors border-b ${
+                      isLightColor(selectedCharacter.themeColor) ? 'text-slate-900 border-slate-200' : 'text-white border-transparent'
+                    }`}
                     style={{ backgroundColor: selectedCharacter.themeColor || '#0284c7' }}
                   >
                     <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -1601,12 +1635,20 @@ export default function CharacterSheetPage() {
                             Character Profile
                           </span>
                           {groups.find((g) => g.id === selectedCharacter.groupId) && (
-                            <span className="px-2.5 py-0.5 bg-black/25 backdrop-blur-sm rounded-full text-xs font-bold border border-white/30">
+                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                              isLightColor(selectedCharacter.themeColor)
+                                ? 'bg-black/10 border-black/20 text-slate-900'
+                                : 'bg-black/25 backdrop-blur-sm border-white/30 text-white'
+                            }`}>
                               🏰 {groups.find((g) => g.id === selectedCharacter.groupId)?.name}
                             </span>
                           )}
                           {selectedCharacter.role && (
-                            <span className="px-2.5 py-0.5 bg-black/20 backdrop-blur-sm rounded-full text-xs font-medium">
+                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              isLightColor(selectedCharacter.themeColor)
+                                ? 'bg-black/10 text-slate-800'
+                                : 'bg-black/20 backdrop-blur-sm text-white'
+                            }`}>
                               {selectedCharacter.role}
                             </span>
                           )}
@@ -1635,7 +1677,11 @@ export default function CharacterSheetPage() {
                         </div>
                       ) : (
                         <div 
-                          className="w-24 h-24 md:w-28 md:h-28 rounded-2xl border-4 border-white/40 flex items-center justify-center font-bold text-3xl opacity-80 bg-white/15 shrink-0"
+                          className={`w-24 h-24 md:w-28 md:h-28 rounded-2xl border-4 flex items-center justify-center font-bold text-3xl shrink-0 ${
+                            isLightColor(selectedCharacter.themeColor)
+                              ? 'border-slate-300 text-slate-800 bg-white/60'
+                              : 'border-white/40 text-white opacity-85 bg-white/15'
+                          }`}
                         >
                           {selectedCharacter.name ? selectedCharacter.name.slice(0, 2) : '？'}
                         </div>
@@ -2147,18 +2193,23 @@ export default function CharacterSheetPage() {
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">グループカラー</label>
                   <div className="flex items-center gap-2 flex-wrap">
-                    {COLOR_PRESETS.map((p) => (
-                      <button
-                        key={p.color}
-                        type="button"
-                        onClick={() => setGroupColor(p.color)}
-                        className={`w-7 h-7 rounded-full border-2 transition-transform ${
-                          groupColor === p.color ? 'scale-110 border-slate-900 ring-2 ring-slate-400' : 'border-white'
-                        }`}
-                        style={{ backgroundColor: p.color }}
-                        title={p.name}
-                      />
-                    ))}
+                    {COLOR_PRESETS.map((p) => {
+                      const isSelectedGroupColor = groupColor === p.color;
+                      return (
+                        <button
+                          key={p.color}
+                          type="button"
+                          onClick={() => setGroupColor(p.color)}
+                          className={`w-7 h-7 rounded-full border-2 transition-transform shadow-2xs ${
+                            isSelectedGroupColor
+                              ? 'scale-110 border-slate-900 ring-2 ring-blue-500'
+                              : (p.color === '#ffffff' ? 'border-slate-300 hover:border-slate-400' : 'border-white hover:scale-105')
+                          }`}
+                          style={{ backgroundColor: p.color }}
+                          title={p.name}
+                        />
+                      );
+                    })}
                     <input
                       type="color"
                       value={groupColor}
