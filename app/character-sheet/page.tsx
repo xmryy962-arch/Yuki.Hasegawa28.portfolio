@@ -28,7 +28,7 @@ interface Character {
   dislikes: string;
   quote: string;
   story: string;
-  // 相関図用座標 (1600x1200 空間)
+  // 相関図用座標 (2400x1800 空間)
   x: number;
   y: number;
 }
@@ -60,7 +60,7 @@ const SAMPLE_GROUPS: Group[] = [
   }
 ];
 
-// サンプルデータ: 冒険ファンタジー (1600x1200 空間の中心 800, 600 付近)
+// サンプルデータ: 冒険ファンタジー (2400x1800 空間の中心 1200, 900 付近)
 const SAMPLE_CHARACTERS: Character[] = [
   {
     id: 'char-1',
@@ -80,8 +80,8 @@ const SAMPLE_CHARACTERS: Character[] = [
     dislikes: 'じめじめした洞窟、約束を破ること',
     quote: '「迷ったら、風が吹く方へ進んでみようよ！」',
     story: '天空の街で生まれ育ち、地上に広がる未開の自然や生き物を記録するために旅に出た少女。手にしたペンで描いたものが風となって具現化する不思議な魔法を使う。',
-    x: 480,
-    y: 440,
+    x: 820,
+    y: 740,
   },
   {
     id: 'char-2',
@@ -101,8 +101,8 @@ const SAMPLE_CHARACTERS: Character[] = [
     dislikes: '不意打ち、甘えた態度',
     quote: '「お前の背中は俺が守る。前だけを見て走れ。」',
     story: '没落した名門騎士家の若き当主。ルシアの真っ直ぐな瞳に救われ、彼女の旅の護衛役兼相棒として同行している。',
-    x: 720,
-    y: 440,
+    x: 1160,
+    y: 740,
   },
   {
     id: 'char-3',
@@ -122,8 +122,8 @@ const SAMPLE_CHARACTERS: Character[] = [
     dislikes: '非論理的な行動、運動、騒がしい場所',
     quote: '「やれやれ、僕の計算外で勝手な無茶をしないでください。」',
     story: '最年少で王立アカデミーを卒業した天才研究者。ルシアの持つ不思議な魔法の正体を解き明かすという名目でパーティに加わる。',
-    x: 600,
-    y: 720,
+    x: 990,
+    y: 1080,
   },
   {
     id: 'char-4',
@@ -143,8 +143,8 @@ const SAMPLE_CHARACTERS: Character[] = [
     dislikes: '不正、無意味な争い',
     quote: '「あなた方の力を貸してください。この国を救うために。」',
     story: '王宮内の陰謀に気付き、信頼できる民間の実力者としてルシアたちの旅団に極秘任務を依頼する。',
-    x: 1120,
-    y: 560,
+    x: 1720,
+    y: 900,
   }
 ];
 
@@ -333,7 +333,7 @@ export default function CharacterSheetPage() {
     reader.readAsDataURL(file);
   };
 
-  // キャラクターの新規追加 (1600x1200 空間内に配置)
+  // キャラクターの新規追加 (2400x1800 空間内に配置)
   const handleAddCharacter = () => {
     const count = characters.length + 1;
     const newChar: Character = {
@@ -354,8 +354,8 @@ export default function CharacterSheetPage() {
       dislikes: '',
       quote: '',
       story: '',
-      x: 600 + ((count - 1) % 4) * 200,
-      y: 400 + Math.floor((count - 1) / 4) * 200
+      x: 900 + ((count - 1) % 4) * 220,
+      y: 650 + Math.floor((count - 1) / 4) * 220
     };
     const updated = [...characters, newChar];
     saveAll(updated, relations, groups);
@@ -553,8 +553,8 @@ export default function CharacterSheetPage() {
         dislikes: '',
         quote: '',
         story: '',
-        x: 800,
-        y: 600
+        x: 1200,
+        y: 900
       };
       saveAll([initialChar], [], []);
       setSelectedCharId(initialChar.id);
@@ -563,11 +563,11 @@ export default function CharacterSheetPage() {
     }
   };
 
-  // 相関図の円形自動整列 (1600x1200 空間)
+  // 相関図の円形自動整列 (2400x1800 空間)
   const handleAutoAlignCircle = () => {
-    const centerX = 800;
-    const centerY = 600;
-    const radius = Math.min(460, 260 + characters.length * 30);
+    const centerX = 1200;
+    const centerY = 900;
+    const radius = Math.min(680, 380 + characters.length * 35);
     const updated = characters.map((c, idx) => {
       const angle = (idx / characters.length) * 2 * Math.PI - Math.PI / 2;
       return {
@@ -582,34 +582,41 @@ export default function CharacterSheetPage() {
   // 全体表示（Fit to screen）
   const handleFitToScreen = () => {
     if (characters.length === 0) return;
-    const minX = Math.min(...characters.map((c) => c.x)) - 100;
-    const maxX = Math.max(...characters.map((c) => c.x)) + 100;
-    const minY = Math.min(...characters.map((c) => c.y)) - 100;
-    const maxY = Math.max(...characters.map((c) => c.y)) + 100;
-    const width = Math.max(400, maxX - minX);
-    const height = Math.max(300, maxY - minY);
+    const minX = Math.min(...characters.map((c) => c.x)) - 140;
+    const maxX = Math.max(...characters.map((c) => c.x)) + 140;
+    const minY = Math.min(...characters.map((c) => c.y)) - 140;
+    const maxY = Math.max(...characters.map((c) => c.y)) + 140;
+    const width = Math.max(500, maxX - minX);
+    const height = Math.max(400, maxY - minY);
 
-    const scaleX = 1600 / width;
-    const scaleY = 1200 / height;
-    const newZoom = Math.min(1.6, Math.max(0.45, Math.min(scaleX, scaleY) * 0.8));
+    const scaleX = 2400 / width;
+    const scaleY = 1800 / height;
+    const newZoom = Math.min(1.5, Math.max(0.35, Math.min(scaleX, scaleY) * 0.8));
     
-    const newPanX = (1600 - (minX + maxX) * newZoom) / 2;
-    const newPanY = (1200 - (minY + maxY) * newZoom) / 2;
+    const centerX = (minX + maxX) / 2;
+    const centerY = (minY + maxY) / 2;
+    const newPanX = 1200 - centerX * newZoom;
+    const newPanY = 900 - centerY * newZoom;
+
     setZoom(+newZoom.toFixed(2));
     setPan({ x: Math.round(newPanX), y: Math.round(newPanY) });
   };
 
-  // スクリーン座標 ➔ SVG 1600x1200 ワールド座標変換
+  // SVGネイティブ変換マトリックスによる正確なワールド座標計算
   const screenToWorld = (clientX: number, clientY: number) => {
-    if (!svgRef.current) return { x: 0, y: 0 };
-    const rect = svgRef.current.getBoundingClientRect();
-    const svgScaleX = 1600 / rect.width;
-    const svgScaleY = 1200 / rect.height;
-    const localX = (clientX - rect.left) * svgScaleX;
-    const localY = (clientY - rect.top) * svgScaleY;
-    const worldX = (localX - pan.x) / zoom;
-    const worldY = (localY - pan.y) / zoom;
-    return { x: worldX, y: worldY };
+    if (!svgRef.current) return { x: clientX, y: clientY };
+    const svg = svgRef.current;
+    const pt = svg.createSVGPoint();
+    pt.x = clientX;
+    pt.y = clientY;
+    const ctm = svg.getScreenCTM();
+    if (ctm) {
+      const svgPoint = pt.matrixTransform(ctm.inverse());
+      const worldX = (svgPoint.x - pan.x) / zoom;
+      const worldY = (svgPoint.y - pan.y) / zoom;
+      return { x: worldX, y: worldY };
+    }
+    return { x: clientX, y: clientY };
   };
 
   // ノードドラッグ開始
@@ -635,15 +642,16 @@ export default function CharacterSheetPage() {
     };
   };
 
-  // SVGマウス移動
+  // SVGマウス移動（見えない壁を完全に撤廃し、広大空間をどこまでも自由に移動）
   const handleMouseMoveSvg = (e: React.MouseEvent) => {
     if (draggingCharId) {
       const worldPos = screenToWorld(e.clientX, e.clientY);
-      const boundedX = Math.round(Math.max(60, Math.min(1540, worldPos.x - dragOffset.current.x)));
-      const boundedY = Math.round(Math.max(60, Math.min(1140, worldPos.y - dragOffset.current.y)));
+      // 広大な領域（実質無制限）にスムーズ移動
+      const freeX = Math.round(worldPos.x - dragOffset.current.x);
+      const freeY = Math.round(worldPos.y - dragOffset.current.y);
 
       setCharacters((prev) =>
-        prev.map((c) => (c.id === draggingCharId ? { ...c, x: boundedX, y: boundedY } : c))
+        prev.map((c) => (c.id === draggingCharId ? { ...c, x: freeX, y: freeY } : c))
       );
     } else if (isPanning) {
       const newPanX = e.clientX - panStartRef.current.x;
@@ -663,21 +671,24 @@ export default function CharacterSheetPage() {
     }
   };
 
-  // マウスホイールによる滑らかなズーム
+  // マウスホイールによる滑らかなズーム（カーソル位置中心）
   const handleWheelSvg = (e: React.WheelEvent) => {
     e.preventDefault();
     const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
-    const newZoom = Math.min(2.5, Math.max(0.4, +(zoom * zoomFactor).toFixed(2)));
+    const newZoom = Math.min(2.5, Math.max(0.3, +(zoom * zoomFactor).toFixed(2)));
     
-    // マウスカーソル位置を中心にズーム
     if (svgRef.current) {
-      const rect = svgRef.current.getBoundingClientRect();
-      const mouseSvgX = (e.clientX - rect.left) * (1600 / rect.width);
-      const mouseSvgY = (e.clientY - rect.top) * (1200 / rect.height);
-      
-      const newPanX = mouseSvgX - (mouseSvgX - pan.x) * (newZoom / zoom);
-      const newPanY = mouseSvgY - (mouseSvgY - pan.y) * (newZoom / zoom);
-      setPan({ x: Math.round(newPanX), y: Math.round(newPanY) });
+      const svg = svgRef.current;
+      const pt = svg.createSVGPoint();
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const ctm = svg.getScreenCTM();
+      if (ctm) {
+        const svgPoint = pt.matrixTransform(ctm.inverse());
+        const newPanX = svgPoint.x - (svgPoint.x - pan.x) * (newZoom / zoom);
+        const newPanY = svgPoint.y - (svgPoint.y - pan.y) * (newZoom / zoom);
+        setPan({ x: Math.round(newPanX), y: Math.round(newPanY) });
+      }
     }
     setZoom(newZoom);
   };
@@ -742,7 +753,7 @@ export default function CharacterSheetPage() {
               <span>🕸️</span> キャラクター設定 & 相関図ジェネレーター
             </h1>
             <p className="text-xs md:text-sm text-slate-500 mt-1">
-              画像付きキャラクターシート、所属勢力・グループ（アジト・王族等）、および拡大縮小可能な広大相関図マップを作成できる創作支援ツール
+              画像付きキャラクターシート、所属勢力・グループ（アジト・王族等）、および拡大縮小可能な超広大相関図マップを作成できる創作支援ツール
             </p>
           </div>
 
@@ -871,10 +882,10 @@ export default function CharacterSheetPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                 <div>
                   <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <span>🕸️</span> インタラクティブ広大相関図マップ
+                    <span>🕸️</span> インタラクティブ超広大相関図マップ
                   </h2>
                   <p className="text-xs text-slate-500">
-                    💡 マウスホイールでズーム、余白ドラッグで画面移動、キャラクターをドラッグして広々配置できます。
+                    💡 マウスホイールでズーム、余白ドラッグで画面移動、キャラクターをドラッグして上下左右どこまでも自由に配置できます。
                   </p>
                 </div>
                 
@@ -892,7 +903,7 @@ export default function CharacterSheetPage() {
                       {Math.round(zoom * 100)}%
                     </span>
                     <button
-                      onClick={() => setZoom((z) => Math.max(0.4, +(z - 0.15).toFixed(2)))}
+                      onClick={() => setZoom((z) => Math.max(0.3, +(z - 0.15).toFixed(2)))}
                       className="px-2 py-1 bg-white hover:bg-slate-200 rounded font-bold text-slate-700 shadow-xs"
                       title="ズームアウト（縮小）"
                     >
@@ -941,9 +952,9 @@ export default function CharacterSheetPage() {
                 </div>
               </div>
 
-              {/* 相関図SVGキャンバス（広大 1600x1200 空間、ズーム＆パン対応） */}
+              {/* 相関図SVGキャンバス（超広大 2400x1800 空間、ズーム＆パン対応） */}
               <div 
-                className="relative w-full h-[680px] md:h-[750px] bg-slate-900/5 rounded-xl border-2 border-dashed border-slate-300 overflow-hidden select-none"
+                className="relative w-full h-[680px] md:h-[760px] bg-slate-900/5 rounded-xl border-2 border-dashed border-slate-300 overflow-hidden select-none"
               >
                 <svg
                   ref={svgRef}
@@ -952,7 +963,7 @@ export default function CharacterSheetPage() {
                   onMouseMove={handleMouseMoveSvg}
                   onMouseUp={handleMouseUpSvg}
                   onWheel={handleWheelSvg}
-                  viewBox="0 0 1600 1200"
+                  viewBox="0 0 2400 1800"
                 >
                   {/* クリップパスとグリッド定義 */}
                   <defs>
@@ -962,7 +973,7 @@ export default function CharacterSheetPage() {
                     {/* キャラクターアイコン円形クリップパス */}
                     {characters.map((char) => (
                       <clipPath key={`clip-${char.id}`} id={`avatar-clip-${char.id}`}>
-                        <circle r="30" cx="0" cy="0" />
+                        <circle r="32" cx="0" cy="0" />
                       </clipPath>
                     ))}
                   </defs>
@@ -977,12 +988,12 @@ export default function CharacterSheetPage() {
                       const groupChars = characters.filter((c) => c.groupId === grp.id);
                       if (groupChars.length === 0) return null;
 
-                      const padX = 65;
-                      const padY = 60;
+                      const padX = 75;
+                      const padY = 70;
                       const minX = Math.min(...groupChars.map((c) => c.x)) - padX;
                       const maxX = Math.max(...groupChars.map((c) => c.x)) + padX;
                       const minY = Math.min(...groupChars.map((c) => c.y)) - padY;
-                      const maxY = Math.max(...groupChars.map((c) => c.y)) + padY + 12;
+                      const maxY = Math.max(...groupChars.map((c) => c.y)) + padY + 16;
                       const width = maxX - minX;
                       const height = maxY - minY;
 
@@ -994,7 +1005,7 @@ export default function CharacterSheetPage() {
                             y={minY}
                             width={width}
                             height={height}
-                            rx="26"
+                            rx="30"
                             fill={grp.color}
                             fillOpacity="0.06"
                             stroke={grp.color}
@@ -1004,15 +1015,15 @@ export default function CharacterSheetPage() {
                           />
                           {/* グループ見出しタグ */}
                           <foreignObject
-                            x={minX + 14}
-                            y={minY - 14}
-                            width={Math.max(180, width - 28)}
-                            height="34"
+                            x={minX + 16}
+                            y={minY - 16}
+                            width={Math.max(200, width - 32)}
+                            height="38"
                             className="overflow-visible pointer-events-none"
                           >
                             <div className="flex items-center">
                               <span 
-                                className="px-3 py-1 text-[11px] font-extrabold rounded-full text-white shadow-sm flex items-center gap-1.5 border border-white/80"
+                                className="px-3.5 py-1 text-[12px] font-extrabold rounded-full text-white shadow-sm flex items-center gap-1.5 border border-white/80"
                                 style={{ backgroundColor: grp.color }}
                               >
                                 <span>🏰</span>
@@ -1126,12 +1137,12 @@ export default function CharacterSheetPage() {
                         // 自己ループの場合
                         if (fromChar.id === toChar.id) {
                           const sx = fromChar.x - 20;
-                          const sy = fromChar.y - 36;
+                          const sy = fromChar.y - 40;
                           const ex = fromChar.x + 20;
-                          const ey = fromChar.y - 36;
-                          const pathD = `M ${sx} ${sy} C ${sx - 40} ${sy - 70}, ${ex + 40} ${ey - 70}, ${ex} ${ey}`;
+                          const ey = fromChar.y - 40;
+                          const pathD = `M ${sx} ${sy} C ${sx - 40} ${sy - 80}, ${ex + 40} ${ey - 80}, ${ex} ${ey}`;
                           const midX = fromChar.x;
-                          const midY = fromChar.y - 80;
+                          const midY = fromChar.y - 90;
 
                           return (
                             <g key={edge.id} className="transition-all duration-200">
@@ -1156,7 +1167,7 @@ export default function CharacterSheetPage() {
                                 markerEnd={`url(#arrow-${edge.id})`}
                                 opacity={opacity}
                               />
-                              <foreignObject x={midX - 75} y={midY - 14} width="150" height="36" className="overflow-visible pointer-events-auto">
+                              <foreignObject x={midX - 85} y={midY - 14} width="170" height="38" className="overflow-visible pointer-events-auto">
                                 <div className="flex justify-center">
                                   <span 
                                     className={`px-3 py-0.5 rounded-full text-[11px] font-bold text-white shadow transition-all ${badgeScaleClass}`} 
@@ -1180,8 +1191,8 @@ export default function CharacterSheetPage() {
                         const nx = -uy;
                         const ny = ux;
 
-                        const nodeRadius = 42;
-                        const curveHeight = hasReverse ? 60 : 32;
+                        const nodeRadius = 45;
+                        const curveHeight = hasReverse ? 65 : 35;
 
                         const startX = fromChar.x + ux * nodeRadius + nx * 10;
                         const startY = fromChar.y + uy * nodeRadius + ny * 10;
@@ -1226,10 +1237,10 @@ export default function CharacterSheetPage() {
 
                             {/* ラベル背景バッジ（カーブ頂点に配置・クリックで編集） */}
                             <foreignObject
-                              x={midX - 80}
+                              x={midX - 85}
                               y={midY - 14}
-                              width="160"
-                              height="44"
+                              width="170"
+                              height="46"
                               className="overflow-visible pointer-events-auto"
                             >
                               <div className="flex flex-col items-center justify-center">
@@ -1239,7 +1250,7 @@ export default function CharacterSheetPage() {
                                     const orig = relations.find((r) => r.id === edge.id || edge.id.startsWith(r.id));
                                     if (orig) handleStartEditRelation(orig);
                                   }}
-                                  className={`px-3 py-0.5 rounded-full text-[11px] font-bold text-white flex items-center gap-1 border border-white/80 max-w-[155px] truncate cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm ${badgeScaleClass}`}
+                                  className={`px-3.5 py-0.5 rounded-full text-[11px] font-bold text-white flex items-center gap-1 border border-white/80 max-w-[165px] truncate cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm ${badgeScaleClass}`}
                                   style={{ backgroundColor: color }}
                                   title={`クリックして編集: ${fromChar.name} ➔ ${toChar.name}: ${label}`}
                                 >
@@ -1247,7 +1258,7 @@ export default function CharacterSheetPage() {
                                   <span className="opacity-70 text-[9px]">✏️</span>
                                 </div>
                                 {detail && isRelated && (
-                                  <span className="text-[10px] text-slate-700 bg-white/95 font-medium px-2 py-0.5 rounded shadow-xs mt-0.5 border border-slate-200 truncate max-w-[150px]">
+                                  <span className="text-[10px] text-slate-700 bg-white/95 font-medium px-2 py-0.5 rounded shadow-xs mt-0.5 border border-slate-200 truncate max-w-[160px]">
                                     {detail}
                                   </span>
                                 )}
@@ -1286,14 +1297,14 @@ export default function CharacterSheetPage() {
                           {/* 選択リング */}
                           {isSelected && (
                             <>
-                              <circle r="50" fill="none" stroke={char.themeColor === '#ffffff' ? '#94a3b8' : char.themeColor} strokeWidth="2.5" opacity="0.4" className="animate-ping" />
-                              <circle r="48" fill="none" stroke={char.themeColor === '#ffffff' ? '#94a3b8' : char.themeColor} strokeWidth="3" strokeDasharray="6 3" className="animate-spin" />
+                              <circle r="54" fill="none" stroke={char.themeColor === '#ffffff' ? '#94a3b8' : char.themeColor} strokeWidth="2.5" opacity="0.4" className="animate-ping" />
+                              <circle r="52" fill="none" stroke={char.themeColor === '#ffffff' ? '#94a3b8' : char.themeColor} strokeWidth="3" strokeDasharray="6 3" className="animate-spin" />
                             </>
                           )}
 
                           {/* メイン外枠円 */}
                           <circle
-                            r="38"
+                            r="40"
                             fill="white"
                             stroke={char.themeColor === '#ffffff' ? '#94a3b8' : char.themeColor}
                             strokeWidth={isSelected ? "5" : "3.5"}
@@ -1303,20 +1314,20 @@ export default function CharacterSheetPage() {
                           {/* キャラクター画像 または イニシャル円 */}
                           {char.avatarUrl ? (
                             <g clipPath={`url(#avatar-clip-${char.id})`}>
-                              <circle r="30" fill={char.themeColor} opacity="0.2" />
+                              <circle r="32" fill={char.themeColor} opacity="0.2" />
                               <image
                                 href={char.avatarUrl}
-                                x="-30"
-                                y="-30"
-                                width="60"
-                                height="60"
+                                x="-32"
+                                y="-32"
+                                width="64"
+                                height="64"
                                 preserveAspectRatio="xMidYMid slice"
                               />
                             </g>
                           ) : (
                             <>
                               <circle 
-                                r="30" 
+                                r="32" 
                                 fill={char.themeColor} 
                                 stroke={char.themeColor === '#ffffff' ? '#cbd5e1' : 'none'}
                                 strokeWidth={char.themeColor === '#ffffff' ? '1.5' : '0'}
@@ -1336,16 +1347,16 @@ export default function CharacterSheetPage() {
                           )}
 
                           {/* 名前・所属ラベル */}
-                          <foreignObject x="-85" y="44" width="170" height="56" className="overflow-visible pointer-events-none">
+                          <foreignObject x="-90" y="46" width="180" height="60" className="overflow-visible pointer-events-none">
                             <div className="flex flex-col items-center">
-                              <span className={`px-2.5 py-0.5 text-[12px] font-bold rounded-md shadow-sm whitespace-nowrap max-w-[160px] truncate transition-colors ${
+                              <span className={`px-2.5 py-0.5 text-[12px] font-bold rounded-md shadow-sm whitespace-nowrap max-w-[170px] truncate transition-colors ${
                                 isSelected ? 'bg-blue-600 text-white ring-2 ring-blue-300' : 'bg-slate-900 text-white'
                               }`}>
                                 {char.name}
                               </span>
                               {grp && (
                                 <span 
-                                  className="text-[10px] px-2 py-0.2 rounded font-bold shadow-xs truncate max-w-[150px] mt-0.5"
+                                  className="text-[10px] px-2 py-0.2 rounded font-bold shadow-xs truncate max-w-[160px] mt-0.5"
                                   style={{ backgroundColor: `${grp.color}20`, color: grp.color }}
                                 >
                                   {grp.name}
