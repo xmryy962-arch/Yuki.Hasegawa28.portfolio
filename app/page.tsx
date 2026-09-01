@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 export default function Home() {
   const profile = {
@@ -47,12 +48,20 @@ export default function Home() {
       }
     ],
 
-    // 制作物（準備中の仮データ）
+    // 制作物
     works: [
+      {
+        title: "キャラクター設定シート ジェネレーター",
+        category: "Web Application / Creative Tool",
+        description: "オリジナルキャラクターの設定・ビジュアル・性格・モチーフ・名言などを整理し、美しいカード形式でリアルタイムプレビュー＆印刷・テキスト出力できる創作支援ツールです。創作の壁打ちや設定の散らかり防止をサポートします。",
+        link: "/character-sheet",
+        linkText: "アプリを使ってみる",
+        badge: "New Release"
+      },
       {
         title: "ポートフォリオWebサイト",
         category: "Web Development",
-        description: "Next.jsとVercelを活用して構築した自己紹介・実績紹介ポートフォリオサイトです。"
+        description: "Next.jsとVercelを活用して構築した自己紹介・実績紹介ポートフォリオサイトです。レスポンシブデザインとモダンなUI設計を採用しています。"
       },
       {
         title: "キャラクターデザイン・イラスト作品（準備中）",
@@ -193,17 +202,35 @@ export default function Home() {
             {profile.works.map((work, index) => (
               <div 
                 key={index}
-                className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm space-y-2"
+                className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm space-y-3"
               >
-                <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  {work.category}
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-400 uppercase tracking-wider">
+                    {work.category}
+                  </span>
+                  {work.badge && (
+                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded-full text-[10px]">
+                      {work.badge}
+                    </span>
+                  )}
                 </div>
-                <h3 className="text-lg font-bold text-slate-800">
+                <h3 className="text-lg font-bold text-slate-900">
                   {work.title}
                 </h3>
                 <p className="text-sm text-slate-600 leading-relaxed">
                   {work.description}
                 </p>
+                {work.link && (
+                  <div className="pt-2">
+                    <Link
+                      href={work.link}
+                      className="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors gap-1.5 shadow-sm"
+                    >
+                      <span>{work.linkText || "使ってみる"}</span>
+                      <span>➔</span>
+                    </Link>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -213,7 +240,7 @@ export default function Home() {
         <section className="pt-8 border-t border-slate-200 space-y-4">
           <h2 className="text-xl font-bold text-slate-900">Contact</h2>
           <p className="text-sm text-slate-600">
-            ご連絡やお仕事のご相談はメールまたはGitHubよりお願いいたします。
+            ご連絡の際はメールまたはGitHubよりお願いいたします。
           </p>
           <div className="space-y-2 text-sm text-slate-700 font-medium">
             <p>
