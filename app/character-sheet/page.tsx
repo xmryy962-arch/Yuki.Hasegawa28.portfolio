@@ -653,8 +653,45 @@ export default function CharacterSheetPage() {
                       }
                     });
 
+                    // 選択中の矢印が最前面に来るようソート
+                    renderEdges.sort((a, b) => {
+                      const aScore = a.fromChar.id === selectedCharId ? 2 : (a.toChar.id === selectedCharId ? 1 : 0);
+                      const bScore = b.fromChar.id === selectedCharId ? 2 : (b.toChar.id === selectedCharId ? 1 : 0);
+                      return aScore - bScore;
+                    });
+
                     return renderEdges.map((edge) => {
                       const { fromChar, toChar, label, detail, color, hasReverse } = edge;
+
+                      // 選択キャラとの関係判定
+                      const isOutGoingFromSelected = selectedCharId === fromChar.id;
+                      const isInComingToSelected = selectedCharId === toChar.id;
+                      const isRelated = isOutGoingFromSelected || isInComingToSelected;
+
+                      // 太さと不透明度の計算（選択中のキャラから出る矢印を太く強調）
+                      let strokeWidth = 2.5;
+                      let opacity = 0.85;
+                      let markerSize = 7;
+                      let badgeScaleClass = '';
+
+                      if (selectedCharId) {
+                        if (isOutGoingFromSelected) {
+                          strokeWidth = 5; // 太線化！
+                          opacity = 1;
+                          markerSize = 9.5;
+                          badgeScaleClass = 'scale-110 ring-2 ring-white shadow-xl z-20';
+                        } else if (isInComingToSelected) {
+                          strokeWidth = 3.5;
+                          opacity = 0.9;
+                          markerSize = 8;
+                          badgeScaleClass = 'z-10 shadow-md';
+                        } else {
+                          strokeWidth = 1.5;
+                          opacity = 0.18; // 無関係な矢印は薄く
+                          markerSize = 5;
+                          badgeScaleClass = 'opacity-30';
+                        }
+                      }
 
                       // 自己ループの場合
                       if (fromChar.id === toChar.id) {
@@ -662,20 +699,20 @@ export default function CharacterSheetPage() {
                         const sy = fromChar.y - 32;
                         const ex = fromChar.x + 18;
                         const ey = fromChar.y - 32;
-                        const pathD = `M ${sx} ${sy} C ${sx - 30} ${sy - 50}, ${ex + 30} ${ey - 50}, ${ex} ${ey}`;
+                        const pathD = `M ${sx} ${sy} C ${sx - 35} ${sy - 60}, ${ex + 35} ${ey - 60}, ${ex} ${ey}`;
                         const midX = fromChar.x;
-                        const midY = fromChar.y - 65;
+                        const midY = fromChar.y - 70;
 
                         return (
-                          <g key={edge.id} className="transition-all">
+                          <g key={edge.id} className="transition-all duration-200">
                             <defs>
                               <marker
                                 id={`arrow-${edge.id}`}
                                 viewBox="0 0 10 10"
                                 refX="6"
                                 refY="5"
-                                markerWidth="6"
-                                markerHeight="6"
+                                markerWidth={markerSize}
+                                markerHeight={markerSize}
                                 orient="auto"
                               >
                                 <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill={color} />
@@ -685,13 +722,16 @@ export default function CharacterSheetPage() {
                               d={pathD}
                               fill="none"
                               stroke={color}
-                              strokeWidth="2.5"
+                              strokeWidth={strokeWidth}
                               markerEnd={`url(#arrow-${edge.id})`}
-                              opacity="0.9"
+                              opacity={opacity}
                             />
                             <foreignObject x={midX - 70} y={midY - 14} width="140" height="36" className="overflow-visible pointer-events-auto">
                               <div className="flex justify-center">
-                                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold text-white shadow" style={{ backgroundColor: color }}>
+                                <span 
+                                  className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white shadow transition-all ${badgeScaleClass}`} 
+                                  style={{ backgroundColor: color }}
+                                >
                                   {label}
                                 </span>
                               </div>
@@ -711,12 +751,13 @@ export default function CharacterSheetPage() {
                       const ny = ux;
 
                       const nodeRadius = 38;
-                      const curveHeight = hasReverse ? 38 : 22;
+                      // 重なり防止のため、逆向きがある場合はカーブ高さをしっかり確保（52px）
+                      const curveHeight = hasReverse ? 52 : 30;
 
-                      const startX = fromChar.x + ux * nodeRadius + nx * 6;
-                      const startY = fromChar.y + uy * nodeRadius + ny * 6;
-                      const endX = toChar.x - ux * (nodeRadius + 6) + nx * 6;
-                      const endY = toChar.y - uy * (nodeRadius + 6) + ny * 6;
+                      const startX = fromChar.x + ux * nodeRadius + nx * 8;
+                      const startY = fromChar.y + uy * nodeRadius + ny * 8;
+                      const endX = toChar.x - ux * (nodeRadius + 6) + nx * 8;
+                      const endY = toChar.y - uy * (nodeRadius + 6) + ny * 8;
 
                       const ctrlX = (fromChar.x + toChar.x) / 2 + nx * (curveHeight * 2);
                       const ctrlY = (fromChar.y + toChar.y) / 2 + ny * (curveHeight * 2);
@@ -727,15 +768,15 @@ export default function CharacterSheetPage() {
                       const midY = 0.25 * startY + 0.5 * ctrlY + 0.25 * endY;
 
                       return (
-                        <g key={edge.id} className="transition-all group">
+                        <g key={edge.id} className="transition-all duration-200 group">
                           <defs>
                             <marker
                               id={`arrow-${edge.id}`}
                               viewBox="0 0 10 10"
                               refX="6"
                               refY="5"
-                              markerWidth="7"
-                              markerHeight="7"
+                              markerWidth={markerSize}
+                              markerHeight={markerSize}
                               orient="auto"
                             >
                               <path d="M 0 1.5 L 9 5 L 0 8.5 z" fill={color} />
@@ -747,30 +788,31 @@ export default function CharacterSheetPage() {
                             d={pathD}
                             fill="none"
                             stroke={color}
-                            strokeWidth="2.5"
+                            strokeWidth={strokeWidth}
                             markerEnd={`url(#arrow-${edge.id})`}
-                            opacity="0.85"
-                            className="group-hover:opacity-100 group-hover:stroke-width-3 transition-all"
+                            opacity={opacity}
+                            strokeLinecap="round"
+                            className="transition-all duration-200"
                           />
 
                           {/* ラベル背景バッジ（カーブ頂点に配置） */}
                           <foreignObject
-                            x={midX - 80}
-                            y={midY - 16}
-                            width="160"
-                            height="44"
+                            x={midX - 75}
+                            y={midY - 14}
+                            width="150"
+                            height="40"
                             className="overflow-visible pointer-events-auto"
                           >
                             <div className="flex flex-col items-center justify-center">
                               <div 
-                                className="px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white shadow-md flex items-center gap-1 border border-white/60 max-w-[150px] truncate cursor-pointer hover:scale-105 transition-transform"
+                                className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white flex items-center gap-1 border border-white/80 max-w-[145px] truncate cursor-pointer hover:scale-105 transition-all duration-200 ${badgeScaleClass}`}
                                 style={{ backgroundColor: color }}
                                 title={`${fromChar.name} ➔ ${toChar.name}: ${label}`}
                               >
                                 <span>➔ {label}</span>
                               </div>
-                              {detail && (
-                                <span className="text-[9px] text-slate-600 bg-white/95 px-1.5 py-0.5 rounded shadow-xs mt-0.5 border border-slate-200 truncate max-w-[140px]">
+                              {detail && isRelated && (
+                                <span className="text-[9px] text-slate-700 bg-white/95 font-medium px-1.5 py-0.5 rounded shadow-xs mt-0.5 border border-slate-200 truncate max-w-[140px]">
                                   {detail}
                                 </span>
                               )}
@@ -784,17 +826,30 @@ export default function CharacterSheetPage() {
                   {/* キャラクターノード (Draggable Nodes) */}
                   {characters.map((char) => {
                     const isSelected = char.id === selectedCharId;
+                    const isConnected = relations.some(
+                      (r) =>
+                        (r.fromId === selectedCharId && r.toId === char.id) ||
+                        (r.toId === selectedCharId && r.fromId === char.id)
+                    );
+                    const nodeOpacity = selectedCharId
+                      ? (isSelected || isConnected ? 1 : 0.4)
+                      : 1;
+
                     return (
                       <g
                         key={char.id}
                         transform={`translate(${char.x}, ${char.y})`}
                         onMouseDown={(e) => handleMouseDownNode(char.id, e)}
                         onClick={() => setSelectedCharId(char.id)}
-                        className="cursor-grab active:cursor-grabbing group"
+                        className="cursor-grab active:cursor-grabbing group transition-opacity duration-200"
+                        opacity={nodeOpacity}
                       >
                         {/* 選択リング */}
                         {isSelected && (
-                          <circle r="44" fill="none" stroke={char.themeColor} strokeWidth="3" strokeDasharray="5 3" className="animate-spin" />
+                          <>
+                            <circle r="46" fill="none" stroke={char.themeColor} strokeWidth="2.5" opacity="0.4" className="animate-ping" />
+                            <circle r="44" fill="none" stroke={char.themeColor} strokeWidth="3" strokeDasharray="6 3" className="animate-spin" />
+                          </>
                         )}
 
                         {/* メイン円 */}
@@ -802,12 +857,12 @@ export default function CharacterSheetPage() {
                           r="36"
                           fill="white"
                           stroke={char.themeColor}
-                          strokeWidth="4"
+                          strokeWidth={isSelected ? "5" : "3.5"}
                           className="drop-shadow-md group-hover:scale-105 transition-transform"
                         />
 
                         {/* キャラクターアイコン/イニシャル */}
-                        <circle r="26" fill={char.themeColor} opacity="0.9" />
+                        <circle r="26" fill={char.themeColor} opacity="0.92" />
                         <text
                           textAnchor="middle"
                           dy="6"
@@ -822,11 +877,13 @@ export default function CharacterSheetPage() {
                         {/* 名前と役職ラベル */}
                         <foreignObject x="-75" y="42" width="150" height="45" className="overflow-visible pointer-events-none">
                           <div className="flex flex-col items-center">
-                            <span className="px-2 py-0.5 bg-slate-900 text-white text-[11px] font-bold rounded-md shadow-sm whitespace-nowrap max-w-[140px] truncate">
+                            <span className={`px-2 py-0.5 text-[11px] font-bold rounded-md shadow-sm whitespace-nowrap max-w-[140px] truncate transition-colors ${
+                              isSelected ? 'bg-blue-600 text-white ring-2 ring-blue-300' : 'bg-slate-900 text-white'
+                            }`}>
                               {char.name}
                             </span>
                             {char.role && (
-                              <span className="text-[10px] text-slate-500 font-medium truncate max-w-[130px]">
+                              <span className="text-[10px] text-slate-500 font-medium truncate max-w-[130px] mt-0.5">
                                 {char.role}
                               </span>
                             )}
