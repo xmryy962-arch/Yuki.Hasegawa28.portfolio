@@ -3,6 +3,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 
+interface Group {
+  id: string;
+  name: string;
+  color: string;
+  description?: string;
+}
+
 interface Character {
   id: string;
   name: string;
@@ -12,6 +19,7 @@ interface Character {
   age: string;
   gender: string;
   themeColor: string;
+  groupId?: string; // 所属グループ/勢力
   personality: string;
   appearance: string;
   motifs: string[];
@@ -35,6 +43,22 @@ interface Relation {
   color?: string;
 }
 
+// サンプルデータ: グループ/勢力
+const SAMPLE_GROUPS: Group[] = [
+  {
+    id: 'grp-1',
+    name: 'アジトの仲間（風の旅団）',
+    color: '#0284c7', // スカイブルー
+    description: '未開の地や天空の謎を調査する拠点メンバーたち'
+  },
+  {
+    id: 'grp-2',
+    name: '王族・聖樹騎士団',
+    color: '#dc2626', // クリムゾンレッド
+    description: '王都の秩序と平和を守る正統派の統治・護衛組織'
+  }
+];
+
 // サンプルデータ: 冒険ファンタジー
 const SAMPLE_CHARACTERS: Character[] = [
   {
@@ -45,7 +69,8 @@ const SAMPLE_CHARACTERS: Character[] = [
     role: '風の魔法使い / 主人公',
     age: '17歳',
     gender: '女性',
-    themeColor: '#0284c7', // スカイブルー
+    themeColor: '#0284c7',
+    groupId: 'grp-1', // アジトの仲間
     personality: '明るく好奇心旺盛。少しおっちょこちょいだが、一度決めたら曲げない芯の強さを持つ。',
     appearance: '透き通るような青髪のショートボブ。羽根のついたベレー帽とスケッチブックを携帯。',
     motifs: ['風', '羽根', 'スケッチブック', '青空'],
@@ -64,7 +89,8 @@ const SAMPLE_CHARACTERS: Character[] = [
     role: '守護騎士 / 相棒',
     age: '19歳',
     gender: '男性',
-    themeColor: '#dc2626', // レッド
+    themeColor: '#2563eb',
+    groupId: 'grp-1', // アジトの仲間
     personality: '生真面目で義理堅い。口数は少ないが仲間思いで、危険な前線に真っ先に立つ。',
     appearance: '銀髪の短髪に琥珀色の瞳。歴戦の傷跡がある白銀の鎧を身にまとう。',
     motifs: ['剣', '盾', '獅子', '炎'],
@@ -72,7 +98,7 @@ const SAMPLE_CHARACTERS: Character[] = [
     dislikes: '不意打ち、甘えた態度',
     quote: '「お前の背中は俺が守る。前だけを見て走れ。」',
     story: '没落した名門騎士家の若き当主。ルシアの真っ直ぐな瞳に救われ、彼女の旅の護衛役兼相棒として同行している。',
-    x: 520,
+    x: 320,
     y: 180,
   },
   {
@@ -83,7 +109,8 @@ const SAMPLE_CHARACTERS: Character[] = [
     role: '錬金術師 / 参謀',
     age: '16歳',
     gender: '男性',
-    themeColor: '#059669', // エメラルド
+    themeColor: '#059669',
+    groupId: 'grp-1', // アジトの仲間
     personality: '冷静沈着で理屈っぽい毒舌家。だが仲間がピンチの時は誰よりも素早く手を打つツンデレ。',
     appearance: '深緑の髪に丸メガネ。白衣と怪しげな薬品フラスコを腰に提げている。',
     motifs: ['四つ葉', '薬瓶', '歯車', '書物'],
@@ -91,8 +118,28 @@ const SAMPLE_CHARACTERS: Character[] = [
     dislikes: '非論理的な行動、運動、騒がしい場所',
     quote: '「やれやれ、僕の計算外で勝手な無茶をしないでください。」',
     story: '最年少で王立アカデミーを卒業した天才研究者。ルシアの持つ不思議な魔法の正体を解き明かすという名目でパーティに加わる。',
-    x: 350,
-    y: 420,
+    x: 250,
+    y: 350,
+  },
+  {
+    id: 'char-4',
+    name: 'セリア・フォン・ローゼン',
+    nameKana: 'せりあ・ふぉん・ろーぜん',
+    catchphrase: '王国の未来を背負い、真実を求める高潔な王女',
+    role: '第一王女 / 依頼人',
+    age: '18歳',
+    gender: '女性',
+    themeColor: '#dc2626',
+    groupId: 'grp-2', // 王族
+    personality: '気品に満ち、民を愛する誇り高き王女。お忍びでルシアたちのアジトに依頼を持ち込む。',
+    appearance: '黄金の波打つロングヘアに赤いリボン。純白のドレスと細身のレイピアを帯びる。',
+    motifs: ['王冠', '薔薇', 'レイピア', 'リボン'],
+    likes: '紅茶、乗馬、民の笑顔',
+    dislikes: '不正、無意味な争い',
+    quote: '「あなた方の力を貸してください。この国を救うために。」',
+    story: '王宮内の陰謀に気付き、信頼できる民間の実力者としてルシアたちの旅団に極秘任務を依頼する。',
+    x: 600,
+    y: 250,
   }
 ];
 
@@ -105,7 +152,7 @@ const SAMPLE_RELATIONS: Relation[] = [
     toLabel: '守るべき存在 / 敬意',
     type: 'bidirectional',
     detail: '旅の最初期に出会い、幾多の死線を共に乗り越えてきた一番の相棒関係。',
-    color: '#3b82f6'
+    color: '#0284c7'
   },
   {
     id: 'rel-2',
@@ -115,7 +162,7 @@ const SAMPLE_RELATIONS: Relation[] = [
     toLabel: '頼もしい盾（脳筋扱い）',
     type: 'bidirectional',
     detail: '性格は正反対でよく言い争うが、実力は認め合っている凸凹コンビ。',
-    color: '#8b5cf6'
+    color: '#059669'
   },
   {
     id: 'rel-3',
@@ -125,12 +172,23 @@ const SAMPLE_RELATIONS: Relation[] = [
     toLabel: '博識な頼れる仲間',
     type: 'bidirectional',
     detail: '無茶ばかりするルシアに小言を言いつつも、いつも的確なサポートをする。',
-    color: '#10b981'
+    color: '#059669'
+  },
+  {
+    id: 'rel-4',
+    fromId: 'char-4',
+    toId: 'char-1',
+    fromLabel: '希望の光・依頼',
+    toLabel: '依頼人・助けたい存在',
+    type: 'bidirectional',
+    detail: '身分の違いを超えて強い絆を結びつつある協力関係。',
+    color: '#dc2626'
   }
 ];
 
 const COLOR_PRESETS = [
   { name: 'スカイブルー', color: '#0284c7' },
+  { name: 'ロイヤルブルー', color: '#2563eb' },
   { name: 'クリムゾンレッド', color: '#dc2626' },
   { name: 'エメラルドグリーン', color: '#059669' },
   { name: 'アンバーゴールド', color: '#d97706' },
@@ -141,14 +199,15 @@ const COLOR_PRESETS = [
 
 const RELATION_TAG_SUGGESTIONS = [
   '信頼・相棒', 'ライバル', '親友・幼馴染', '片思い', '好意・両思い',
-  '主従関係', '師弟関係', '敵対・因縁', '憧れ・尊敬', '腐れ縁', 'ビジネス仲間'
+  '主従関係', '師弟関係', '敵対・因縁', '憧れ・尊敬', '腐れ縁', 'ビジネス仲間', '保護者・被保護者'
 ];
 
 export default function CharacterSheetPage() {
   const [characters, setCharacters] = useState<Character[]>(SAMPLE_CHARACTERS);
   const [relations, setRelations] = useState<Relation[]>(SAMPLE_RELATIONS);
+  const [groups, setGroups] = useState<Group[]>(SAMPLE_GROUPS);
   const [selectedCharId, setSelectedCharId] = useState<string>(SAMPLE_CHARACTERS[0].id);
-  const [activeTab, setActiveTab] = useState<'profile' | 'chart' | 'relations_list'>('chart');
+  const [activeTab, setActiveTab] = useState<'profile' | 'chart' | 'relations_list' | 'groups'>('chart');
   
   // 新規・編集関係性フォーム用
   const [editingRelId, setEditingRelId] = useState<string | null>(null);
@@ -158,6 +217,12 @@ export default function CharacterSheetPage() {
   const [newRelToLabel, setNewRelToLabel] = useState<string>('');
   const [newRelType, setNewRelType] = useState<'bidirectional' | 'unidirectional'>('bidirectional');
   const [newRelDetail, setNewRelDetail] = useState<string>('');
+
+  // グループ編集フォーム用
+  const [editingGroupId, setEditingGroupId] = useState<string | null>(null);
+  const [groupName, setGroupName] = useState('');
+  const [groupColor, setGroupColor] = useState('#0284c7');
+  const [groupDesc, setGroupDesc] = useState('');
 
   // モチーフ追加用
   const [newMotif, setNewMotif] = useState('');
@@ -172,6 +237,7 @@ export default function CharacterSheetPage() {
   useEffect(() => {
     const savedChars = localStorage.getItem('cb_characters');
     const savedRels = localStorage.getItem('cb_relations');
+    const savedGrps = localStorage.getItem('cb_groups');
     if (savedChars) {
       try {
         const parsed = JSON.parse(savedChars);
@@ -191,21 +257,31 @@ export default function CharacterSheetPage() {
         console.error(e);
       }
     }
+    if (savedGrps) {
+      try {
+        const parsedG = JSON.parse(savedGrps);
+        if (Array.isArray(parsedG)) setGroups(parsedG);
+      } catch (e) {
+        console.error(e);
+      }
+    }
   }, []);
 
   // データ保存
-  const saveAll = (newChars: Character[], newRels: Relation[]) => {
+  const saveAll = (newChars: Character[], newRels: Relation[], newGrps?: Group[]) => {
     setCharacters(newChars);
     setRelations(newRels);
+    if (newGrps) setGroups(newGrps);
     localStorage.setItem('cb_characters', JSON.stringify(newChars));
     localStorage.setItem('cb_relations', JSON.stringify(newRels));
+    localStorage.setItem('cb_groups', JSON.stringify(newGrps || groups));
   };
 
   const selectedCharacter = characters.find((c) => c.id === selectedCharId) || characters[0];
 
   const updateSelectedCharacter = (fields: Partial<Character>) => {
     const updated = characters.map((c) => (c.id === selectedCharId ? { ...c, ...fields } : c));
-    saveAll(updated, relations);
+    saveAll(updated, relations, groups);
   };
 
   // キャラクターの新規追加
@@ -220,6 +296,7 @@ export default function CharacterSheetPage() {
       age: '18歳',
       gender: '不明',
       themeColor: COLOR_PRESETS[count % COLOR_PRESETS.length].color,
+      groupId: groups[0]?.id || undefined,
       personality: '',
       appearance: '',
       motifs: [],
@@ -231,7 +308,7 @@ export default function CharacterSheetPage() {
       y: 150 + Math.floor(count / 3) * 150
     };
     const updated = [...characters, newChar];
-    saveAll(updated, relations);
+    saveAll(updated, relations, groups);
     setSelectedCharId(newChar.id);
   };
 
@@ -245,7 +322,7 @@ export default function CharacterSheetPage() {
     
     const updatedChars = characters.filter((c) => c.id !== idToDelete);
     const updatedRels = relations.filter((r) => r.fromId !== idToDelete && r.toId !== idToDelete);
-    saveAll(updatedChars, updatedRels);
+    saveAll(updatedChars, updatedRels, groups);
     if (selectedCharId === idToDelete) {
       setSelectedCharId(updatedChars[0].id);
     }
@@ -307,7 +384,6 @@ export default function CharacterSheetPage() {
     const fromChar = characters.find((c) => c.id === newRelFrom);
 
     if (editingRelId) {
-      // 編集保存
       const updated = relations.map((r) => {
         if (r.id === editingRelId) {
           return {
@@ -323,10 +399,9 @@ export default function CharacterSheetPage() {
         }
         return r;
       });
-      saveAll(characters, updated);
+      saveAll(characters, updated, groups);
       setEditingRelId(null);
     } else {
-      // 新規作成
       const newRel: Relation = {
         id: `rel-${Date.now()}`,
         fromId: newRelFrom,
@@ -337,7 +412,7 @@ export default function CharacterSheetPage() {
         detail: newRelDetail.trim() || undefined,
         color: fromChar?.themeColor || '#64748b'
       };
-      saveAll(characters, [...relations, newRel]);
+      saveAll(characters, [...relations, newRel], groups);
     }
 
     setNewRelFromLabel('');
@@ -348,20 +423,67 @@ export default function CharacterSheetPage() {
   // 関係性の削除
   const handleDeleteRelation = (relId: string) => {
     const updated = relations.filter((r) => r.id !== relId);
-    saveAll(characters, updated);
+    saveAll(characters, updated, groups);
+  };
+
+  // グループの追加または編集
+  const handleSaveGroup = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!groupName.trim()) {
+      alert('グループ名（勢力名）を入力してください。');
+      return;
+    }
+
+    if (editingGroupId) {
+      const updated = groups.map((g) =>
+        g.id === editingGroupId ? { ...g, name: groupName.trim(), color: groupColor, description: groupDesc.trim() || undefined } : g
+      );
+      saveAll(characters, relations, updated);
+      setEditingGroupId(null);
+    } else {
+      const newGrp: Group = {
+        id: `grp-${Date.now()}`,
+        name: groupName.trim(),
+        color: groupColor,
+        description: groupDesc.trim() || undefined
+      };
+      saveAll(characters, relations, [...groups, newGrp]);
+    }
+
+    setGroupName('');
+    setGroupDesc('');
+  };
+
+  const handleStartEditGroup = (g: Group) => {
+    setEditingGroupId(g.id);
+    setGroupName(g.name);
+    setGroupColor(g.color);
+    setGroupDesc(g.description || '');
+  };
+
+  const handleDeleteGroup = (groupIdToDelete: string) => {
+    if (!window.confirm('このグループを削除しますか？（所属していたキャラは「所属なし」になります）')) return;
+    const updatedGrps = groups.filter((g) => g.id !== groupIdToDelete);
+    const updatedChars = characters.map((c) => (c.groupId === groupIdToDelete ? { ...c, groupId: undefined } : c));
+    saveAll(updatedChars, relations, updatedGrps);
+    if (editingGroupId === groupIdToDelete) {
+      setEditingGroupId(null);
+      setGroupName('');
+      setGroupDesc('');
+    }
   };
 
   // サンプルリセット
   const handleResetSample = () => {
     if (window.confirm('初期のサンプルデータに戻しますか？')) {
-      saveAll(SAMPLE_CHARACTERS, SAMPLE_RELATIONS);
+      saveAll(SAMPLE_CHARACTERS, SAMPLE_RELATIONS, SAMPLE_GROUPS);
       setSelectedCharId(SAMPLE_CHARACTERS[0].id);
     }
   };
 
   // 全クリア
   const handleClearAll = () => {
-    if (window.confirm('すべてのキャラクターと相関図をリセットして新しく作り直しますか？')) {
+    if (window.confirm('すべてのキャラクター、相関図、グループをリセットして新しく作り直しますか？')) {
       const initialChar: Character = {
         id: `char-${Date.now()}`,
         name: '主人公',
@@ -381,16 +503,16 @@ export default function CharacterSheetPage() {
         x: 350,
         y: 250
       };
-      saveAll([initialChar], []);
+      saveAll([initialChar], [], []);
       setSelectedCharId(initialChar.id);
     }
   };
 
   // 相関図の円形自動整列
   const handleAutoAlignCircle = () => {
-    const centerX = 380;
-    const centerY = 280;
-    const radius = Math.min(220, 100 + characters.length * 25);
+    const centerX = 400;
+    const centerY = 300;
+    const radius = Math.min(240, 120 + characters.length * 20);
     const updated = characters.map((c, idx) => {
       const angle = (idx / characters.length) * 2 * Math.PI - Math.PI / 2;
       return {
@@ -399,7 +521,7 @@ export default function CharacterSheetPage() {
         y: Math.round(centerY + radius * Math.sin(angle))
       };
     });
-    saveAll(updated, relations);
+    saveAll(updated, relations, groups);
   };
 
   // ドラッグ操作（SVG相関図内）
@@ -431,17 +553,29 @@ export default function CharacterSheetPage() {
   const handleMouseUpSvg = () => {
     if (draggingCharId) {
       setDraggingCharId(null);
-      saveAll(characters, relations);
+      saveAll(characters, relations, groups);
     }
   };
 
   // テキストエクスポート
   const handleExportText = () => {
     let text = `【作品・キャラクター相関図設定】\n\n`;
+    
+    if (groups.length > 0) {
+      text += `■ 所属・勢力一覧 (${groups.length}グループ)\n`;
+      groups.forEach((g) => {
+        const members = characters.filter((c) => c.groupId === g.id).map((c) => c.name);
+        text += `・ [${g.name}] (メンバー: ${members.join(', ') || 'なし'})\n`;
+        if (g.description) text += `  概要: ${g.description}\n`;
+      });
+      text += `\n`;
+    }
+
     text += `■ 登場キャラクター一覧 (${characters.length}名)\n`;
     characters.forEach((c) => {
+      const grp = groups.find((g) => g.id === c.groupId)?.name;
       text += `---------------------------------\n`;
-      text += `【${c.name}】（${c.nameKana}） - ${c.role}\n`;
+      text += `【${c.name}】（${c.nameKana}） - ${c.role}${grp ? ` [所属: ${grp}]` : ''}\n`;
       if (c.catchphrase) text += `キャッチコピー: ${c.catchphrase}\n`;
       text += `年齢/性別: ${c.age || '未設定'} / ${c.gender || '未設定'}\n`;
       if (c.motifs.length > 0) text += `モチーフ: ${c.motifs.join(', ')}\n`;
@@ -483,7 +617,7 @@ export default function CharacterSheetPage() {
               <span>🕸️</span> キャラクター設定 & 相関図ジェネレーター
             </h1>
             <p className="text-xs md:text-sm text-slate-500 mt-1">
-              複数キャラクターの設定整理と、直感的なビジュアル相関図（関係マップ）をワンストップで作成できる創作支援ツール
+              複数キャラクター、所属勢力・グループ（アジト・王族等）、および関係マップを直感的に作成できる創作支援ツール
             </p>
           </div>
 
@@ -504,7 +638,7 @@ export default function CharacterSheetPage() {
               onClick={handleExportText}
               className="px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-lg transition flex items-center gap-1"
             >
-              {copied ? '✓ 相関図設定をコピー！' : '📋 全設定をコピー'}
+              {copied ? '✓ 全設定をコピーしました！' : '📋 全設定をコピー'}
             </button>
             <button
               onClick={() => window.print()}
@@ -542,28 +676,47 @@ export default function CharacterSheetPage() {
             >
               📝 関係性一覧・追加 ({relations.length})
             </button>
+            <button
+              onClick={() => setActiveTab('groups')}
+              className={`px-4 py-1.5 text-xs font-bold rounded-md transition flex items-center gap-1 ${
+                activeTab === 'groups' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <span>🏰</span> グループ・勢力 ({groups.length})
+            </button>
           </div>
 
           {/* キャラクター切り替えクイックバー */}
           <div className="flex items-center gap-1.5 overflow-x-auto max-w-full py-1">
             <span className="text-xs text-slate-400 font-medium whitespace-nowrap">キャラ:</span>
-            {characters.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => {
-                  setSelectedCharId(c.id);
-                  if (activeTab === 'relations_list') setActiveTab('profile');
-                }}
-                className={`px-2.5 py-1 text-xs rounded-full font-medium flex items-center gap-1.5 transition whitespace-nowrap border ${
-                  selectedCharId === c.id
-                    ? 'border-slate-800 bg-slate-800 text-white shadow-sm'
-                    : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
-                }`}
-              >
-                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: c.themeColor }} />
-                <span>{c.name || '無名'}</span>
-              </button>
-            ))}
+            {characters.map((c) => {
+              const grp = groups.find((g) => g.id === c.groupId);
+              return (
+                <button
+                  key={c.id}
+                  onClick={() => {
+                    setSelectedCharId(c.id);
+                    if (activeTab === 'relations_list' || activeTab === 'groups') setActiveTab('profile');
+                  }}
+                  className={`px-2.5 py-1 text-xs rounded-full font-medium flex items-center gap-1.5 transition whitespace-nowrap border ${
+                    selectedCharId === c.id
+                      ? 'border-slate-800 bg-slate-800 text-white shadow-sm'
+                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
+                  }`}
+                >
+                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: c.themeColor }} />
+                  <span>{c.name || '無名'}</span>
+                  {grp && (
+                    <span 
+                      className="text-[9px] px-1.5 py-0.2 rounded-full font-normal opacity-85"
+                      style={{ backgroundColor: `${grp.color}25`, color: grp.color }}
+                    >
+                      {grp.name.slice(0, 4)}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
             <button
               onClick={handleAddCharacter}
               className="px-2.5 py-1 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-full transition whitespace-nowrap flex items-center gap-1"
@@ -585,7 +738,7 @@ export default function CharacterSheetPage() {
                     <span>🕸️</span> インタラクティブ相関図マップ
                   </h2>
                   <p className="text-xs text-slate-500">
-                    💡 キャラクターの丸アイコンをドラッグ＆ドロップして自由に配置できます。クリックで個別設定を開きます。
+                    💡 キャラクターをドラッグして自由に配置できます。所属グループの枠（ゾーン）が自動で追従します。
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -596,16 +749,25 @@ export default function CharacterSheetPage() {
                     <span>🔄</span> 円形に整列
                   </button>
                   <button
-                    onClick={() => setActiveTab('relations_list')}
-                    className="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition flex items-center gap-1"
+                    onClick={() => setActiveTab('groups')}
+                    className="px-3 py-1.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition flex items-center gap-1"
                   >
-                    <span>＋</span> 新しい関係性を結ぶ
+                    <span>🏰</span> グループ編集
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingRelId(null);
+                      setActiveTab('relations_list');
+                    }}
+                    className="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition flex items-center gap-1 shadow-sm"
+                  >
+                    <span>＋</span> 関係性を追加
                   </button>
                 </div>
               </div>
 
               {/* 相関図SVGキャンバス */}
-              <div className="relative w-full h-[580px] bg-slate-900/5 rounded-xl border-2 border-dashed border-slate-300 overflow-hidden select-none">
+              <div className="relative w-full h-[620px] bg-slate-900/5 rounded-xl border-2 border-dashed border-slate-300 overflow-hidden select-none">
                 <svg
                   ref={svgRef}
                   className="w-full h-full cursor-crosshair"
@@ -613,39 +775,65 @@ export default function CharacterSheetPage() {
                   onMouseUp={handleMouseUpSvg}
                   viewBox="0 0 800 600"
                 >
-                  <defs>
-                    {/* 矢印マーカー */}
-                    <marker
-                      id="arrow-end"
-                      viewBox="0 0 10 10"
-                      refX="22"
-                      refY="5"
-                      markerWidth="6"
-                      markerHeight="6"
-                      orient="auto-start-reverse"
-                    >
-                      <path d="M 0 1 L 10 5 L 0 9 z" fill="#64748b" />
-                    </marker>
-                    <marker
-                      id="arrow-start"
-                      viewBox="0 0 10 10"
-                      refX="-12"
-                      refY="5"
-                      markerWidth="6"
-                      markerHeight="6"
-                      orient="auto"
-                    >
-                      <path d="M 10 1 L 0 5 L 10 9 z" fill="#64748b" />
-                    </marker>
-                  </defs>
-
                   {/* グリッド背景ドット */}
                   <pattern id="dotGrid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
                     <circle cx="2" cy="2" r="1" fill="#cbd5e1" />
                   </pattern>
                   <rect width="100%" height="100%" fill="url(#dotGrid)" />
 
-                  {/* 描画用エッジリストの生成（A→B, B→Aが重ならないよう曲線化） */}
+                  {/* 1. グループゾーン（勢力・所属枠）の描画 */}
+                  {groups.map((grp) => {
+                    const groupChars = characters.filter((c) => c.groupId === grp.id);
+                    if (groupChars.length === 0) return null;
+
+                    const padX = 58;
+                    const padY = 52;
+                    const minX = Math.min(...groupChars.map((c) => c.x)) - padX;
+                    const maxX = Math.max(...groupChars.map((c) => c.x)) + padX;
+                    const minY = Math.min(...groupChars.map((c) => c.y)) - padY;
+                    const maxY = Math.max(...groupChars.map((c) => c.y)) + padY + 10;
+                    const width = maxX - minX;
+                    const height = maxY - minY;
+
+                    return (
+                      <g key={grp.id} className="transition-all duration-300">
+                        {/* グループ背景矩形 */}
+                        <rect
+                          x={minX}
+                          y={minY}
+                          width={width}
+                          height={height}
+                          rx="22"
+                          fill={grp.color}
+                          fillOpacity="0.06"
+                          stroke={grp.color}
+                          strokeWidth="2"
+                          strokeDasharray="6 4"
+                          className="pointer-events-none"
+                        />
+                        {/* グループ見出しタグ */}
+                        <foreignObject
+                          x={minX + 10}
+                          y={minY - 13}
+                          width={Math.max(160, width - 20)}
+                          height="30"
+                          className="overflow-visible pointer-events-none"
+                        >
+                          <div className="flex items-center">
+                            <span 
+                              className="px-2.5 py-0.5 text-[10px] font-extrabold rounded-full text-white shadow-sm flex items-center gap-1 border border-white/80"
+                              style={{ backgroundColor: grp.color }}
+                            >
+                              <span>🏰</span>
+                              <span>{grp.name}</span>
+                            </span>
+                          </div>
+                        </foreignObject>
+                      </g>
+                    );
+                  })}
+
+                  {/* 2. 描画用エッジリストの生成（A→B, B→Aが重ならないよう曲線化＆ハイライト） */}
                   {(() => {
                     interface RenderEdge {
                       id: string;
@@ -802,7 +990,6 @@ export default function CharacterSheetPage() {
                       const ny = ux;
 
                       const nodeRadius = 38;
-                      // 重なり防止のため、逆向きがある場合はカーブ高さをしっかり確保（52px）
                       const curveHeight = hasReverse ? 52 : 30;
 
                       const startX = fromChar.x + ux * nodeRadius + nx * 8;
@@ -846,7 +1033,7 @@ export default function CharacterSheetPage() {
                             className="transition-all duration-200"
                           />
 
-                          {/* ラベル背景バッジ（カーブ頂点に配置） */}
+                          {/* ラベル背景バッジ（カーブ頂点に配置・クリックで編集） */}
                           <foreignObject
                             x={midX - 75}
                             y={midY - 14}
@@ -879,7 +1066,7 @@ export default function CharacterSheetPage() {
                     });
                   })()}
 
-                  {/* キャラクターノード (Draggable Nodes) */}
+                  {/* 3. キャラクターノード (Draggable Nodes) */}
                   {characters.map((char) => {
                     const isSelected = char.id === selectedCharId;
                     const isConnected = relations.some(
@@ -890,6 +1077,7 @@ export default function CharacterSheetPage() {
                     const nodeOpacity = selectedCharId
                       ? (isSelected || isConnected ? 1 : 0.4)
                       : 1;
+                    const grp = groups.find((g) => g.id === char.groupId);
 
                     return (
                       <g
@@ -930,17 +1118,20 @@ export default function CharacterSheetPage() {
                           {char.name ? char.name.slice(0, 2) : '無名'}
                         </text>
 
-                        {/* 名前と役職ラベル */}
-                        <foreignObject x="-75" y="42" width="150" height="45" className="overflow-visible pointer-events-none">
+                        {/* 名前・所属・役職ラベル */}
+                        <foreignObject x="-75" y="42" width="150" height="52" className="overflow-visible pointer-events-none">
                           <div className="flex flex-col items-center">
                             <span className={`px-2 py-0.5 text-[11px] font-bold rounded-md shadow-sm whitespace-nowrap max-w-[140px] truncate transition-colors ${
                               isSelected ? 'bg-blue-600 text-white ring-2 ring-blue-300' : 'bg-slate-900 text-white'
                             }`}>
                               {char.name}
                             </span>
-                            {char.role && (
-                              <span className="text-[10px] text-slate-500 font-medium truncate max-w-[130px] mt-0.5">
-                                {char.role}
+                            {grp && (
+                              <span 
+                                className="text-[9px] px-1.5 py-0.2 rounded font-bold shadow-xs truncate max-w-[130px] mt-0.5"
+                                style={{ backgroundColor: `${grp.color}20`, color: grp.color }}
+                              >
+                                {grp.name}
                               </span>
                             )}
                           </div>
@@ -959,12 +1150,23 @@ export default function CharacterSheetPage() {
                 style={{ borderLeftColor: selectedCharacter.themeColor }}
               >
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs text-slate-400">{selectedCharacter.nameKana}</span>
                     <h3 className="text-base font-bold text-slate-900">{selectedCharacter.name}</h3>
                     <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
                       {selectedCharacter.role}
                     </span>
+                    {groups.find((g) => g.id === selectedCharacter.groupId) && (
+                      <span 
+                        className="text-xs px-2 py-0.5 rounded font-bold"
+                        style={{ 
+                          backgroundColor: `${groups.find((g) => g.id === selectedCharacter.groupId)?.color}20`,
+                          color: groups.find((g) => g.id === selectedCharacter.groupId)?.color
+                        }}
+                      >
+                        🏰 {groups.find((g) => g.id === selectedCharacter.groupId)?.name}
+                      </span>
+                    )}
                   </div>
                   <p className="text-xs text-slate-600 italic">
                     {selectedCharacter.catchphrase || selectedCharacter.quote || selectedCharacter.personality || '設定を入力してください'}
@@ -1013,31 +1215,48 @@ export default function CharacterSheetPage() {
                 </button>
               </div>
 
-              {/* テーマカラー */}
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-700">テーマカラー</label>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {COLOR_PRESETS.map((p) => (
-                    <button
-                      key={p.color}
-                      type="button"
-                      onClick={() => updateSelectedCharacter({ themeColor: p.color })}
-                      className={`w-7 h-7 rounded-full border-2 transition-transform ${
-                        selectedCharacter.themeColor === p.color ? 'scale-110 border-slate-900 ring-2 ring-slate-400' : 'border-white'
-                      }`}
-                      style={{ backgroundColor: p.color }}
-                      title={p.name}
-                    />
-                  ))}
-                  <div className="flex items-center gap-1.5 pl-2">
-                    <input
-                      type="color"
-                      value={selectedCharacter.themeColor}
-                      onChange={(e) => updateSelectedCharacter({ themeColor: e.target.value })}
-                      className="w-8 h-8 rounded cursor-pointer border-0 p-0"
-                    />
-                    <span className="text-xs text-slate-400 font-mono">{selectedCharacter.themeColor}</span>
+              {/* テーマカラー & 所属グループ */}
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700">テーマカラー</label>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {COLOR_PRESETS.map((p) => (
+                      <button
+                        key={p.color}
+                        type="button"
+                        onClick={() => updateSelectedCharacter({ themeColor: p.color })}
+                        className={`w-7 h-7 rounded-full border-2 transition-transform ${
+                          selectedCharacter.themeColor === p.color ? 'scale-110 border-slate-900 ring-2 ring-slate-400' : 'border-white'
+                        }`}
+                        style={{ backgroundColor: p.color }}
+                        title={p.name}
+                      />
+                    ))}
+                    <div className="flex items-center gap-1.5 pl-2">
+                      <input
+                        type="color"
+                        value={selectedCharacter.themeColor}
+                        onChange={(e) => updateSelectedCharacter({ themeColor: e.target.value })}
+                        className="w-8 h-8 rounded cursor-pointer border-0 p-0"
+                      />
+                      <span className="text-xs text-slate-400 font-mono">{selectedCharacter.themeColor}</span>
+                    </div>
                   </div>
+                </div>
+
+                {/* 所属グループ選択 */}
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">🏰 所属グループ / 勢力</label>
+                  <select
+                    value={selectedCharacter.groupId || ''}
+                    onChange={(e) => updateSelectedCharacter({ groupId: e.target.value || undefined })}
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="">（所属なし / フリー）</option>
+                    {groups.map((g) => (
+                      <option key={g.id} value={g.id}>🏰 {g.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
@@ -1234,15 +1453,22 @@ export default function CharacterSheetPage() {
                     style={{ backgroundColor: selectedCharacter.themeColor || '#0284c7' }}
                   >
                     <div className="relative z-10 space-y-1.5">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between flex-wrap gap-2">
                         <span className="text-xs font-semibold tracking-widest uppercase opacity-90">
                           Character Profile
                         </span>
-                        {selectedCharacter.role && (
-                          <span className="px-2.5 py-0.5 bg-black/20 backdrop-blur-sm rounded-full text-xs font-medium">
-                            {selectedCharacter.role}
-                          </span>
-                        )}
+                        <div className="flex items-center gap-1.5">
+                          {groups.find((g) => g.id === selectedCharacter.groupId) && (
+                            <span className="px-2.5 py-0.5 bg-black/25 backdrop-blur-sm rounded-full text-xs font-bold border border-white/30">
+                              🏰 {groups.find((g) => g.id === selectedCharacter.groupId)?.name}
+                            </span>
+                          )}
+                          {selectedCharacter.role && (
+                            <span className="px-2.5 py-0.5 bg-black/20 backdrop-blur-sm rounded-full text-xs font-medium">
+                              {selectedCharacter.role}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div>
                         <p className="text-xs opacity-90">{selectedCharacter.nameKana || 'ふりがな'}</p>
@@ -1282,14 +1508,10 @@ export default function CharacterSheetPage() {
                         <span className="font-bold text-slate-700">{selectedCharacter.gender || '未設定'}</span>
                       </div>
                       <div className="col-span-2 md:col-span-1">
-                        <span className="text-slate-400 block mb-0.5">テーマカラー</span>
-                        <div className="flex items-center gap-1.5 font-bold text-slate-700">
-                          <span 
-                            className="w-3 h-3 rounded-full inline-block border border-slate-200" 
-                            style={{ backgroundColor: selectedCharacter.themeColor }}
-                          />
-                          <span className="font-mono text-[11px]">{selectedCharacter.themeColor}</span>
-                        </div>
+                        <span className="text-slate-400 block mb-0.5">所属グループ</span>
+                        <span className="font-bold text-slate-700">
+                          {groups.find((g) => g.id === selectedCharacter.groupId)?.name || 'なし'}
+                        </span>
                       </div>
                     </div>
 
@@ -1700,6 +1922,169 @@ export default function CharacterSheetPage() {
                 {relations.length === 0 && (
                   <p className="text-xs text-slate-400 italic py-8 text-center">
                     まだ関係性が登録されていません。左のフォームから追加してください。
+                  </p>
+                )}
+              </div>
+            </div>
+
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* 4. グループ・勢力管理タブ */}
+        {/* ======================================================== */}
+        {activeTab === 'groups' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* 左側: グループ作成・編集フォーム (lg:col-span-5) */}
+            <div className="lg:col-span-5 bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <span>🏰</span> {editingGroupId ? 'グループを編集' : '新しいグループ（勢力）を作成'}
+                </h2>
+                {editingGroupId && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditingGroupId(null);
+                      setGroupName('');
+                      setGroupDesc('');
+                    }}
+                    className="text-xs text-slate-500 hover:text-slate-800 font-bold px-2 py-0.5 bg-slate-100 rounded"
+                  >
+                    ✕ キャンセル
+                  </button>
+                )}
+              </div>
+
+              <form onSubmit={handleSaveGroup} className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">グループ・勢力名 *</label>
+                  <input
+                    type="text"
+                    value={groupName}
+                    onChange={(e) => setGroupName(e.target.value)}
+                    placeholder="例: アジトのメンバー、王族、帝国軍、生徒会"
+                    className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">グループカラー</label>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {COLOR_PRESETS.map((p) => (
+                      <button
+                        key={p.color}
+                        type="button"
+                        onClick={() => setGroupColor(p.color)}
+                        className={`w-7 h-7 rounded-full border-2 transition-transform ${
+                          groupColor === p.color ? 'scale-110 border-slate-900 ring-2 ring-slate-400' : 'border-white'
+                        }`}
+                        style={{ backgroundColor: p.color }}
+                        title={p.name}
+                      />
+                    ))}
+                    <input
+                      type="color"
+                      value={groupColor}
+                      onChange={(e) => setGroupColor(e.target.value)}
+                      className="w-8 h-8 rounded cursor-pointer border-0 p-0 ml-1"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">説明・概要（任意）</label>
+                  <textarea
+                    rows={2}
+                    value={groupDesc}
+                    onChange={(e) => setGroupDesc(e.target.value)}
+                    placeholder="例: 旅を共にする主要メンバーたちの集まり、国家の統治組織など"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  className="w-full py-2.5 px-4 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition shadow-sm"
+                >
+                  {editingGroupId ? '✓ グループ情報を更新' : '＋ グループを追加'}
+                </button>
+              </form>
+            </div>
+
+            {/* 右側: 作成済みグループ一覧と所属メンバー (lg:col-span-7) */}
+            <div className="lg:col-span-7 bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+              <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center justify-between">
+                <span>🏰</span> 登録済みグループ・勢力一覧 ({groups.length}件)
+              </h2>
+
+              <div className="space-y-4">
+                {groups.map((grp) => {
+                  const memberChars = characters.filter((c) => c.groupId === grp.id);
+
+                  return (
+                    <div 
+                      key={grp.id} 
+                      className="p-5 bg-slate-50 border rounded-xl space-y-3 transition"
+                      style={{ borderColor: `${grp.color}60` }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <span className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: grp.color }} />
+                          <h3 className="text-base font-bold text-slate-900">{grp.name}</h3>
+                          <span className="text-xs px-2 py-0.5 bg-white border border-slate-200 rounded-full font-bold text-slate-600">
+                            {memberChars.length}名
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => handleStartEditGroup(grp)}
+                            className="text-xs text-slate-700 hover:text-slate-900 font-bold px-2 py-1 bg-white border border-slate-200 rounded"
+                          >
+                            編集
+                          </button>
+                          <button
+                            onClick={() => handleDeleteGroup(grp.id)}
+                            className="text-xs text-red-500 hover:text-red-700 font-bold px-2 py-1"
+                          >
+                            削除
+                          </button>
+                        </div>
+                      </div>
+
+                      {grp.description && (
+                        <p className="text-xs text-slate-600 leading-relaxed">
+                          {grp.description}
+                        </p>
+                      )}
+
+                      {/* 所属メンバー */}
+                      <div className="pt-2 border-t border-slate-200/60">
+                        <span className="text-[11px] font-bold text-slate-500 block mb-1.5">所属メンバー:</span>
+                        <div className="flex flex-wrap gap-1.5">
+                          {memberChars.map((m) => (
+                            <span 
+                              key={m.id}
+                              className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 flex items-center gap-1.5 shadow-xs"
+                            >
+                              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: m.themeColor }} />
+                              <span>{m.name}</span>
+                              <span className="text-[10px] text-slate-400">({m.role})</span>
+                            </span>
+                          ))}
+                          {memberChars.length === 0 && (
+                            <span className="text-xs text-slate-400 italic">まだ所属メンバーがいません。</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {groups.length === 0 && (
+                  <p className="text-xs text-slate-400 italic py-8 text-center">
+                    まだグループが登録されていません。左のフォームから「アジトのメンバー」「王族」などを追加してください。
                   </p>
                 )}
               </div>
