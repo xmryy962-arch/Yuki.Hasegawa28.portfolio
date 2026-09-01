@@ -150,7 +150,8 @@ export default function CharacterSheetPage() {
   const [selectedCharId, setSelectedCharId] = useState<string>(SAMPLE_CHARACTERS[0].id);
   const [activeTab, setActiveTab] = useState<'profile' | 'chart' | 'relations_list'>('chart');
   
-  // 新規関係性フォーム用
+  // 新規・編集関係性フォーム用
+  const [editingRelId, setEditingRelId] = useState<string | null>(null);
   const [newRelFrom, setNewRelFrom] = useState<string>('');
   const [newRelTo, setNewRelTo] = useState<string>('');
   const [newRelFromLabel, setNewRelFromLabel] = useState<string>('');
@@ -275,7 +276,27 @@ export default function CharacterSheetPage() {
     setNewRelTo(tempFrom);
   };
 
-  // 関係性の追加
+  // 関係性の編集開始
+  const handleStartEditRelation = (rel: Relation) => {
+    setEditingRelId(rel.id);
+    setNewRelFrom(rel.fromId);
+    setNewRelTo(rel.toId);
+    setNewRelFromLabel(rel.fromLabel);
+    setNewRelToLabel(rel.toLabel || '');
+    setNewRelType(rel.type);
+    setNewRelDetail(rel.detail || '');
+    setActiveTab('relations_list');
+  };
+
+  // 関係性の編集キャンセル
+  const handleCancelEditRelation = () => {
+    setEditingRelId(null);
+    setNewRelFromLabel('');
+    setNewRelToLabel('');
+    setNewRelDetail('');
+  };
+
+  // 関係性の追加 または 編集保存
   const handleAddRelation = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newRelFrom || !newRelTo || newRelFrom === newRelTo || !newRelFromLabel.trim()) {
@@ -284,19 +305,41 @@ export default function CharacterSheetPage() {
     }
 
     const fromChar = characters.find((c) => c.id === newRelFrom);
-    const newRel: Relation = {
-      id: `rel-${Date.now()}`,
-      fromId: newRelFrom,
-      toId: newRelTo,
-      fromLabel: newRelFromLabel.trim(),
-      toLabel: newRelType === 'bidirectional' ? (newRelToLabel.trim() || newRelFromLabel.trim()) : undefined,
-      type: newRelType,
-      detail: newRelDetail.trim() || undefined,
-      color: fromChar?.themeColor || '#64748b'
-    };
 
-    const updated = [...relations, newRel];
-    saveAll(characters, updated);
+    if (editingRelId) {
+      // 編集保存
+      const updated = relations.map((r) => {
+        if (r.id === editingRelId) {
+          return {
+            ...r,
+            fromId: newRelFrom,
+            toId: newRelTo,
+            fromLabel: newRelFromLabel.trim(),
+            toLabel: newRelType === 'bidirectional' ? (newRelToLabel.trim() || newRelFromLabel.trim()) : undefined,
+            type: newRelType,
+            detail: newRelDetail.trim() || undefined,
+            color: fromChar?.themeColor || '#64748b'
+          };
+        }
+        return r;
+      });
+      saveAll(characters, updated);
+      setEditingRelId(null);
+    } else {
+      // 新規作成
+      const newRel: Relation = {
+        id: `rel-${Date.now()}`,
+        fromId: newRelFrom,
+        toId: newRelTo,
+        fromLabel: newRelFromLabel.trim(),
+        toLabel: newRelType === 'bidirectional' ? (newRelToLabel.trim() || newRelFromLabel.trim()) : undefined,
+        type: newRelType,
+        detail: newRelDetail.trim() || undefined,
+        color: fromChar?.themeColor || '#64748b'
+      };
+      saveAll(characters, [...relations, newRel]);
+    }
+
     setNewRelFromLabel('');
     setNewRelToLabel('');
     setNewRelDetail('');
@@ -813,11 +856,16 @@ export default function CharacterSheetPage() {
                           >
                             <div className="flex flex-col items-center justify-center">
                               <div 
+                                onClick={() => {
+                                  const orig = relations.find((r) => r.id === edge.id || edge.id.startsWith(r.id));
+                                  if (orig) handleStartEditRelation(orig);
+                                }}
                                 className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold text-white flex items-center gap-1 border border-white/80 max-w-[145px] truncate cursor-pointer hover:scale-105 transition-all duration-200 ${badgeScaleClass}`}
                                 style={{ backgroundColor: color }}
-                                title={`${fromChar.name} ➔ ${toChar.name}: ${label}`}
+                                title={`クリックして編集: ${fromChar.name} ➔ ${toChar.name}: ${label}`}
                               >
                                 <span>➔ {label}</span>
+                                <span className="opacity-70 text-[9px]">✏️</span>
                               </div>
                               {detail && isRelated && (
                                 <span className="text-[9px] text-slate-700 bg-white/95 font-medium px-1.5 py-0.5 rounded shadow-xs mt-0.5 border border-slate-200 truncate max-w-[140px]">
@@ -931,6 +979,7 @@ export default function CharacterSheetPage() {
                   </button>
                   <button
                     onClick={() => {
+                      setEditingRelId(null);
                       setNewRelFrom(selectedCharacter.id);
                       setActiveTab('relations_list');
                     }}
@@ -1268,7 +1317,15 @@ export default function CharacterSheetPage() {
                                     {myLabel}
                                   </span>
                                 </div>
-                                {r.detail && <span className="text-slate-500 text-[11px] italic">{r.detail}</span>}
+                                <div className="flex items-center gap-2">
+                                  {r.detail && <span className="text-slate-500 text-[11px] italic">{r.detail}</span>}
+                                  <button
+                                    onClick={() => handleStartEditRelation(r)}
+                                    className="text-blue-600 hover:underline text-[11px] font-bold"
+                                  >
+                                    編集
+                                  </button>
+                                </div>
                               </div>
                             );
                           })}
@@ -1340,16 +1397,43 @@ export default function CharacterSheetPage() {
         )}
 
         {/* ======================================================== */}
-        {/* 3. 関係性一覧・追加タブ */}
+        {/* 3. 関係性一覧・追加/編集タブ */}
         {/* ======================================================== */}
         {activeTab === 'relations_list' && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
-            {/* 左側: 新規関係性追加フォーム (lg:col-span-5) */}
-            <div className="lg:col-span-5 bg-white p-5 md:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
-              <h2 className="text-base font-bold text-slate-900 border-b border-slate-100 pb-2 flex items-center gap-2">
-                <span>➕</span> 新しい関係性を追加
-              </h2>
+            {/* 左側: 関係性追加/編集フォーム (lg:col-span-5) */}
+            <div className={`lg:col-span-5 bg-white p-5 md:p-6 rounded-2xl border shadow-sm space-y-4 transition-all ${
+              editingRelId ? 'border-blue-400 ring-2 ring-blue-100' : 'border-slate-200'
+            }`}>
+              <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                  <span>{editingRelId ? '✏️' : '➕'}</span>
+                  {editingRelId ? '関係性を編集する' : '新しい関係性を追加'}
+                </h2>
+                {editingRelId && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEditRelation}
+                    className="text-xs text-slate-500 hover:text-slate-800 font-bold px-2 py-0.5 bg-slate-100 rounded hover:bg-slate-200 transition"
+                  >
+                    ✕ キャンセル
+                  </button>
+                )}
+              </div>
+
+              {editingRelId && (
+                <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-800 flex items-center justify-between">
+                  <span>💡 既存の関係性を編集中です</span>
+                  <button
+                    type="button"
+                    onClick={handleCancelEditRelation}
+                    className="underline font-bold text-[11px]"
+                  >
+                    新規追加に戻る
+                  </button>
+                </div>
+              )}
 
               <form onSubmit={handleAddRelation} className="space-y-4">
                 {/* 2人のキャラクター選択 (中央に ⇄ スワップボタン) */}
@@ -1499,16 +1583,27 @@ export default function CharacterSheetPage() {
                     type="submit"
                     className="w-full py-2.5 px-4 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition shadow-sm flex items-center justify-center gap-1.5"
                   >
-                    <span>＋</span> 関係性を追加して相関図に反映
+                    <span>{editingRelId ? '✓' : '＋'}</span>
+                    {editingRelId ? '変更を保存する' : '関係性を追加して相関図に反映'}
                   </button>
                   
-                  <button
-                    type="button"
-                    onClick={handleSwapCharacters}
-                    className="w-full py-1.5 px-3 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition flex items-center justify-center gap-1"
-                  >
-                    <span>⇄</span> 向き（AとB）を反転して続けて入力
-                  </button>
+                  {editingRelId ? (
+                    <button
+                      type="button"
+                      onClick={handleCancelEditRelation}
+                      className="w-full py-1.5 px-3 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+                    >
+                      編集をキャンセル
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSwapCharacters}
+                      className="w-full py-1.5 px-3 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition flex items-center justify-center gap-1"
+                    >
+                      <span>⇄</span> 向き（AとB）を反転して続けて入力
+                    </button>
+                  )}
                 </div>
               </form>
             </div>
@@ -1524,14 +1619,24 @@ export default function CharacterSheetPage() {
                   const fromChar = characters.find((c) => c.id === rel.fromId);
                   const toChar = characters.find((c) => c.id === rel.toId);
                   if (!fromChar || !toChar) return null;
+                  const isEditing = editingRelId === rel.id;
 
                   return (
                     <div 
                       key={rel.id} 
-                      className="p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-2 hover:bg-slate-100/60 transition"
+                      className={`p-4 rounded-xl space-y-2 transition-all ${
+                        isEditing
+                          ? 'bg-blue-50/70 border-2 border-blue-500 shadow-sm'
+                          : 'bg-slate-50 border border-slate-200 hover:bg-slate-100/60'
+                      }`}
                     >
                       <div className="flex items-center justify-between gap-2 flex-wrap">
                         <div className="flex items-center gap-2 flex-wrap">
+                          {isEditing && (
+                            <span className="px-2 py-0.5 bg-blue-600 text-white text-[10px] font-bold rounded-full animate-pulse">
+                              編集中
+                            </span>
+                          )}
                           <span className="font-bold text-slate-800 text-xs px-2.5 py-1 bg-white border border-slate-200 rounded-lg shadow-xs">
                             {fromChar.name}
                           </span>
@@ -1553,14 +1658,23 @@ export default function CharacterSheetPage() {
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
+                            onClick={() => handleStartEditRelation(rel)}
+                            className="text-[11px] text-slate-700 hover:text-slate-900 font-bold px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-md transition flex items-center gap-1 shadow-xs"
+                            title="関係性の内容を編集"
+                          >
+                            <span>✏️</span> 編集
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => {
                               setNewRelFrom(rel.toId);
                               setNewRelTo(rel.fromId);
                               setNewRelFromLabel('');
                               setNewRelType('unidirectional');
+                              setEditingRelId(null);
                             }}
                             className="text-[11px] text-blue-600 hover:text-blue-800 font-bold px-2 py-1 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-md transition flex items-center gap-1"
-                            title="逆向き（B ➔ A）の関係性を追加"
+                            title="逆向き（B ➔ A）の関係性を新規追加"
                           >
                             <span>⇄</span> 逆向きを追加
                           </button>
