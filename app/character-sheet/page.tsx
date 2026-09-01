@@ -14,6 +14,7 @@ interface Character {
   id: string;
   name: string;
   nameKana: string;
+  avatarUrl?: string; // アイコン・立ち絵画像 (URL or Base64)
   catchphrase: string;
   role: string;
   age: string;
@@ -65,6 +66,7 @@ const SAMPLE_CHARACTERS: Character[] = [
     id: 'char-1',
     name: 'ルシア・シルフィード',
     nameKana: 'るしあ・しるふぃーど',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
     catchphrase: '風を味方に、まだ見ぬ世界を描く旅人',
     role: '風の魔法使い / 主人公',
     age: '17歳',
@@ -85,6 +87,7 @@ const SAMPLE_CHARACTERS: Character[] = [
     id: 'char-2',
     name: 'レオン・ヴァルハイト',
     nameKana: 'れおん・ゔぁるはいと',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
     catchphrase: '誇り高き剣で、仲間と誓いを守り抜く',
     role: '守護騎士 / 相棒',
     age: '19歳',
@@ -105,6 +108,7 @@ const SAMPLE_CHARACTERS: Character[] = [
     id: 'char-3',
     name: 'ノア・クローバー',
     nameKana: 'のあ・くろーばー',
+    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
     catchphrase: '万物の真理を解き明かす、毒舌な天才学者',
     role: '錬金術師 / 参謀',
     age: '16歳',
@@ -125,6 +129,7 @@ const SAMPLE_CHARACTERS: Character[] = [
     id: 'char-4',
     name: 'セリア・フォン・ローゼン',
     nameKana: 'せりあ・ふぉん・ろーぜん',
+    avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=80',
     catchphrase: '王国の未来を背負い、真実を求める高潔な王女',
     role: '第一王女 / 依頼人',
     age: '18歳',
@@ -228,6 +233,9 @@ export default function CharacterSheetPage() {
   const [newMotif, setNewMotif] = useState('');
   const [copied, setCopied] = useState(false);
 
+  // ファイル入力参照
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
   // ドラッグ操作用
   const [draggingCharId, setDraggingCharId] = useState<string | null>(null);
   const dragOffset = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
@@ -284,6 +292,22 @@ export default function CharacterSheetPage() {
     saveAll(updated, relations, groups);
   };
 
+  // 画像アップロードハンドラ (Base64 DataURL変換)
+  const handleAvatarFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedCharacter) return;
+    if (file.size > 4 * 1024 * 1024) {
+      alert('画像サイズは4MB以下にしてください。');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (loadEvt) => {
+      const dataUrl = loadEvt.target?.result as string;
+      updateSelectedCharacter({ avatarUrl: dataUrl });
+    };
+    reader.readAsDataURL(file);
+  };
+
   // キャラクターの新規追加
   const handleAddCharacter = () => {
     const count = characters.length + 1;
@@ -291,6 +315,7 @@ export default function CharacterSheetPage() {
       id: `char-${Date.now()}`,
       name: `新規キャラクター${count}`,
       nameKana: `しんききゃらくたー${count}`,
+      avatarUrl: '',
       catchphrase: '設定を入力してください',
       role: '役割 / 肩書',
       age: '18歳',
@@ -488,6 +513,7 @@ export default function CharacterSheetPage() {
         id: `char-${Date.now()}`,
         name: '主人公',
         nameKana: 'しゅじんこう',
+        avatarUrl: '',
         catchphrase: '',
         role: '主人公',
         age: '',
@@ -617,7 +643,7 @@ export default function CharacterSheetPage() {
               <span>🕸️</span> キャラクター設定 & 相関図ジェネレーター
             </h1>
             <p className="text-xs md:text-sm text-slate-500 mt-1">
-              複数キャラクター、所属勢力・グループ（アジト・王族等）、および関係マップを直感的に作成できる創作支援ツール
+              画像付きキャラクターシート、所属勢力・グループ（アジト・王族等）、および関係マップを直感的に作成できる創作支援ツール
             </p>
           </div>
 
@@ -704,7 +730,15 @@ export default function CharacterSheetPage() {
                       : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
                   }`}
                 >
-                  <span className="w-2 h-2 rounded-full" style={{ backgroundColor: c.themeColor }} />
+                  {c.avatarUrl ? (
+                    <img 
+                      src={c.avatarUrl} 
+                      alt="" 
+                      className="w-4 h-4 rounded-full object-cover border border-white/40"
+                    />
+                  ) : (
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: c.themeColor }} />
+                  )}
                   <span>{c.name || '無名'}</span>
                   {grp && (
                     <span 
@@ -738,7 +772,7 @@ export default function CharacterSheetPage() {
                     <span>🕸️</span> インタラクティブ相関図マップ
                   </h2>
                   <p className="text-xs text-slate-500">
-                    💡 キャラクターをドラッグして自由に配置できます。所属グループの枠（ゾーン）が自動で追従します。
+                    💡 キャラクター画像がマップ上に直接反映されます。ドラッグして自由に配置でき、グループ枠も自動追従します。
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -775,10 +809,19 @@ export default function CharacterSheetPage() {
                   onMouseUp={handleMouseUpSvg}
                   viewBox="0 0 800 600"
                 >
-                  {/* グリッド背景ドット */}
-                  <pattern id="dotGrid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
-                    <circle cx="2" cy="2" r="1" fill="#cbd5e1" />
-                  </pattern>
+                  {/* クリップパスとグリッド定義 */}
+                  <defs>
+                    <pattern id="dotGrid" x="0" y="0" width="20" height="20" patternUnits="userSpaceOnUse">
+                      <circle cx="2" cy="2" r="1" fill="#cbd5e1" />
+                    </pattern>
+                    {/* キャラクターアイコン円形クリップパス */}
+                    {characters.map((char) => (
+                      <clipPath key={`clip-${char.id}`} id={`avatar-clip-${char.id}`}>
+                        <circle r="28" cx="0" cy="0" />
+                      </clipPath>
+                    ))}
+                  </defs>
+
                   <rect width="100%" height="100%" fill="url(#dotGrid)" />
 
                   {/* 1. グループゾーン（勢力・所属枠）の描画 */}
@@ -1066,7 +1109,7 @@ export default function CharacterSheetPage() {
                     });
                   })()}
 
-                  {/* 3. キャラクターノード (Draggable Nodes) */}
+                  {/* 3. キャラクターノード (Draggable Nodes with Avatar Image Support) */}
                   {characters.map((char) => {
                     const isSelected = char.id === selectedCharId;
                     const isConnected = relations.some(
@@ -1096,7 +1139,7 @@ export default function CharacterSheetPage() {
                           </>
                         )}
 
-                        {/* メイン円 */}
+                        {/* メイン外枠円 */}
                         <circle
                           r="36"
                           fill="white"
@@ -1105,21 +1148,37 @@ export default function CharacterSheetPage() {
                           className="drop-shadow-md group-hover:scale-105 transition-transform"
                         />
 
-                        {/* キャラクターアイコン/イニシャル */}
-                        <circle r="26" fill={char.themeColor} opacity="0.92" />
-                        <text
-                          textAnchor="middle"
-                          dy="6"
-                          fill="white"
-                          fontSize="16"
-                          fontWeight="bold"
-                          pointerEvents="none"
-                        >
-                          {char.name ? char.name.slice(0, 2) : '無名'}
-                        </text>
+                        {/* キャラクター画像 または イニシャル円 */}
+                        {char.avatarUrl ? (
+                          <g clipPath={`url(#avatar-clip-${char.id})`}>
+                            <circle r="28" fill={char.themeColor} opacity="0.2" />
+                            <image
+                              href={char.avatarUrl}
+                              x="-28"
+                              y="-28"
+                              width="56"
+                              height="56"
+                              preserveAspectRatio="xMidYMid slice"
+                            />
+                          </g>
+                        ) : (
+                          <>
+                            <circle r="28" fill={char.themeColor} opacity="0.92" />
+                            <text
+                              textAnchor="middle"
+                              dy="6"
+                              fill="white"
+                              fontSize="15"
+                              fontWeight="bold"
+                              pointerEvents="none"
+                            >
+                              {char.name ? char.name.slice(0, 2) : '無名'}
+                            </text>
+                          </>
+                        )}
 
-                        {/* 名前・所属・役職ラベル */}
-                        <foreignObject x="-75" y="42" width="150" height="52" className="overflow-visible pointer-events-none">
+                        {/* 名前・所属ラベル */}
+                        <foreignObject x="-75" y="40" width="150" height="52" className="overflow-visible pointer-events-none">
                           <div className="flex flex-col items-center">
                             <span className={`px-2 py-0.5 text-[11px] font-bold rounded-md shadow-sm whitespace-nowrap max-w-[140px] truncate transition-colors ${
                               isSelected ? 'bg-blue-600 text-white ring-2 ring-blue-300' : 'bg-slate-900 text-white'
@@ -1149,28 +1208,45 @@ export default function CharacterSheetPage() {
                 className="p-4 bg-white rounded-xl border-l-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4"
                 style={{ borderLeftColor: selectedCharacter.themeColor }}
               >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs text-slate-400">{selectedCharacter.nameKana}</span>
-                    <h3 className="text-base font-bold text-slate-900">{selectedCharacter.name}</h3>
-                    <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
-                      {selectedCharacter.role}
-                    </span>
-                    {groups.find((g) => g.id === selectedCharacter.groupId) && (
-                      <span 
-                        className="text-xs px-2 py-0.5 rounded font-bold"
-                        style={{ 
-                          backgroundColor: `${groups.find((g) => g.id === selectedCharacter.groupId)?.color}20`,
-                          color: groups.find((g) => g.id === selectedCharacter.groupId)?.color
-                        }}
-                      >
-                        🏰 {groups.find((g) => g.id === selectedCharacter.groupId)?.name}
+                <div className="flex items-center gap-3.5">
+                  {selectedCharacter.avatarUrl ? (
+                    <img
+                      src={selectedCharacter.avatarUrl}
+                      alt={selectedCharacter.name}
+                      className="w-12 h-12 rounded-full object-cover border-2 shadow-xs shrink-0"
+                      style={{ borderColor: selectedCharacter.themeColor }}
+                    />
+                  ) : (
+                    <div 
+                      className="w-12 h-12 rounded-full text-white font-bold flex items-center justify-center shrink-0 shadow-xs"
+                      style={{ backgroundColor: selectedCharacter.themeColor }}
+                    >
+                      {selectedCharacter.name ? selectedCharacter.name.slice(0, 2) : '無名'}
+                    </div>
+                  )}
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs text-slate-400">{selectedCharacter.nameKana}</span>
+                      <h3 className="text-base font-bold text-slate-900">{selectedCharacter.name}</h3>
+                      <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
+                        {selectedCharacter.role}
                       </span>
-                    )}
+                      {groups.find((g) => g.id === selectedCharacter.groupId) && (
+                        <span 
+                          className="text-xs px-2 py-0.5 rounded font-bold"
+                          style={{ 
+                            backgroundColor: `${groups.find((g) => g.id === selectedCharacter.groupId)?.color}20`,
+                            color: groups.find((g) => g.id === selectedCharacter.groupId)?.color
+                          }}
+                        >
+                          🏰 {groups.find((g) => g.id === selectedCharacter.groupId)?.name}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-slate-600 italic">
+                      {selectedCharacter.catchphrase || selectedCharacter.quote || selectedCharacter.personality || '設定を入力してください'}
+                    </p>
                   </div>
-                  <p className="text-xs text-slate-600 italic">
-                    {selectedCharacter.catchphrase || selectedCharacter.quote || selectedCharacter.personality || '設定を入力してください'}
-                  </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -1213,6 +1289,71 @@ export default function CharacterSheetPage() {
                 >
                   このキャラを削除
                 </button>
+              </div>
+
+              {/* キャラクター画像アップロード / URL設定 */}
+              <div className="space-y-2 p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                <label className="text-xs font-bold text-slate-800 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <span>🖼️</span> キャラクター画像 / 立ち絵アイコン
+                  </span>
+                  {selectedCharacter.avatarUrl && (
+                    <button
+                      type="button"
+                      onClick={() => updateSelectedCharacter({ avatarUrl: '' })}
+                      className="text-[11px] text-red-500 hover:underline font-normal"
+                    >
+                      画像を削除
+                    </button>
+                  )}
+                </label>
+
+                <div className="flex items-center gap-3">
+                  {/* サムネイルプレビュー */}
+                  <div className="relative group shrink-0">
+                    {selectedCharacter.avatarUrl ? (
+                      <img
+                        src={selectedCharacter.avatarUrl}
+                        alt="Avatar Preview"
+                        className="w-16 h-16 rounded-xl object-cover border-2 shadow-xs"
+                        style={{ borderColor: selectedCharacter.themeColor }}
+                      />
+                    ) : (
+                      <div 
+                        className="w-16 h-16 rounded-xl text-white font-bold flex flex-col items-center justify-center text-xs shadow-xs border-2 border-dashed border-slate-300"
+                        style={{ backgroundColor: `${selectedCharacter.themeColor}30`, color: selectedCharacter.themeColor }}
+                      >
+                        <span>No Image</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* アップロード & URL入力 */}
+                  <div className="flex-1 space-y-2">
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleAvatarFileChange}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-full py-1.5 px-3 text-xs font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 rounded-lg transition flex items-center justify-center gap-1.5 shadow-2xs"
+                    >
+                      <span>📁</span> 画像ファイルを選択してアップロード
+                    </button>
+
+                    <input
+                      type="text"
+                      value={selectedCharacter.avatarUrl || ''}
+                      onChange={(e) => updateSelectedCharacter({ avatarUrl: e.target.value })}
+                      placeholder="または画像URLを直接入力 (https://...)"
+                      className="w-full px-2.5 py-1 text-[11px] border border-slate-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* テーマカラー & 所属グループ */}
@@ -1452,12 +1593,13 @@ export default function CharacterSheetPage() {
                     className="p-6 text-white relative overflow-hidden"
                     style={{ backgroundColor: selectedCharacter.themeColor || '#0284c7' }}
                   >
-                    <div className="relative z-10 space-y-1.5">
-                      <div className="flex items-center justify-between flex-wrap gap-2">
-                        <span className="text-xs font-semibold tracking-widest uppercase opacity-90">
-                          Character Profile
-                        </span>
-                        <div className="flex items-center gap-1.5">
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      
+                      <div className="space-y-1.5 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-semibold tracking-widest uppercase opacity-90">
+                            Character Profile
+                          </span>
                           {groups.find((g) => g.id === selectedCharacter.groupId) && (
                             <span className="px-2.5 py-0.5 bg-black/25 backdrop-blur-sm rounded-full text-xs font-bold border border-white/30">
                               🏰 {groups.find((g) => g.id === selectedCharacter.groupId)?.name}
@@ -1469,18 +1611,36 @@ export default function CharacterSheetPage() {
                             </span>
                           )}
                         </div>
+                        <div>
+                          <p className="text-xs opacity-90">{selectedCharacter.nameKana || 'ふりがな'}</p>
+                          <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight">
+                            {selectedCharacter.name || 'キャラクター名'}
+                          </h3>
+                        </div>
+                        {selectedCharacter.catchphrase && (
+                          <p className="text-xs md:text-sm font-medium opacity-95 pt-1 italic">
+                            “ {selectedCharacter.catchphrase} ”
+                          </p>
+                        )}
                       </div>
-                      <div>
-                        <p className="text-xs opacity-90">{selectedCharacter.nameKana || 'ふりがな'}</p>
-                        <h3 className="text-2xl md:text-3xl font-extrabold tracking-tight">
-                          {selectedCharacter.name || 'キャラクター名'}
-                        </h3>
-                      </div>
-                      {selectedCharacter.catchphrase && (
-                        <p className="text-xs md:text-sm font-medium opacity-95 pt-1 italic">
-                          “ {selectedCharacter.catchphrase} ”
-                        </p>
+
+                      {/* アバター画像 */}
+                      {selectedCharacter.avatarUrl ? (
+                        <div className="shrink-0">
+                          <img 
+                            src={selectedCharacter.avatarUrl} 
+                            alt={selectedCharacter.name}
+                            className="w-24 h-24 md:w-28 md:h-28 rounded-2xl object-cover border-4 border-white/90 shadow-lg bg-white/10"
+                          />
+                        </div>
+                      ) : (
+                        <div 
+                          className="w-24 h-24 md:w-28 md:h-28 rounded-2xl border-4 border-white/40 flex items-center justify-center font-bold text-3xl opacity-80 bg-white/15 shrink-0"
+                        >
+                          {selectedCharacter.name ? selectedCharacter.name.slice(0, 2) : '？'}
+                        </div>
                       )}
+
                     </div>
                   </div>
 
@@ -1532,7 +1692,16 @@ export default function CharacterSheetPage() {
                             return (
                               <div key={r.id} className="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs flex items-center justify-between">
                                 <div className="flex items-center gap-2">
-                                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: targetChar.themeColor }} />
+                                  {targetChar.avatarUrl ? (
+                                    <img 
+                                      src={targetChar.avatarUrl} 
+                                      alt="" 
+                                      className="w-5 h-5 rounded-full object-cover border"
+                                      style={{ borderColor: targetChar.themeColor }}
+                                    />
+                                  ) : (
+                                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: targetChar.themeColor }} />
+                                  )}
                                   <span className="font-bold text-slate-800">{targetChar.name}</span>
                                   <span className="text-slate-400">に対して:</span>
                                   <span className="px-2 py-0.5 bg-blue-100 text-blue-800 font-semibold rounded">
@@ -1859,15 +2028,21 @@ export default function CharacterSheetPage() {
                               編集中
                             </span>
                           )}
-                          <span className="font-bold text-slate-800 text-xs px-2.5 py-1 bg-white border border-slate-200 rounded-lg shadow-xs">
-                            {fromChar.name}
-                          </span>
+                          <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1 rounded-lg shadow-xs">
+                            {fromChar.avatarUrl && (
+                              <img src={fromChar.avatarUrl} alt="" className="w-4 h-4 rounded-full object-cover" />
+                            )}
+                            <span className="font-bold text-slate-800 text-xs">{fromChar.name}</span>
+                          </div>
                           <span className="text-slate-400 font-bold text-sm">
                             {rel.type === 'bidirectional' ? '⇄' : '➔'}
                           </span>
-                          <span className="font-bold text-slate-800 text-xs px-2.5 py-1 bg-white border border-slate-200 rounded-lg shadow-xs">
-                            {toChar.name}
-                          </span>
+                          <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1 rounded-lg shadow-xs">
+                            {toChar.avatarUrl && (
+                              <img src={toChar.avatarUrl} alt="" className="w-4 h-4 rounded-full object-cover" />
+                            )}
+                            <span className="font-bold text-slate-800 text-xs">{toChar.name}</span>
+                          </div>
                           <span 
                             className="px-2.5 py-0.5 text-xs font-bold text-white rounded-full ml-1 shadow-xs"
                             style={{ backgroundColor: rel.color || '#3b82f6' }}
@@ -2068,7 +2243,11 @@ export default function CharacterSheetPage() {
                               key={m.id}
                               className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 flex items-center gap-1.5 shadow-xs"
                             >
-                              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: m.themeColor }} />
+                              {m.avatarUrl ? (
+                                <img src={m.avatarUrl} alt="" className="w-4 h-4 rounded-full object-cover" />
+                              ) : (
+                                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: m.themeColor }} />
+                              )}
                               <span>{m.name}</span>
                               <span className="text-[10px] text-slate-400">({m.role})</span>
                             </span>
