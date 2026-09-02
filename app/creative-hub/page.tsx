@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import {
   FolderGit2,
@@ -29,7 +29,9 @@ import {
   ChevronRight,
   CheckCircle2,
   SlidersHorizontal,
-  Bookmark
+  Bookmark,
+  Check,
+  Save
 } from 'lucide-react';
 import {
   CreativeHubData,
@@ -54,8 +56,12 @@ export default function CreativeHubPage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // --- ナビゲーション・タブ ---
+  // --- ナビゲーション・タブ（デフォルト: projects） ---
   const [activeTab, setActiveTab] = useState<'projects' | 'ideas' | 'kanban' | 'lore' | 'export'>('projects');
+  
+  // --- ハンバーガーメニュー状態 ---
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   // --- フィルタ・検索 ---
   const [searchQuery, setSearchQuery] = useState('');
@@ -80,6 +86,28 @@ export default function CreativeHubPage() {
   const [editingPlot, setEditingPlot] = useState<PlotOutline | null>(null);
 
   const [detailProjectModal, setDetailProjectModal] = useState<CreativeProject | null>(null);
+
+  // --- ハンバーガーメニュー外側クリック & ESCキー対応 ---
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMenuOpen]);
 
   // --- LocalStorage 読み込み ---
   useEffect(() => {
@@ -564,7 +592,7 @@ export default function CreativeHubPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
           <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
             <div>
-              <span className="text-xs text-slate-500 font-medium block">制作プロジェクト</span>
+              <span className="text-xs text-slate-500 font-medium block">プロジェクト</span>
               <span className="text-2xl font-black text-slate-900 mt-0.5 block">{data.projects.length} <span className="text-xs font-normal text-slate-500">件</span></span>
             </div>
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -574,7 +602,7 @@ export default function CreativeHubPage() {
 
           <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
             <div>
-              <span className="text-xs text-slate-500 font-medium block">ストックアイデア</span>
+              <span className="text-xs text-slate-500 font-medium block">アイデア整理</span>
               <span className="text-2xl font-black text-amber-600 mt-0.5 block">{data.ideas.length} <span className="text-xs font-normal text-slate-500">件</span></span>
             </div>
             <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
@@ -584,7 +612,7 @@ export default function CreativeHubPage() {
 
           <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
             <div>
-              <span className="text-xs text-slate-500 font-medium block">進行中タスク</span>
+              <span className="text-xs text-slate-500 font-medium block">タスク</span>
               <span className="text-2xl font-black text-indigo-600 mt-0.5 block">{data.tasks.filter(t => t.lane !== 'done').length} <span className="text-xs font-normal text-slate-500">件</span></span>
             </div>
             <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
@@ -594,7 +622,7 @@ export default function CreativeHubPage() {
 
           <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex items-center justify-between">
             <div>
-              <span className="text-xs text-slate-500 font-medium block">世界観・プロット</span>
+              <span className="text-xs text-slate-500 font-medium block">プロット</span>
               <span className="text-2xl font-black text-purple-600 mt-0.5 block">{data.lores.length + data.plots.length} <span className="text-xs font-normal text-slate-500">件</span></span>
             </div>
             <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
@@ -603,65 +631,263 @@ export default function CreativeHubPage() {
           </div>
         </div>
 
-        {/* タブナビゲーションバー（白基調） */}
-        <div className="bg-white p-2.5 rounded-2xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
-          <nav className="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-xl border border-slate-200/80 overflow-x-auto">
+        {/* ナビゲーションバー（ハンバーガーメニュー ＋ 検索バー） */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 shadow-sm relative z-30">
+          
+          {/* ハンバーガーメニュー */}
+          <div className="relative" ref={menuRef}>
             <button
-              onClick={() => setActiveTab('projects')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap ${
-                activeTab === 'projects'
-                  ? 'bg-white text-blue-600 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              aria-expanded={isMenuOpen}
+              aria-label="メニューを開閉"
+              className={`flex items-center gap-2.5 px-4 py-2 rounded-xl font-bold text-xs transition shadow-2xs border ${
+                isMenuOpen
+                  ? 'bg-slate-900 text-white border-slate-900 ring-2 ring-blue-400/50'
+                  : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
               }`}
             >
-              <FolderGit2 className="w-4 h-4" />
-              <span>プロジェクト ({data.projects.length})</span>
+              {/* ハンバーガー 3本線 ⇔ バツ アイコンアニメーション */}
+              <div className="w-4 h-3.5 flex flex-col justify-between items-center relative shrink-0">
+                <span
+                  className={`block h-0.5 w-4 rounded-full transition-all duration-300 ${
+                    isMenuOpen ? 'bg-white rotate-45 translate-y-1.5' : 'bg-slate-700'
+                  }`}
+                />
+                <span
+                  className={`block h-0.5 w-4 rounded-full transition-all duration-200 ${
+                    isMenuOpen ? 'opacity-0 scale-x-0' : 'bg-slate-700'
+                  }`}
+                />
+                <span
+                  className={`block h-0.5 w-4 rounded-full transition-all duration-300 ${
+                    isMenuOpen ? 'bg-white -rotate-45 -translate-y-1.5' : 'bg-slate-700'
+                  }`}
+                />
+              </div>
+
+              <div className="flex items-center gap-1.5 text-left">
+                <span className="text-slate-400 font-normal">メニュー:</span>
+                <span className="flex items-center gap-1 font-bold">
+                  {activeTab === 'projects' && <><span>📁</span><span>プロジェクト</span></>}
+                  {activeTab === 'ideas' && <><span>💡</span><span>アイデア整理</span></>}
+                  {activeTab === 'kanban' && <><span>📋</span><span>タスク</span></>}
+                  {activeTab === 'lore' && <><span>📖</span><span>プロット</span></>}
+                  {activeTab === 'export' && <><span>💾</span><span>保存</span></>}
+                </span>
+                {activeTab === 'projects' && (
+                  <span className="text-[10px] px-1.5 py-0.2 bg-blue-100 text-blue-700 font-bold rounded">
+                    デフォルト
+                  </span>
+                )}
+              </div>
+
+              <span className={`text-[10px] text-slate-400 transition-transform duration-200 ${isMenuOpen ? 'rotate-180 text-white' : ''}`}>
+                ▼
+              </span>
             </button>
-            <button
-              onClick={() => setActiveTab('ideas')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap ${
-                activeTab === 'ideas'
-                  ? 'bg-white text-amber-600 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-              }`}
-            >
-              <Lightbulb className="w-4 h-4" />
-              <span>アイデア整理 ({data.ideas.length})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('kanban')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap ${
-                activeTab === 'kanban'
-                  ? 'bg-white text-indigo-600 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-              }`}
-            >
-              <KanbanSquare className="w-4 h-4" />
-              <span>創作カンバン ({data.tasks.length})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('lore')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap ${
-                activeTab === 'lore'
-                  ? 'bg-white text-purple-600 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-              }`}
-            >
-              <BookOpen className="w-4 h-4" />
-              <span>世界観＆プロット ({data.lores.length + data.plots.length})</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('export')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition whitespace-nowrap ${
-                activeTab === 'export'
-                  ? 'bg-white text-slate-900 shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60'
-              }`}
-            >
-              <Share2 className="w-4 h-4" />
-              <span>保存・エクスポート</span>
-            </button>
-          </nav>
+
+            {/* ハンバーガードロップダウンメニュー */}
+            {isMenuOpen && (
+              <>
+                {/* モバイル用背景オーバーレイ */}
+                <div 
+                  className="fixed inset-0 bg-black/20 md:hidden z-40"
+                  onClick={() => setIsMenuOpen(false)}
+                />
+
+                <div 
+                  className="absolute left-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                  role="menu"
+                >
+                  <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      メニュー切り替え
+                    </span>
+                    <span className="text-[11px] text-slate-400">Escで閉じる</span>
+                  </div>
+
+                  <div className="py-1 space-y-1">
+                    {/* 1. プロジェクト (デフォルト) */}
+                    <button
+                      onClick={() => {
+                        setActiveTab('projects');
+                        setIsMenuOpen(false);
+                      }}
+                      className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group ${
+                        activeTab === 'projects'
+                          ? 'bg-blue-50/80 border border-blue-200/80 shadow-2xs'
+                          : 'hover:bg-slate-50 border border-transparent'
+                      }`}
+                      role="menuitem"
+                    >
+                      <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
+                        activeTab === 'projects' ? 'bg-blue-600 text-white shadow-2xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
+                      }`}>
+                        📁
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className={`text-xs font-bold ${activeTab === 'projects' ? 'text-blue-900' : 'text-slate-800'}`}>
+                            プロジェクト
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-bold">
+                            デフォルト
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                          制作中の作品一覧、進捗率、締切、企画概要の管理
+                        </p>
+                      </div>
+                      {activeTab === 'projects' && (
+                        <Check className="w-4 h-4 text-blue-600 shrink-0 self-center" />
+                      )}
+                    </button>
+
+                    {/* 2. アイデア整理 */}
+                    <button
+                      onClick={() => {
+                        setActiveTab('ideas');
+                        setIsMenuOpen(false);
+                      }}
+                      className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group ${
+                        activeTab === 'ideas'
+                          ? 'bg-amber-50/80 border border-amber-200/80 shadow-2xs'
+                          : 'hover:bg-slate-50 border border-transparent'
+                      }`}
+                      role="menuitem"
+                    >
+                      <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
+                        activeTab === 'ideas' ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
+                      }`}>
+                        💡
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className={`text-xs font-bold ${activeTab === 'ideas' ? 'text-amber-900' : 'text-slate-800'}`}>
+                            アイデア整理
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
+                            {data.ideas.length}件
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                          世界観・プロット・キャラ・ビジュアル・ギミックの発想ストック
+                        </p>
+                      </div>
+                      {activeTab === 'ideas' && (
+                        <Check className="w-4 h-4 text-amber-600 shrink-0 self-center" />
+                      )}
+                    </button>
+
+                    {/* 3. タスク（旧：創作看板） */}
+                    <button
+                      onClick={() => {
+                        setActiveTab('kanban');
+                        setIsMenuOpen(false);
+                      }}
+                      className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group ${
+                        activeTab === 'kanban'
+                          ? 'bg-indigo-50/80 border border-indigo-200/80 shadow-2xs'
+                          : 'hover:bg-slate-50 border border-transparent'
+                      }`}
+                      role="menuitem"
+                    >
+                      <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
+                        activeTab === 'kanban' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
+                      }`}>
+                        📋
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className={`text-xs font-bold ${activeTab === 'kanban' ? 'text-indigo-900' : 'text-slate-800'}`}>
+                            タスク
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
+                            {data.tasks.length}件
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                          構想・構成・下書き・執筆・仕上げ・完了の工程別カンバン進捗
+                        </p>
+                      </div>
+                      {activeTab === 'kanban' && (
+                        <Check className="w-4 h-4 text-indigo-600 shrink-0 self-center" />
+                      )}
+                    </button>
+
+                    {/* 4. プロット */}
+                    <button
+                      onClick={() => {
+                        setActiveTab('lore');
+                        setIsMenuOpen(false);
+                      }}
+                      className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group ${
+                        activeTab === 'lore'
+                          ? 'bg-purple-50/80 border border-purple-200/80 shadow-2xs'
+                          : 'hover:bg-slate-50 border border-transparent'
+                      }`}
+                      role="menuitem"
+                    >
+                      <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
+                        activeTab === 'lore' ? 'bg-purple-600 text-white shadow-2xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
+                      }`}>
+                        📖
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className={`text-xs font-bold ${activeTab === 'lore' ? 'text-purple-900' : 'text-slate-800'}`}>
+                            プロット
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
+                            {data.lores.length + data.plots.length}件
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                          世界観・用語事典（裏設定メモ）および起承転結の章立てプロット
+                        </p>
+                      </div>
+                      {activeTab === 'lore' && (
+                        <Check className="w-4 h-4 text-purple-600 shrink-0 self-center" />
+                      )}
+                    </button>
+
+                    {/* 5. 保存 */}
+                    <button
+                      onClick={() => {
+                        setActiveTab('export');
+                        setIsMenuOpen(false);
+                      }}
+                      className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group ${
+                        activeTab === 'export'
+                          ? 'bg-slate-100 border border-slate-300 shadow-2xs'
+                          : 'hover:bg-slate-50 border border-transparent'
+                      }`}
+                      role="menuitem"
+                    >
+                      <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
+                        activeTab === 'export' ? 'bg-slate-800 text-white shadow-2xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
+                      }`}>
+                        💾
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1">
+                          <span className={`text-xs font-bold ${activeTab === 'export' ? 'text-slate-900' : 'text-slate-800'}`}>
+                            保存
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                          Markdown出力、JSONバックアップ保存・復元、サンプル初期化
+                        </p>
+                      </div>
+                      {activeTab === 'export' && (
+                        <Check className="w-4 h-4 text-slate-800 shrink-0 self-center" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
 
           {/* 検索入力欄 */}
           <div className="relative flex-1 sm:w-64 max-w-xs">
@@ -685,7 +911,7 @@ export default function CreativeHubPage() {
         </div>
 
         {/* ======================================================== */}
-        {/* 1. プロジェクト一覧タブ */}
+        {/* 1. プロジェクト一覧タブ（デフォルト） */}
         {/* ======================================================== */}
         {activeTab === 'projects' && (
           <div className="space-y-6">
@@ -794,7 +1020,7 @@ export default function CreativeHubPage() {
                           <KanbanSquare className="w-3.5 h-3.5 text-indigo-500" />
                           {projTasks.length}
                         </span>
-                        <span className="flex items-center gap-1 font-medium" title="世界観・設定">
+                        <span className="flex items-center gap-1 font-medium" title="プロット・世界観">
                           <BookOpen className="w-3.5 h-3.5 text-purple-500" />
                           {projLores.length}
                         </span>
@@ -873,7 +1099,7 @@ export default function CreativeHubPage() {
         )}
 
         {/* ======================================================== */}
-        {/* 2. アイデア整理ノート (Idea Canvas) */}
+        {/* 2. アイデア整理タブ */}
         {/* ======================================================== */}
         {activeTab === 'ideas' && (
           <div className="space-y-6">
@@ -1075,7 +1301,7 @@ export default function CreativeHubPage() {
         )}
 
         {/* ======================================================== */}
-        {/* 3. 創作カンバン (Creative Kanban) */}
+        {/* 3. タスク（旧：創作看板）タブ */}
         {/* ======================================================== */}
         {activeTab === 'kanban' && (
           <div className="space-y-6">
@@ -1266,7 +1492,7 @@ export default function CreativeHubPage() {
         )}
 
         {/* ======================================================== */}
-        {/* 4. 世界観＆プロット (Lore & Plot) */}
+        {/* 4. プロットタブ */}
         {/* ======================================================== */}
         {activeTab === 'lore' && (
           <div className="space-y-8">
@@ -1327,83 +1553,8 @@ export default function CreativeHubPage() {
               </div>
             </div>
 
-            {/* 1. 世界観・設定用語集 */}
+            {/* 1. 章立てプロット・タイムライン */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <span>🌌</span> 世界観・用語事典 (Lore & Glossary)
-                </h3>
-                <span className="text-xs text-slate-500 font-medium">
-                  {data.lores.filter(l => selectedProjectFilter === 'all' || l.projectId === selectedProjectFilter).length} 項目
-                </span>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {data.lores
-                  .filter(l => selectedProjectFilter === 'all' || l.projectId === selectedProjectFilter)
-                  .map((lore) => {
-                    const proj = data.projects.find((p) => p.id === lore.projectId);
-
-                    return (
-                      <div
-                        key={lore.id}
-                        className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 flex flex-col justify-between hover:border-purple-300 hover:shadow-md transition shadow-xs"
-                      >
-                        <div className="space-y-2.5">
-                          <div className="flex items-center justify-between text-[11px]">
-                            <span className="px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-bold">
-                              {lore.category}
-                            </span>
-                            {proj && (
-                              <span className="text-slate-500 font-medium truncate max-w-[120px]">
-                                {proj.title}
-                              </span>
-                            )}
-                          </div>
-
-                          <h4 className="text-sm font-extrabold text-slate-900">
-                            {lore.term}
-                          </h4>
-
-                          <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                            {lore.description}
-                          </p>
-
-                          {lore.secretNotes && (
-                            <div className="p-3 rounded-xl bg-purple-50/70 border border-purple-200 text-[11px] text-purple-900 space-y-1">
-                              <span className="font-bold flex items-center gap-1 text-purple-700">
-                                <span>🔒</span> 裏設定・伏線メモ:
-                              </span>
-                              <p className="leading-relaxed">{lore.secretNotes}</p>
-                            </div>
-                          )}
-                        </div>
-
-                        <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-1">
-                          <button
-                            onClick={() => {
-                              setEditingLore(lore);
-                              setLoreModalOpen(true);
-                            }}
-                            className="p-1.5 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteLore(lore.id)}
-                            className="p-1.5 text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-
-            {/* 2. 章立てプロット・タイムライン */}
-            <div className="space-y-4 pt-4">
               <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
                 <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
                   <span>📜</span> 章立て・プロットタイムライン (Plot Outline)
@@ -1505,22 +1656,98 @@ export default function CreativeHubPage() {
                   })}
               </div>
             </div>
+
+            {/* 2. 世界観・設定用語集 */}
+            <div className="space-y-4 pt-4">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2.5">
+                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                  <span>🌌</span> 世界観・設定用語集 (Lore & Glossary)
+                </h3>
+                <span className="text-xs text-slate-500 font-medium">
+                  {data.lores.filter(l => selectedProjectFilter === 'all' || l.projectId === selectedProjectFilter).length} 項目
+                </span>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {data.lores
+                  .filter(l => selectedProjectFilter === 'all' || l.projectId === selectedProjectFilter)
+                  .map((lore) => {
+                    const proj = data.projects.find((p) => p.id === lore.projectId);
+
+                    return (
+                      <div
+                        key={lore.id}
+                        className="bg-white border border-slate-200 rounded-2xl p-5 space-y-3 flex flex-col justify-between hover:border-purple-300 hover:shadow-md transition shadow-xs"
+                      >
+                        <div className="space-y-2.5">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-bold">
+                              {lore.category}
+                            </span>
+                            {proj && (
+                              <span className="text-slate-500 font-medium truncate max-w-[120px]">
+                                {proj.title}
+                              </span>
+                            )}
+                          </div>
+
+                          <h4 className="text-sm font-extrabold text-slate-900">
+                            {lore.term}
+                          </h4>
+
+                          <p className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+                            {lore.description}
+                          </p>
+
+                          {lore.secretNotes && (
+                            <div className="p-3 rounded-xl bg-purple-50/70 border border-purple-200 text-[11px] text-purple-900 space-y-1">
+                              <span className="font-bold flex items-center gap-1 text-purple-700">
+                                <span>🔒</span> 裏設定・伏線メモ:
+                              </span>
+                              <p className="leading-relaxed">{lore.secretNotes}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => {
+                              setEditingLore(lore);
+                              setLoreModalOpen(true);
+                            }}
+                            className="p-1.5 text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteLore(lore.id)}
+                            className="p-1.5 text-rose-600 hover:text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+
           </div>
         )}
 
         {/* ======================================================== */}
-        {/* 5. まとめ・保存・エクスポート (Export & Data) */}
+        {/* 5. 保存タブ */}
         {/* ======================================================== */}
         {activeTab === 'export' && (
           <div className="max-w-4xl mx-auto space-y-6">
             <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-6 shadow-sm">
               <div>
                 <h3 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-                  <Share2 className="w-5 h-5 text-blue-600" />
-                  データの出力・バックアップ・共有
+                  <Save className="w-5 h-5 text-blue-600" />
+                  創作データの保存・エクスポート・バックアップ
                 </h3>
                 <p className="text-xs text-slate-500 mt-1">
-                  ブラウザのLocalStorageに自動保存されている創作プロジェクト・アイデア・設定・タスクデータを自由にバックアップおよびMarkdown形式で書き出せます。
+                  ブラウザのLocalStorageに自動保存されている創作プロジェクト・アイデア・タスク・プロットデータを、Markdown形式やJSON形式で書き出し・復元できます。
                 </p>
               </div>
 
