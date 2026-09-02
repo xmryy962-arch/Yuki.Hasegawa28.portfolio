@@ -28,10 +28,15 @@ import {
   Layers,
   ChevronRight,
   CheckCircle2,
+  Circle,
   SlidersHorizontal,
   Bookmark,
   Check,
-  Save
+  Save,
+  AlertTriangle,
+  Flame,
+  Hourglass,
+  CheckSquare
 } from 'lucide-react';
 import {
   CreativeHubData,
@@ -49,6 +54,74 @@ import {
 import { initialCreativeData } from './sampleData';
 
 const STORAGE_KEY = 'creative_studio_hub_data_v1';
+
+// 締切計算ヘルパー
+export const calculateDeadlineInfo = (deadlineStr?: string) => {
+  if (!deadlineStr) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const target = new Date(deadlineStr);
+  target.setHours(0, 0, 0, 0);
+  
+  const diffTime = target.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays < 0) {
+    return {
+      status: 'overdue' as const,
+      days: Math.abs(diffDays),
+      label: `締切超過（${Math.abs(diffDays)}日遅れ）`,
+      badgeClass: 'bg-rose-600 text-white border-rose-700 animate-pulse font-extrabold shadow-sm',
+      cardClass: 'border-rose-400 ring-2 ring-rose-200',
+      icon: '🚨'
+    };
+  } else if (diffDays === 0) {
+    return {
+      status: 'today' as const,
+      days: 0,
+      label: '本日が締切日です！！',
+      badgeClass: 'bg-gradient-to-r from-red-600 to-amber-500 text-white border-red-700 font-extrabold shadow-md animate-bounce',
+      cardClass: 'border-red-400 ring-2 ring-red-200',
+      icon: '🔥'
+    };
+  } else if (diffDays <= 3) {
+    return {
+      status: 'urgent' as const,
+      days: diffDays,
+      label: `締切直前！ あと ${diffDays} 日`,
+      badgeClass: 'bg-rose-100 text-rose-800 border-rose-300 font-bold',
+      cardClass: 'border-rose-300',
+      icon: '⚡'
+    };
+  } else if (diffDays <= 7) {
+    return {
+      status: 'warning' as const,
+      days: diffDays,
+      label: `締切間近 あと ${diffDays} 日`,
+      badgeClass: 'bg-amber-100 text-amber-900 border-amber-300 font-bold',
+      cardClass: 'border-amber-300',
+      icon: '⏳'
+    };
+  } else if (diffDays <= 30) {
+    return {
+      status: 'upcoming' as const,
+      days: diffDays,
+      label: `締切まで あと ${diffDays} 日`,
+      badgeClass: 'bg-blue-50 text-blue-800 border-blue-200 font-semibold',
+      cardClass: '',
+      icon: '📅'
+    };
+  } else {
+    return {
+      status: 'far' as const,
+      days: diffDays,
+      label: `締切まで あと ${diffDays} 日`,
+      badgeClass: 'bg-slate-100 text-slate-700 border-slate-200 font-medium',
+      cardClass: '',
+      icon: '📅'
+    };
+  }
+};
 
 export default function CreativeHubPage() {
   // --- データ状態 ---
@@ -249,6 +322,21 @@ export default function CreativeHubPage() {
     setTaskModalOpen(false);
     setEditingTask(null);
     showToast('タスクを保存しました📋');
+  };
+
+  const handleToggleTaskDone = (taskId: string) => {
+    setData((prev) => ({
+      ...prev,
+      tasks: prev.tasks.map((t) => {
+        if (t.id !== taskId) return t;
+        const newLane: TaskLane = t.lane === 'done' ? 'production' : 'done';
+        return {
+          ...t,
+          lane: newLane,
+          updatedAt: new Date().toISOString().split('T')[0]
+        };
+      })
+    }));
   };
 
   const handleMoveTaskLane = (taskId: string, direction: 'prev' | 'next') => {
@@ -466,13 +554,13 @@ export default function CreativeHubPage() {
     shelved: { label: '保留中📦', badge: 'bg-slate-100 text-slate-600 border-slate-300' }
   };
 
-  const kanbanLaneConfig: Record<TaskLane, { label: string; icon: string; desc: string; topBorder: string }> = {
-    idea: { label: 'アイデア・構想', icon: '💡', desc: 'ネタ出し・検討', topBorder: 'border-t-amber-400' },
-    plot: { label: 'プロット・構成', icon: '📝', desc: 'ネーム・章立て', topBorder: 'border-t-indigo-400' },
-    rough: { label: 'ネーム・下書き', icon: '✏️', desc: 'ラフ画・素案', topBorder: 'border-t-blue-500' },
-    production: { label: '本制作・執筆', icon: '🎨', desc: '線画・着色・執筆', topBorder: 'border-t-purple-500' },
-    review: { label: '仕上げ・校正', icon: '🔍', desc: '調整・校正', topBorder: 'border-t-rose-400' },
-    done: { label: '完了・公開', icon: '✨', desc: '頒布・完了', topBorder: 'border-t-emerald-500' }
+  const kanbanLaneConfig: Record<TaskLane, { label: string; icon: string; desc: string; topBorder: string; badgeBg: string }> = {
+    idea: { label: 'アイデア・構想', icon: '💡', desc: 'ネタ出し・検討', topBorder: 'border-t-amber-400', badgeBg: 'bg-amber-50 text-amber-800' },
+    plot: { label: 'プロット・構成', icon: '📝', desc: 'ネーム・章立て', topBorder: 'border-t-indigo-400', badgeBg: 'bg-indigo-50 text-indigo-800' },
+    rough: { label: 'ネーム・下書き', icon: '✏️', desc: 'ラフ画・素案', topBorder: 'border-t-blue-500', badgeBg: 'bg-blue-50 text-blue-800' },
+    production: { label: '本制作・執筆', icon: '🎨', desc: '線画・着色・執筆', topBorder: 'border-t-purple-500', badgeBg: 'bg-purple-50 text-purple-800' },
+    review: { label: '仕上げ・校正', icon: '🔍', desc: '調整・校正', topBorder: 'border-t-rose-400', badgeBg: 'bg-rose-50 text-rose-800' },
+    done: { label: '完了・公開', icon: '✨', desc: '頒布・完了', topBorder: 'border-t-emerald-500', badgeBg: 'bg-emerald-50 text-emerald-800' }
   };
 
   // --- フィルタ済みアイテム ---
@@ -510,6 +598,13 @@ export default function CreativeHubPage() {
       return matchProj && matchSearch;
     });
   }, [data.tasks, selectedProjectFilter, searchQuery]);
+
+  // 直近の締切があるプロジェクト順
+  const upcomingDeadlineProjects = useMemo(() => {
+    return data.projects
+      .filter((p) => p.targetDeadline && p.status !== 'completed' && p.status !== 'archived')
+      .sort((a, b) => (a.targetDeadline || '').localeCompare(b.targetDeadline || ''));
+  }, [data.projects]);
 
   return (
     <main className="min-h-screen bg-slate-100 text-slate-800 p-4 md:p-8 font-sans">
@@ -587,6 +682,57 @@ export default function CreativeHubPage() {
             </button>
           </div>
         </header>
+
+        {/* 🚨 締切カウントダウン・アラートバー（直近締切のハイライト） */}
+        {upcomingDeadlineProjects.length > 0 && (
+          <div className="bg-gradient-to-r from-red-500/10 via-amber-500/10 to-blue-500/10 border-2 border-red-400/40 rounded-2xl p-4 shadow-sm bg-white">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <span className="w-9 h-9 rounded-xl bg-red-600 text-white flex items-center justify-center text-lg shadow-sm animate-pulse">
+                  🔥
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-red-700 uppercase tracking-wide">
+                      直近の目標締切アラート
+                    </span>
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-100 text-red-800 font-bold border border-red-200">
+                      締切直前ピックアップ
+                    </span>
+                  </div>
+                  <h3 className="text-sm font-extrabold text-slate-900 mt-0.5 flex items-center gap-2">
+                    <span>{upcomingDeadlineProjects[0].title}</span>
+                    <span className="text-xs font-bold text-slate-600">
+                      （締切日: {upcomingDeadlineProjects[0].targetDeadline}）
+                    </span>
+                  </h3>
+                </div>
+              </div>
+
+              {/* カウントダウンバッジ & 詳細リンク */}
+              <div className="flex items-center gap-2">
+                {(() => {
+                  const dInfo = calculateDeadlineInfo(upcomingDeadlineProjects[0].targetDeadline);
+                  if (!dInfo) return null;
+                  return (
+                    <div className={`px-3 py-1.5 rounded-xl border text-xs flex items-center gap-1.5 ${dInfo.badgeClass}`}>
+                      <span className="text-sm">{dInfo.icon}</span>
+                      <span>{dInfo.label}</span>
+                    </div>
+                  );
+                })()}
+
+                <button
+                  onClick={() => setDetailProjectModal(upcomingDeadlineProjects[0])}
+                  className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition flex items-center gap-1 shadow-xs"
+                >
+                  <span>詳細・タスクを開く</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 統計サマリーカード（白基調） */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
@@ -735,7 +881,7 @@ export default function CreativeHubPage() {
                           </span>
                         </div>
                         <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                          制作中の作品一覧、進捗率、締切、企画概要の管理
+                          制作中の作品一覧、進捗率、締切、企画概要、タスクの管理
                         </p>
                       </div>
                       {activeTab === 'projects' && (
@@ -779,7 +925,7 @@ export default function CreativeHubPage() {
                       )}
                     </button>
 
-                    {/* 3. タスク（旧：創作看板） */}
+                    {/* 3. タスク */}
                     <button
                       onClick={() => {
                         setActiveTab('kanban');
@@ -843,7 +989,7 @@ export default function CreativeHubPage() {
                           </span>
                         </div>
                         <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                          世界観・用語事典（裏設定メモ）および起承転結の章立てプロット
+                          起承転結の章立てプロット ＆ 世界観・用語事典（裏設定メモ）
                         </p>
                       </div>
                       {activeTab === 'lore' && (
@@ -961,11 +1107,14 @@ export default function CreativeHubPage() {
                 const projLores = data.lores.filter((l) => l.projectId === project.id);
                 const catInfo = categoryLabels[project.category] || categoryLabels.other;
                 const statInfo = statusLabels[project.status] || statusLabels.concept;
+                const deadlineInfo = calculateDeadlineInfo(project.targetDeadline);
 
                 return (
                   <div
                     key={project.id}
-                    className="bg-white border border-slate-200 rounded-2xl p-5 hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between group shadow-xs"
+                    className={`bg-white border border-slate-200 rounded-2xl p-5 hover:border-blue-400 hover:shadow-md transition-all flex flex-col justify-between group shadow-xs ${
+                      deadlineInfo?.cardClass || ''
+                    }`}
                     style={{ borderTop: `4px solid ${project.color || '#3b82f6'}` }}
                   >
                     <div className="space-y-3.5">
@@ -991,6 +1140,33 @@ export default function CreativeHubPage() {
                         )}
                       </div>
 
+                      {/* 🚨 【超強調】締切カウントダウンバッジ */}
+                      {deadlineInfo ? (
+                        <div className={`p-2.5 rounded-xl border flex items-center justify-between gap-2 ${deadlineInfo.badgeClass}`}>
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-base">{deadlineInfo.icon}</span>
+                            <div className="min-w-0">
+                              <span className="text-[10px] uppercase font-bold opacity-90 block">目標締切</span>
+                              <span className="text-xs font-black truncate block">{deadlineInfo.label}</span>
+                            </div>
+                          </div>
+                          <span className="text-[11px] font-mono font-bold shrink-0 opacity-90">
+                            📅 {project.targetDeadline}
+                          </span>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setEditingProject(project);
+                            setProjectModalOpen(true);
+                          }}
+                          className="w-full py-1.5 px-2.5 bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 border border-dashed border-slate-300 rounded-xl text-[11px] font-medium transition flex items-center justify-center gap-1"
+                        >
+                          <Calendar className="w-3.5 h-3.5" />
+                          <span>+ 締切日を設定する</span>
+                        </button>
+                      )}
+
                       {/* 概要 */}
                       <p className="text-xs text-slate-600 leading-relaxed line-clamp-3 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
                         {project.summary}
@@ -1012,24 +1188,18 @@ export default function CreativeHubPage() {
 
                       {/* 関連データ数カウント */}
                       <div className="flex items-center gap-3 pt-2 text-[11px] text-slate-500 border-t border-slate-100">
+                        <span className="flex items-center gap-1 font-medium" title="関連タスク">
+                          <KanbanSquare className="w-3.5 h-3.5 text-indigo-600" />
+                          <strong>{projTasks.length}</strong> タスク
+                        </span>
                         <span className="flex items-center gap-1 font-medium" title="関連アイデア">
                           <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
-                          {projIdeas.length}
-                        </span>
-                        <span className="flex items-center gap-1 font-medium" title="タスク">
-                          <KanbanSquare className="w-3.5 h-3.5 text-indigo-500" />
-                          {projTasks.length}
+                          <strong>{projIdeas.length}</strong>
                         </span>
                         <span className="flex items-center gap-1 font-medium" title="プロット・世界観">
                           <BookOpen className="w-3.5 h-3.5 text-purple-500" />
-                          {projLores.length}
+                          <strong>{projLores.length}</strong>
                         </span>
-                        {project.targetDeadline && (
-                          <span className="flex items-center gap-1 ml-auto text-slate-500 font-medium">
-                            <Calendar className="w-3.5 h-3.5 text-rose-500" />
-                            {project.targetDeadline}
-                          </span>
-                        )}
                       </div>
 
                       {/* タグ */}
@@ -1053,7 +1223,7 @@ export default function CreativeHubPage() {
                         onClick={() => setDetailProjectModal(project)}
                         className="flex-1 py-2 px-3 bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white border border-blue-200 hover:border-blue-600 text-xs font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 shadow-2xs"
                       >
-                        <span>詳細・設定を開く</span>
+                        <span>詳細・タスクを開く</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                       <button
@@ -1301,7 +1471,7 @@ export default function CreativeHubPage() {
         )}
 
         {/* ======================================================== */}
-        {/* 3. タスク（旧：創作看板）タブ */}
+        {/* 3. タスクタブ */}
         {/* ======================================================== */}
         {activeTab === 'kanban' && (
           <div className="space-y-6">
@@ -1369,11 +1539,14 @@ export default function CreativeHubPage() {
                       <div className="space-y-2.5">
                         {laneTasks.map((task) => {
                           const proj = data.projects.find((p) => p.id === task.projectId);
+                          const taskDeadline = calculateDeadlineInfo(task.dueDate);
 
                           return (
                             <div
                               key={task.id}
-                              className="bg-white border border-slate-200 rounded-xl p-3.5 space-y-2 shadow-xs hover:border-indigo-400 hover:shadow-sm transition group"
+                              className={`bg-white border border-slate-200 rounded-xl p-3.5 space-y-2 shadow-xs hover:border-indigo-400 hover:shadow-sm transition group ${
+                                taskDeadline?.cardClass || ''
+                              }`}
                             >
                               {/* プロジェクト名 & 優先度 */}
                               <div className="flex items-center justify-between text-[10px] gap-1">
@@ -1407,11 +1580,13 @@ export default function CreativeHubPage() {
                                 </p>
                               )}
 
-                              {/* 期日 */}
-                              {task.dueDate && (
-                                <div className="flex items-center gap-1 text-[10px] text-slate-500 font-medium">
-                                  <Clock className="w-3 h-3 text-indigo-500" />
-                                  <span>{task.dueDate}</span>
+                              {/* 🚨 タスク締切バッジ */}
+                              {taskDeadline && (
+                                <div className={`p-1 px-2 rounded-lg border text-[10px] flex items-center justify-between gap-1 font-bold ${taskDeadline.badgeClass}`}>
+                                  <span className="flex items-center gap-1">
+                                    <span>{taskDeadline.icon}</span>
+                                    <span>{taskDeadline.label}</span>
+                                  </span>
                                 </div>
                               )}
 
@@ -1427,6 +1602,13 @@ export default function CreativeHubPage() {
                                 </button>
 
                                 <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => handleToggleTaskDone(task.id)}
+                                    className={`p-1 rounded ${task.lane === 'done' ? 'text-emerald-600' : 'text-slate-400 hover:text-slate-700'}`}
+                                    title={task.lane === 'done' ? '完了済み' : '完了にする'}
+                                  >
+                                    <CheckCircle2 className="w-3.5 h-3.5" />
+                                  </button>
                                   <button
                                     onClick={() => {
                                       setEditingTask(task);
@@ -1842,7 +2024,7 @@ export default function CreativeHubPage() {
       </div>
 
       {/* ======================================================== */}
-      {/* モーダル: プロジェクト詳細ビュー */}
+      {/* モーダル: プロジェクト詳細ビュー（タスク一覧 ＆ アイデア連携） */}
       {/* ======================================================== */}
       {detailProjectModal && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
@@ -1850,10 +2032,15 @@ export default function CreativeHubPage() {
             {/* ヘッダー */}
             <div className="flex items-start justify-between border-b border-slate-200 pb-4">
               <div>
-                <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                  {categoryLabels[detailProjectModal.category]?.label || '創作企画'}
-                </span>
-                <h2 className="text-xl font-black text-slate-900 mt-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-blue-50 text-blue-700 border border-blue-200">
+                    {categoryLabels[detailProjectModal.category]?.label || '創作企画'}
+                  </span>
+                  <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-slate-100 text-slate-700 border border-slate-300">
+                    {statusLabels[detailProjectModal.status]?.label || '進行中'}
+                  </span>
+                </div>
+                <h2 className="text-2xl font-black text-slate-900 mt-2">
                   {detailProjectModal.title}
                 </h2>
                 {detailProjectModal.subtitle && (
@@ -1868,27 +2055,192 @@ export default function CreativeHubPage() {
               </button>
             </div>
 
-            {/* 進捗 & 概要 */}
-            <div className="space-y-4 text-xs">
-              <div className="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-200">
+            {/* 🚨 締切 & 進捗カード */}
+            <div className="space-y-3">
+              {/* 締切バッジ（大） */}
+              {(() => {
+                const deadlineInfo = calculateDeadlineInfo(detailProjectModal.targetDeadline);
+                if (deadlineInfo) {
+                  return (
+                    <div className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${deadlineInfo.badgeClass}`}>
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{deadlineInfo.icon}</span>
+                        <div>
+                          <span className="text-xs uppercase font-extrabold tracking-wider block opacity-90">
+                            目標締切カウントダウン
+                          </span>
+                          <span className="text-base font-black block">
+                            {deadlineInfo.label}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <span className="text-xs block opacity-90 font-medium">目標完了日</span>
+                        <span className="text-sm font-black font-mono">📅 {detailProjectModal.targetDeadline}</span>
+                      </div>
+                    </div>
+                  );
+                } else {
+                  return (
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between text-xs text-slate-500">
+                      <span>目標締切日: 未設定</span>
+                      <button
+                        onClick={() => {
+                          setEditingProject(detailProjectModal);
+                          setProjectModalOpen(true);
+                        }}
+                        className="text-blue-600 font-bold hover:underline"
+                      >
+                        + 締切を設定する
+                      </button>
+                    </div>
+                  );
+                }
+              })()}
+
+              {/* 進捗プログレス */}
+              <div className="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-200 text-xs">
                 <div className="flex justify-between text-slate-700 font-semibold">
-                  <span>制作進捗率</span>
+                  <span>全体の制作進捗率</span>
                   <span className="font-bold text-slate-900">{detailProjectModal.progressPercent}%</span>
                 </div>
-                <div className="w-full h-2.5 bg-slate-200 rounded-full overflow-hidden">
+                <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden border border-slate-300/60">
                   <div
                     className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"
                     style={{ width: `${detailProjectModal.progressPercent}%` }}
                   />
                 </div>
-                {detailProjectModal.targetDeadline && (
-                  <div className="text-slate-500 pt-1 flex items-center gap-1.5 font-medium">
-                    <Calendar className="w-3.5 h-3.5 text-rose-500" />
-                    <span>目標締切: {detailProjectModal.targetDeadline}</span>
+              </div>
+            </div>
+
+            {/* 📋 【新規追加】プロジェクトのタスク一覧 */}
+            <div className="space-y-3 pt-2">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-6 h-6 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center text-xs font-bold">
+                    📋
+                  </span>
+                  <h4 className="text-sm font-extrabold text-slate-900">
+                    プロジェクトのタスク一覧
+                  </h4>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-bold border border-slate-200">
+                    {data.tasks.filter(t => t.projectId === detailProjectModal.id).length} 件
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => {
+                    setEditingTask({
+                      id: '',
+                      projectId: detailProjectModal.id,
+                      title: '',
+                      lane: 'rough',
+                      priority: 'medium',
+                      createdAt: '',
+                      updatedAt: ''
+                    });
+                    setTaskModalOpen(true);
+                  }}
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition flex items-center gap-1 shadow-2xs"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>タスクを追加</span>
+                </button>
+              </div>
+
+              {/* タスクリスト */}
+              <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                {data.tasks.filter(t => t.projectId === detailProjectModal.id).map(task => {
+                  const laneConf = kanbanLaneConfig[task.lane];
+                  const taskDeadline = calculateDeadlineInfo(task.dueDate);
+                  const isDone = task.lane === 'done';
+
+                  return (
+                    <div
+                      key={task.id}
+                      className={`p-3 bg-slate-50 hover:bg-slate-100/80 border rounded-xl flex items-center justify-between gap-3 transition text-xs ${
+                        isDone ? 'border-slate-200 opacity-60 bg-slate-100/50' : 'border-slate-200 shadow-2xs'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        {/* 完了トグルボタン */}
+                        <button
+                          onClick={() => handleToggleTaskDone(task.id)}
+                          className={`shrink-0 transition ${isDone ? 'text-emerald-600' : 'text-slate-400 hover:text-indigo-600'}`}
+                          title={isDone ? '未完了に戻す' : '完了にする'}
+                        >
+                          {isDone ? (
+                            <CheckCircle2 className="w-5 h-5 fill-emerald-100" />
+                          ) : (
+                            <Circle className="w-5 h-5" />
+                          )}
+                        </button>
+
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={`text-[10px] px-2 py-0.5 rounded font-bold ${laneConf.badgeBg}`}>
+                              {laneConf.label}
+                            </span>
+                            <span
+                              className={`text-[10px] px-1.5 py-0.2 rounded font-bold ${
+                                task.priority === 'high'
+                                  ? 'bg-rose-100 text-rose-800'
+                                  : task.priority === 'medium'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-slate-200 text-slate-700'
+                              }`}
+                            >
+                              {task.priority === 'high' ? '高' : task.priority === 'medium' ? '中' : '低'}
+                            </span>
+                          </div>
+                          <p className={`font-bold text-slate-900 mt-1 truncate ${isDone ? 'line-through text-slate-500' : ''}`}>
+                            {task.title}
+                          </p>
+                          {task.description && (
+                            <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">{task.description}</p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* 締切 & 操作 */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {taskDeadline && (
+                          <span className={`text-[10px] px-2 py-0.5 rounded-lg border font-bold ${taskDeadline.badgeClass}`}>
+                            {taskDeadline.icon} {taskDeadline.label}
+                          </span>
+                        )}
+                        <button
+                          onClick={() => {
+                            setEditingTask(task);
+                            setTaskModalOpen(true);
+                          }}
+                          className="p-1.5 text-slate-400 hover:text-slate-700 bg-white rounded-lg border border-slate-200"
+                          title="編集"
+                        >
+                          <Edit3 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTask(task.id)}
+                          className="p-1.5 text-rose-500 hover:text-rose-700 bg-rose-50 rounded-lg border border-rose-200"
+                          title="削除"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {data.tasks.filter(t => t.projectId === detailProjectModal.id).length === 0 && (
+                  <div className="py-6 text-center text-slate-400 text-xs bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                    タスクがまだありません。「タスクを追加」ボタンから作業項目を登録できます。
                   </div>
                 )}
               </div>
+            </div>
 
+            {/* 概要 & コンセプト */}
+            <div className="space-y-4 text-xs pt-2">
               <div>
                 <h4 className="font-bold text-slate-700 mb-1">【概要・ストーリー要約】</h4>
                 <p className="text-slate-700 leading-relaxed bg-slate-50 p-3 rounded-xl border border-slate-200">
@@ -2037,6 +2389,45 @@ export default function CreativeHubPage() {
                 </div>
               </div>
 
+              {/* 🚨 【超強調】目標締切日の入力 */}
+              <div className="bg-amber-50/60 p-3.5 rounded-xl border border-amber-300/80 space-y-1.5">
+                <label className="block text-amber-950 font-black flex items-center gap-1.5">
+                  <span className="text-base">🔥</span>
+                  <span>目標締切日（デッドライン）</span>
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={editingProject.targetDeadline || ''}
+                    onChange={(e) => setEditingProject({ ...editingProject, targetDeadline: e.target.value })}
+                    className="w-full bg-white border border-amber-300 text-slate-900 font-bold rounded-xl p-2.5 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-200"
+                  />
+                  {editingProject.targetDeadline && (
+                    <button
+                      type="button"
+                      onClick={() => setEditingProject({ ...editingProject, targetDeadline: '' })}
+                      className="px-2.5 py-2 bg-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-300"
+                      title="締切をクリア"
+                    >
+                      クリア
+                    </button>
+                  )}
+                </div>
+                {editingProject.targetDeadline && (
+                  <div className="pt-1">
+                    {(() => {
+                      const dInfo = calculateDeadlineInfo(editingProject.targetDeadline);
+                      if (!dInfo) return null;
+                      return (
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${dInfo.badgeClass}`}>
+                          {dInfo.icon} {dInfo.label}
+                        </span>
+                      );
+                    })()}
+                  </div>
+                )}
+              </div>
+
               <div>
                 <label className="block text-slate-700 font-bold mb-1">作品の概要・ストーリー</label>
                 <textarea
@@ -2059,28 +2450,16 @@ export default function CreativeHubPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">進捗率 (%) : {editingProject.progressPercent}%</label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={editingProject.progressPercent}
-                    onChange={(e) => setEditingProject({ ...editingProject, progressPercent: Number(e.target.value) })}
-                    className="w-full accent-blue-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 font-bold mb-1">目標締切日</label>
-                  <input
-                    type="date"
-                    value={editingProject.targetDeadline || ''}
-                    onChange={(e) => setEditingProject({ ...editingProject, targetDeadline: e.target.value })}
-                    className="w-full bg-white border border-slate-300 text-slate-900 rounded-xl p-2 focus:border-blue-500 focus:outline-none"
-                  />
-                </div>
+              <div>
+                <label className="block text-slate-700 font-bold mb-1">進捗率 (%) : {editingProject.progressPercent}%</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={editingProject.progressPercent}
+                  onChange={(e) => setEditingProject({ ...editingProject, progressPercent: Number(e.target.value) })}
+                  className="w-full accent-blue-600"
+                />
               </div>
 
               <div>
@@ -2338,12 +2717,12 @@ export default function CreativeHubPage() {
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 font-bold mb-1">締切日</label>
+                  <label className="block text-slate-700 font-bold mb-1">締切日（タスク締切）</label>
                   <input
                     type="date"
                     value={editingTask.dueDate || ''}
                     onChange={(e) => setEditingTask({ ...editingTask, dueDate: e.target.value })}
-                    className="w-full bg-white border border-slate-300 text-slate-900 rounded-xl p-2 focus:outline-none"
+                    className="w-full bg-white border border-slate-300 text-slate-900 rounded-xl p-2 focus:border-indigo-500 focus:outline-none"
                   />
                 </div>
               </div>
