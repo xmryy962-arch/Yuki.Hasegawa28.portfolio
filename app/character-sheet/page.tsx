@@ -834,7 +834,7 @@ export default function CharacterSheetPage() {
                     setSelectedCharId(c.id);
                     if (activeTab === 'relations_list' || activeTab === 'groups') setActiveTab('profile');
                   }}
-                  className={`px-2.5 py-1 text-xs rounded-full font-medium flex items-center gap-1.5 transition whitespace-nowrap border ${
+                  className={`px-3 py-1.5 text-xs rounded-full font-medium flex items-center gap-2 transition whitespace-nowrap border ${
                     selectedCharId === c.id
                       ? 'border-slate-800 bg-slate-800 text-white shadow-sm'
                       : 'border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100'
@@ -844,18 +844,18 @@ export default function CharacterSheetPage() {
                     <img 
                       src={c.avatarUrl} 
                       alt="" 
-                      className="w-4 h-4 rounded-full object-cover border border-white/40"
+                      className="w-6 h-6 rounded-full object-cover border border-white/40 shrink-0"
                     />
                   ) : (
                     <span 
-                      className="w-2 h-2 rounded-full border border-slate-300" 
+                      className="w-3 h-3 rounded-full border border-slate-300 shrink-0" 
                       style={{ backgroundColor: c.themeColor }} 
                     />
                   )}
                   <span>{c.name || '無名'}</span>
                   {grp && (
                     <span 
-                      className="text-[9px] px-1.5 py-0.2 rounded-full font-normal opacity-85"
+                      className="text-[9px] px-1.5 py-0.5 rounded-full font-normal opacity-85"
                       style={{ backgroundColor: `${grp.color}25`, color: grp.color }}
                     >
                       {grp.name.slice(0, 4)}
@@ -866,7 +866,7 @@ export default function CharacterSheetPage() {
             })}
             <button
               onClick={handleAddCharacter}
-              className="px-2.5 py-1 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-full transition whitespace-nowrap flex items-center gap-1"
+              className="px-3 py-1.5 text-xs font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-full transition whitespace-nowrap flex items-center gap-1"
             >
               <span>＋</span> 追加
             </button>
