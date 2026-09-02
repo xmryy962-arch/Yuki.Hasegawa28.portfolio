@@ -1,6 +1,25 @@
 import React from 'react';
 import Link from 'next/link';
 
+interface HistoryItem {
+  period: string;
+  title: string;
+  description: string;
+  books?: {
+    title: string;
+    role: string;
+    description: string;
+    link: string;
+    tag: string;
+  }[];
+  link?: string;
+  linkText?: string;
+  links?: {
+    text: string;
+    url: string;
+  }[];
+}
+
 export default function Home() {
   const profile = {
     name: "長谷川 優希",
@@ -43,10 +62,18 @@ export default function Home() {
         period: "実績",
         title: "LightningMiniHack 本選出場",
         description: "ハッカソンイベント「LightningMiniHack」の本選に出場しました。",
-        link: "https://developer.salesforce.com/jpblogs/2026/04/lightning-minihack-live-2026-jp",
-        linkText: "イベント詳細を見る"
+        links: [
+          {
+            text: "イベント詳細を見る",
+            url: "https://developer.salesforce.com/jpblogs/2026/04/lightning-minihack-live-2026-jp"
+          },
+          {
+            text: "参加者インタビュー記事を見る",
+            url: "https://developer.salesforce.com/jpblogs/2026/08/tdx-tokyo-2026-lightning-minihack-live"
+          }
+        ]
       }
-    ],
+    ] as HistoryItem[],
 
     // 制作物
     works: [
@@ -158,7 +185,23 @@ export default function Home() {
                 )}
 
                 {/* リンクがある場合の表示 */}
-                {item.link && (
+                {item.links && item.links.length > 0 && (
+                  <div className="pt-1 flex flex-col gap-1.5 items-start">
+                    {item.links.map((linkItem, lIndex) => (
+                      <a 
+                        key={lIndex}
+                        href={linkItem.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 font-medium"
+                      >
+                        <span>{linkItem.text}</span>
+                        <span>↗</span>
+                      </a>
+                    ))}
+                  </div>
+                )}
+                {item.link && !item.links && (
                   <div className="pt-1">
                     <a 
                       href={item.link} 
