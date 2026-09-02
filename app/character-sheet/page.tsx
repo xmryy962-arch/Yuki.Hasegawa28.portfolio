@@ -240,6 +240,30 @@ export default function CharacterSheetPage() {
   const [groups, setGroups] = useState<Group[]>(SAMPLE_GROUPS);
   const [selectedCharId, setSelectedCharId] = useState<string>(SAMPLE_CHARACTERS[0].id);
   const [activeTab, setActiveTab] = useState<'profile' | 'chart' | 'relations_list' | 'groups'>('chart');
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  // ハンバーガーメニュー外側クリック & ESCキーで閉じる
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMenuOpen]);
   
   // ズーム＆パン（キャンバス拡大縮小・移動）
   const [zoom, setZoom] = useState<number>(1.0);
@@ -802,41 +826,243 @@ export default function CharacterSheetPage() {
           </div>
         </header>
 
-        {/* タブ切り替えバー */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm">
-          <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+        {/* ナビゲーションバー（ハンバーガーメニュー ＋ キャラクタークイック切り替え） */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-4 py-2.5 rounded-xl border border-slate-200 shadow-sm relative z-30">
+          {/* ハンバーガーメニュー */}
+          <div className="relative" ref={menuRef}>
             <button
-              onClick={() => setActiveTab('chart')}
-              className={`px-4 py-1.5 text-xs font-bold rounded-md transition ${
-                activeTab === 'chart' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              aria-expanded={isMenuOpen}
+              aria-label="メニューを開閉"
+              className={`flex items-center gap-2.5 px-3.5 py-2 rounded-xl font-bold text-xs transition shadow-xs border ${
+                isMenuOpen
+                  ? 'bg-slate-900 text-white border-slate-900 ring-2 ring-blue-400/50'
+                  : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
               }`}
             >
-              🕸️ ビジュアル相関図
+              {/* ハンバーガー 3本線 ⇔ バツ アイコンアニメーション */}
+              <div className="w-4 h-3.5 flex flex-col justify-between items-center relative shrink-0">
+                <span
+                  className={`block h-0.5 w-4 rounded-full transition-all duration-300 ${
+                    isMenuOpen ? 'bg-white rotate-45 translate-y-1.5' : 'bg-slate-700'
+                  }`}
+                />
+                <span
+                  className={`block h-0.5 w-4 rounded-full transition-all duration-200 ${
+                    isMenuOpen ? 'opacity-0 scale-x-0' : 'bg-slate-700'
+                  }`}
+                />
+                <span
+                  className={`block h-0.5 w-4 rounded-full transition-all duration-300 ${
+                    isMenuOpen ? 'bg-white -rotate-45 -translate-y-1.5' : 'bg-slate-700'
+                  }`}
+                />
+              </div>
+
+              <div className="flex items-center gap-1.5 text-left">
+                <span className="text-slate-400 font-normal">メニュー:</span>
+                <span className="flex items-center gap-1 font-bold">
+                  {activeTab === 'chart' && <><span>🕸️</span><span>ビジュアル相関図</span></>}
+                  {activeTab === 'profile' && <><span>👤</span><span>個別設定シート</span></>}
+                  {activeTab === 'relations_list' && <><span>📝</span><span>関係性一覧</span></>}
+                  {activeTab === 'groups' && <><span>🏰</span><span>グループ</span></>}
+                </span>
+                {activeTab === 'chart' && (
+                  <span className="text-[10px] px-1.5 py-0.2 bg-blue-100 text-blue-700 font-bold rounded">
+                    デフォルト
+                  </span>
+                )}
+              </div>
+
+              <span className={`text-[10px] text-slate-400 transition-transform duration-200 ${isMenuOpen ? 'rotate-180 text-white' : ''}`}>
+                ▼
+              </span>
             </button>
-            <button
-              onClick={() => setActiveTab('profile')}
-              className={`px-4 py-1.5 text-xs font-bold rounded-md transition ${
-                activeTab === 'profile' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              👤 個別設定シート ({characters.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('relations_list')}
-              className={`px-4 py-1.5 text-xs font-bold rounded-md transition ${
-                activeTab === 'relations_list' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              📝 関係性一覧・追加 ({relations.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('groups')}
-              className={`px-4 py-1.5 text-xs font-bold rounded-md transition flex items-center gap-1 ${
-                activeTab === 'groups' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <span>🏰</span> グループ・勢力 ({groups.length})
-            </button>
+
+            {/* ハンバーガードロップダウンメニュー */}
+            {isMenuOpen && (
+              <>
+                {/* モバイル用背景オーバーレイ */}
+                <div 
+                  className="fixed inset-0 bg-black/20 md:hidden z-40"
+                  onClick={() => setIsMenuOpen(false)}
+                />
+
+                <div 
+                  className="absolute left-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
+                  role="menu"
+                >
+                  <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      表示メニュー切り替え
+                    </span>
+                    <span className="text-[11px] text-slate-400">Escで閉じる</span>
+                  </div>
+
+                  <div className="py-1 space-y-1">
+                    {/* 1. ビジュアル相関図 (デフォルト) */}
+                    <button
+                      onClick={() => {
+                        setActiveTab('chart');
+                        setIsMenuOpen(false);
+                      }}
+                      className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group ${
+                        activeTab === 'chart'
+                          ? 'bg-blue-50/80 border border-blue-200/80 shadow-xs'
+                          : 'hover:bg-slate-50 border border-transparent'
+                      }`}
+                      role="menuitem"
+                    >
+                      <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
+                        activeTab === 'chart' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
+                      }`}>
+                        🕸️
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                          <span className={`text-sm font-bold truncate ${
+                            activeTab === 'chart' ? 'text-blue-700' : 'text-slate-800 group-hover:text-slate-900'
+                          }`}>
+                            ビジュアル相関図
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 bg-blue-100 text-blue-700">
+                            デフォルト
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-snug line-clamp-2">
+                          ドラッグ＆ズームで自由に配置できるインタラクティブ相関図マップ
+                        </p>
+                      </div>
+                      {activeTab === 'chart' && (
+                        <span className="text-blue-600 font-bold text-sm shrink-0 self-center">
+                          ✓
+                        </span>
+                      )}
+                    </button>
+
+                    {/* 2. 個別設定シート */}
+                    <button
+                      onClick={() => {
+                        setActiveTab('profile');
+                        setIsMenuOpen(false);
+                      }}
+                      className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group ${
+                        activeTab === 'profile'
+                          ? 'bg-blue-50/80 border border-blue-200/80 shadow-xs'
+                          : 'hover:bg-slate-50 border border-transparent'
+                      }`}
+                      role="menuitem"
+                    >
+                      <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
+                        activeTab === 'profile' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
+                      }`}>
+                        👤
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                          <span className={`text-sm font-bold truncate ${
+                            activeTab === 'profile' ? 'text-blue-700' : 'text-slate-800 group-hover:text-slate-900'
+                          }`}>
+                            個別設定シート
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 bg-emerald-100 text-emerald-700">
+                            {characters.length}名
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-snug line-clamp-2">
+                          画像、性格、セリフ、背景ストーリー等の詳細編集
+                        </p>
+                      </div>
+                      {activeTab === 'profile' && (
+                        <span className="text-blue-600 font-bold text-sm shrink-0 self-center">
+                          ✓
+                        </span>
+                      )}
+                    </button>
+
+                    {/* 3. 関係性一覧 */}
+                    <button
+                      onClick={() => {
+                        setActiveTab('relations_list');
+                        setIsMenuOpen(false);
+                      }}
+                      className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group ${
+                        activeTab === 'relations_list'
+                          ? 'bg-blue-50/80 border border-blue-200/80 shadow-xs'
+                          : 'hover:bg-slate-50 border border-transparent'
+                      }`}
+                      role="menuitem"
+                    >
+                      <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
+                        activeTab === 'relations_list' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
+                      }`}>
+                        📝
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                          <span className={`text-sm font-bold truncate ${
+                            activeTab === 'relations_list' ? 'text-blue-700' : 'text-slate-800 group-hover:text-slate-900'
+                          }`}>
+                            関係性一覧
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 bg-amber-100 text-amber-700">
+                            {relations.length}件
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-snug line-clamp-2">
+                          キャラクター間の感情・関係性矢印の一覧と追加・編集
+                        </p>
+                      </div>
+                      {activeTab === 'relations_list' && (
+                        <span className="text-blue-600 font-bold text-sm shrink-0 self-center">
+                          ✓
+                        </span>
+                      )}
+                    </button>
+
+                    {/* 4. グループ */}
+                    <button
+                      onClick={() => {
+                        setActiveTab('groups');
+                        setIsMenuOpen(false);
+                      }}
+                      className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group ${
+                        activeTab === 'groups'
+                          ? 'bg-blue-50/80 border border-blue-200/80 shadow-xs'
+                          : 'hover:bg-slate-50 border border-transparent'
+                      }`}
+                      role="menuitem"
+                    >
+                      <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
+                        activeTab === 'groups' ? 'bg-blue-600 text-white shadow-xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
+                      }`}>
+                        🏰
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1 mb-0.5">
+                          <span className={`text-sm font-bold truncate ${
+                            activeTab === 'groups' ? 'text-blue-700' : 'text-slate-800 group-hover:text-slate-900'
+                          }`}>
+                            グループ
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 bg-purple-100 text-purple-700">
+                            {groups.length}グループ
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-snug line-clamp-2">
+                          所属勢力・組織（アジト、王族等）の色分け管理
+                        </p>
+                      </div>
+                      {activeTab === 'groups' && (
+                        <span className="text-blue-600 font-bold text-sm shrink-0 self-center">
+                          ✓
+                        </span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
 
           {/* キャラクター切り替えクイックバー */}
