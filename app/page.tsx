@@ -108,7 +108,7 @@ export default function Home() {
     // 連絡先
     contact: {
       email: "yuki.hasegawa.28@gmail.com",
-      github: "https://github.com" // ← ご自身のGitHubプロフィールURLに書き換えてください
+      github: "https://github.com/xmryy962-arch"
     }
   };
 
