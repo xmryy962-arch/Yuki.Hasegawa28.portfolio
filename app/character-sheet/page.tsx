@@ -848,9 +848,14 @@ export default function CharacterSheetPage() {
                     />
                   ) : (
                     <span 
-                      className="w-3 h-3 rounded-full border border-slate-300 shrink-0" 
-                      style={{ backgroundColor: c.themeColor }} 
-                    />
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 border border-slate-300/60 shadow-2xs" 
+                      style={{ 
+                        backgroundColor: c.themeColor,
+                        color: isLightColor(c.themeColor) ? '#0f172a' : '#ffffff'
+                      }} 
+                    >
+                      {c.name ? c.name.slice(0, 1) : '？'}
+                    </span>
                   )}
                   <span>{c.name || '無名'}</span>
                   {grp && (
@@ -2221,8 +2226,18 @@ export default function CharacterSheetPage() {
                             </span>
                           )}
                           <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1 rounded-lg shadow-xs">
-                            {fromChar.avatarUrl && (
-                              <img src={fromChar.avatarUrl} alt="" className="w-4 h-4 rounded-full object-cover" />
+                            {fromChar.avatarUrl ? (
+                              <img src={fromChar.avatarUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
+                            ) : (
+                              <span 
+                                className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 border border-slate-200"
+                                style={{
+                                  backgroundColor: fromChar.themeColor,
+                                  color: isLightColor(fromChar.themeColor) ? '#0f172a' : '#ffffff'
+                                }}
+                              >
+                                {fromChar.name ? fromChar.name.slice(0, 1) : '？'}
+                              </span>
                             )}
                             <span className="font-bold text-slate-800 text-xs">{fromChar.name}</span>
                           </div>
@@ -2230,8 +2245,18 @@ export default function CharacterSheetPage() {
                             {rel.type === 'bidirectional' ? '⇄' : '➔'}
                           </span>
                           <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1 rounded-lg shadow-xs">
-                            {toChar.avatarUrl && (
-                              <img src={toChar.avatarUrl} alt="" className="w-4 h-4 rounded-full object-cover" />
+                            {toChar.avatarUrl ? (
+                              <img src={toChar.avatarUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
+                            ) : (
+                              <span 
+                                className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 border border-slate-200"
+                                style={{
+                                  backgroundColor: toChar.themeColor,
+                                  color: isLightColor(toChar.themeColor) ? '#0f172a' : '#ffffff'
+                                }}
+                              >
+                                {toChar.name ? toChar.name.slice(0, 1) : '？'}
+                              </span>
                             )}
                             <span className="font-bold text-slate-800 text-xs">{toChar.name}</span>
                           </div>
