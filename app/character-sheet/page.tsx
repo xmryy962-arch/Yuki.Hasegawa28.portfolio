@@ -20,7 +20,8 @@ interface Character {
   age: string;
   gender: string;
   themeColor: string;
-  groupId?: string; // 所属グループ/勢力
+  groupIds?: string[]; // 所属グループ/勢力 (複数所属対応)
+  groupId?: string; // 後方互換用
   personality: string;
   appearance: string;
   motifs: string[];
@@ -72,7 +73,7 @@ const SAMPLE_CHARACTERS: Character[] = [
     age: '17歳',
     gender: '女性',
     themeColor: '#06b6d4',
-    groupId: 'grp-1', // アジトの仲間
+    groupIds: ['grp-1'], // アジトの仲間
     personality: '明るく好奇心旺盛。少しおっちょこちょいだが、一度決めたら曲げない芯の強さを持つ。',
     appearance: '透き通るような青髪のショートボブ。羽根のついたベレー帽とスケッチブックを携帯。',
     motifs: ['風', '羽根', 'スケッチブック', '青空'],
@@ -93,7 +94,7 @@ const SAMPLE_CHARACTERS: Character[] = [
     age: '19歳',
     gender: '男性',
     themeColor: '#2563eb',
-    groupId: 'grp-1', // アジトの仲間
+    groupIds: ['grp-1'], // アジトの仲間
     personality: '生真面目で義理堅い。口数は少ないが仲間思いで、危険な前線に真っ先に立つ。',
     appearance: '銀髪の短髪に琥珀色の瞳。歴戦の傷跡がある白銀の鎧を身にまとう。',
     motifs: ['剣', '盾', '獅子', '炎'],
@@ -114,7 +115,7 @@ const SAMPLE_CHARACTERS: Character[] = [
     age: '16歳',
     gender: '男性',
     themeColor: '#10b981',
-    groupId: 'grp-1', // アジトの仲間
+    groupIds: ['grp-1'], // アジトの仲間
     personality: '冷静沈着で理屈っぽい毒舌家。だが仲間がピンチの時は誰よりも素早く手を打つツンデレ。',
     appearance: '深緑の髪に丸メガネ。白衣と怪しげな薬品フラスコを腰に提げている。',
     motifs: ['四つ葉', '薬瓶', '歯車', '書物'],
@@ -135,7 +136,7 @@ const SAMPLE_CHARACTERS: Character[] = [
     age: '18歳',
     gender: '女性',
     themeColor: '#ef4444',
-    groupId: 'grp-2', // 王族
+    groupIds: ['grp-2'], // 王族
     personality: '気品に満ち、民を愛する誇り高き王女。お忍びでルシアたちのアジトに依頼を持ち込む。',
     appearance: '黄金の波打つロングヘアに赤いリボン。純白のドレスと細身のレイピアを帯びる。',
     motifs: ['王冠', '薔薇', 'レイピア', 'リボン'],
@@ -147,6 +148,13 @@ const SAMPLE_CHARACTERS: Character[] = [
     y: 900,
   }
 ];
+
+// キャラクターから所属グループID一覧を安全に取得（複数・単数互換）
+const getCharacterGroupIds = (c: Character): string[] => {
+  if (Array.isArray(c.groupIds)) return c.groupIds;
+  if (c.groupId) return [c.groupId];
+  return [];
+};
 
 const SAMPLE_RELATIONS: Relation[] = [
   {
@@ -275,8 +283,12 @@ export default function CharacterSheetPage() {
       try {
         const parsed = JSON.parse(savedChars);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setCharacters(parsed);
-          setSelectedCharId(parsed[0].id);
+          const migrated = parsed.map((c: any) => ({
+            ...c,
+            groupIds: Array.isArray(c.groupIds) ? c.groupIds : (c.groupId ? [c.groupId] : [])
+          }));
+          setCharacters(migrated);
+          setSelectedCharId(migrated[0].id);
         }
       } catch (e) {
         console.error(e);
@@ -346,7 +358,7 @@ export default function CharacterSheetPage() {
       age: '18歳',
       gender: '不明',
       themeColor: COLOR_PRESETS[count % COLOR_PRESETS.length].color,
-      groupId: groups[0]?.id || undefined,
+      groupIds: groups.length > 0 ? [groups[0].id] : [],
       personality: '',
       appearance: '',
       motifs: [],
@@ -512,9 +524,12 @@ export default function CharacterSheetPage() {
   };
 
   const handleDeleteGroup = (groupIdToDelete: string) => {
-    if (!window.confirm('このグループを削除しますか？（所属していたキャラは「所属なし」になります）')) return;
+    if (!window.confirm('このグループを削除しますか？（所属していたキャラの当該グループ所属が解除されます）')) return;
     const updatedGrps = groups.filter((g) => g.id !== groupIdToDelete);
-    const updatedChars = characters.map((c) => (c.groupId === groupIdToDelete ? { ...c, groupId: undefined } : c));
+    const updatedChars = characters.map((c) => ({
+      ...c,
+      groupIds: getCharacterGroupIds(c).filter((id) => id !== groupIdToDelete)
+    }));
     saveAll(updatedChars, relations, updatedGrps);
     if (editingGroupId === groupIdToDelete) {
       setEditingGroupId(null);
@@ -546,6 +561,7 @@ export default function CharacterSheetPage() {
         age: '',
         gender: '',
         themeColor: '#06b6d4',
+        groupIds: [],
         personality: '',
         appearance: '',
         motifs: [],
@@ -700,7 +716,7 @@ export default function CharacterSheetPage() {
     if (groups.length > 0) {
       text += `■ 所属・勢力一覧 (${groups.length}グループ)\n`;
       groups.forEach((g) => {
-        const members = characters.filter((c) => c.groupId === g.id).map((c) => c.name);
+        const members = characters.filter((c) => getCharacterGroupIds(c).includes(g.id)).map((c) => c.name);
         text += `・ [${g.name}] (メンバー: ${members.join(', ') || 'なし'})\n`;
         if (g.description) text += `  概要: ${g.description}\n`;
       });
@@ -709,9 +725,10 @@ export default function CharacterSheetPage() {
 
     text += `■ 登場キャラクター一覧 (${characters.length}名)\n`;
     characters.forEach((c) => {
-      const grp = groups.find((g) => g.id === c.groupId)?.name;
+      const charGrps = groups.filter((g) => getCharacterGroupIds(c).includes(g.id)).map((g) => g.name);
+      const grpText = charGrps.length > 0 ? ` [所属: ${charGrps.join(', ')}]` : '';
       text += `---------------------------------\n`;
-      text += `【${c.name}】（${c.nameKana}） - ${c.role}${grp ? ` [所属: ${grp}]` : ''}\n`;
+      text += `【${c.name}】（${c.nameKana}） - ${c.role}${grpText}\n`;
       if (c.catchphrase) text += `キャッチコピー: ${c.catchphrase}\n`;
       text += `年齢/性別: ${c.age || '未設定'} / ${c.gender || '未設定'}\n`;
       if (c.motifs.length > 0) text += `モチーフ: ${c.motifs.join(', ')}\n`;
@@ -826,7 +843,7 @@ export default function CharacterSheetPage() {
           <div className="flex items-center gap-1.5 overflow-x-auto max-w-full py-1">
             <span className="text-xs text-slate-400 font-medium whitespace-nowrap">キャラ:</span>
             {characters.map((c) => {
-              const grp = groups.find((g) => g.id === c.groupId);
+              const charGrps = groups.filter((g) => getCharacterGroupIds(c).includes(g.id));
               return (
                 <button
                   key={c.id}
@@ -858,13 +875,18 @@ export default function CharacterSheetPage() {
                     </span>
                   )}
                   <span>{c.name || '無名'}</span>
-                  {grp && (
-                    <span 
-                      className="text-[9px] px-1.5 py-0.5 rounded-full font-normal opacity-85"
-                      style={{ backgroundColor: `${grp.color}25`, color: grp.color }}
-                    >
-                      {grp.name.slice(0, 4)}
-                    </span>
+                  {charGrps.length > 0 && (
+                    <div className="flex items-center gap-1">
+                      {charGrps.map((grp) => (
+                        <span 
+                          key={grp.id}
+                          className="text-[9px] px-1.5 py-0.5 rounded-full font-normal opacity-85"
+                          style={{ backgroundColor: `${grp.color}25`, color: grp.color }}
+                        >
+                          {grp.name.slice(0, 4)}
+                        </span>
+                      ))}
+                    </div>
                   )}
                 </button>
               );
@@ -990,7 +1012,7 @@ export default function CharacterSheetPage() {
 
                     {/* 1. グループゾーン（勢力・所属枠）の描画 */}
                     {groups.map((grp) => {
-                      const groupChars = characters.filter((c) => c.groupId === grp.id);
+                      const groupChars = characters.filter((c) => getCharacterGroupIds(c).includes(grp.id));
                       if (groupChars.length === 0) return null;
 
                       const padX = 75;
@@ -1285,7 +1307,6 @@ export default function CharacterSheetPage() {
                       const nodeOpacity = selectedCharId
                         ? (isSelected || isConnected ? 1 : 0.4)
                         : 1;
-                      const grp = groups.find((g) => g.id === char.groupId);
 
                       return (
                         <g
@@ -1352,21 +1373,30 @@ export default function CharacterSheetPage() {
                           )}
 
                           {/* 名前・所属ラベル */}
-                          <foreignObject x="-90" y="46" width="180" height="60" className="overflow-visible pointer-events-none">
+                          <foreignObject x="-90" y="46" width="180" height="70" className="overflow-visible pointer-events-none">
                             <div className="flex flex-col items-center">
                               <span className={`px-2.5 py-0.5 text-[12px] font-bold rounded-md shadow-sm whitespace-nowrap max-w-[170px] truncate transition-colors ${
                                 isSelected ? 'bg-blue-600 text-white ring-2 ring-blue-300' : 'bg-slate-900 text-white'
                               }`}>
                                 {char.name}
                               </span>
-                              {grp && (
-                                <span 
-                                  className="text-[10px] px-2 py-0.2 rounded font-bold shadow-xs truncate max-w-[160px] mt-0.5"
-                                  style={{ backgroundColor: `${grp.color}20`, color: grp.color }}
-                                >
-                                  {grp.name}
-                                </span>
-                              )}
+                              {(() => {
+                                const charGrps = groups.filter((g) => getCharacterGroupIds(char).includes(g.id));
+                                if (charGrps.length === 0) return null;
+                                return (
+                                  <div className="flex flex-wrap items-center justify-center gap-1 max-w-[170px] mt-0.5">
+                                    {charGrps.map((g) => (
+                                      <span 
+                                        key={g.id}
+                                        className="text-[10px] px-2 py-0.2 rounded font-bold shadow-xs truncate max-w-[80px]"
+                                        style={{ backgroundColor: `${g.color}20`, color: g.color }}
+                                      >
+                                        {g.name}
+                                      </span>
+                                    ))}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           </foreignObject>
                         </g>
@@ -1409,17 +1439,18 @@ export default function CharacterSheetPage() {
                       <span className="text-xs px-2 py-0.5 bg-slate-100 text-slate-600 rounded">
                         {selectedCharacter.role}
                       </span>
-                      {groups.find((g) => g.id === selectedCharacter.groupId) && (
+                      {groups.filter((g) => getCharacterGroupIds(selectedCharacter).includes(g.id)).map((grp) => (
                         <span 
+                          key={grp.id}
                           className="text-xs px-2 py-0.5 rounded font-bold"
                           style={{ 
-                            backgroundColor: `${groups.find((g) => g.id === selectedCharacter.groupId)?.color}20`,
-                            color: groups.find((g) => g.id === selectedCharacter.groupId)?.color
+                            backgroundColor: `${grp.color}20`,
+                            color: grp.color
                           }}
                         >
-                          🏰 {groups.find((g) => g.id === selectedCharacter.groupId)?.name}
+                          🏰 {grp.name}
                         </span>
-                      )}
+                      ))}
                     </div>
                     <p className="text-xs text-slate-600 italic">
                       {selectedCharacter.catchphrase || selectedCharacter.quote || selectedCharacter.personality || '設定を入力してください'}
@@ -1568,19 +1599,63 @@ export default function CharacterSheetPage() {
                   </div>
                 </div>
 
-                {/* 所属グループ選択 */}
+                {/* 所属グループ選択（複数選択対応） */}
                 <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">🏰 所属グループ / 勢力</label>
-                  <select
-                    value={selectedCharacter.groupId || ''}
-                    onChange={(e) => updateSelectedCharacter({ groupId: e.target.value || undefined })}
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-                  >
-                    <option value="">（所属なし / フリー）</option>
-                    {groups.map((g) => (
-                      <option key={g.id} value={g.id}>🏰 {g.name}</option>
-                    ))}
-                  </select>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-slate-700 block">
+                      🏰 所属グループ / 勢力（複数選択可）
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab('groups')}
+                      className="text-[11px] text-blue-600 hover:underline font-medium"
+                    >
+                      ＋ グループ管理
+                    </button>
+                  </div>
+
+                  {groups.length === 0 ? (
+                    <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-500 text-center">
+                      グループが登録されていません。「グループ・勢力」タブから追加できます。
+                    </div>
+                  ) : (
+                    <div className="space-y-1.5">
+                      <div className="flex flex-wrap gap-1.5 p-2 bg-slate-50 border border-slate-200 rounded-lg">
+                        {groups.map((g) => {
+                          const currentGroupIds = getCharacterGroupIds(selectedCharacter);
+                          const isSelected = currentGroupIds.includes(g.id);
+                          return (
+                            <button
+                              key={g.id}
+                              type="button"
+                              onClick={() => {
+                                const nextGroupIds = isSelected
+                                  ? currentGroupIds.filter((id) => id !== g.id)
+                                  : [...currentGroupIds, g.id];
+                                updateSelectedCharacter({ groupIds: nextGroupIds });
+                              }}
+                              className={`px-2.5 py-1 text-xs rounded-lg font-bold border transition flex items-center gap-1.5 ${
+                                isSelected
+                                  ? 'shadow-xs border-2 bg-white'
+                                  : 'bg-white/80 text-slate-600 border-slate-200 hover:bg-slate-100 opacity-70'
+                              }`}
+                              style={isSelected ? {
+                                borderColor: g.color,
+                                color: isLightColor(g.color) ? '#0f172a' : g.color,
+                                backgroundColor: `${g.color}15`
+                              } : {}}
+                            >
+                              <span>{isSelected ? '✓' : '＋'}</span>
+                              <span>🏰 {g.name}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      <p className="text-[10px] text-slate-400">
+                        ※ クリックで所属グループをON/OFF切り替えできます（複数選択可能）
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1785,15 +1860,15 @@ export default function CharacterSheetPage() {
                           <span className="text-xs font-semibold tracking-widest uppercase opacity-90">
                             Character Profile
                           </span>
-                          {groups.find((g) => g.id === selectedCharacter.groupId) && (
-                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                          {groups.filter((g) => getCharacterGroupIds(selectedCharacter).includes(g.id)).map((grp) => (
+                            <span key={grp.id} className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
                               isLightColor(selectedCharacter.themeColor)
                                 ? 'bg-black/10 border-black/20 text-slate-900'
                                 : 'bg-black/25 backdrop-blur-sm border-white/30 text-white'
                             }`}>
-                              🏰 {groups.find((g) => g.id === selectedCharacter.groupId)?.name}
+                              🏰 {grp.name}
                             </span>
-                          )}
+                          ))}
                           {selectedCharacter.role && (
                             <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
                               isLightColor(selectedCharacter.themeColor)
@@ -1867,7 +1942,10 @@ export default function CharacterSheetPage() {
                       <div className="col-span-2 md:col-span-1">
                         <span className="text-slate-400 block mb-0.5">所属グループ</span>
                         <span className="font-bold text-slate-700">
-                          {groups.find((g) => g.id === selectedCharacter.groupId)?.name || 'なし'}
+                          {(() => {
+                            const charGrps = groups.filter((g) => getCharacterGroupIds(selectedCharacter).includes(g.id));
+                            return charGrps.length > 0 ? charGrps.map((g) => g.name).join(', ') : 'なし';
+                          })()}
                         </span>
                       </div>
                     </div>
@@ -2418,7 +2496,7 @@ export default function CharacterSheetPage() {
 
               <div className="space-y-4">
                 {groups.map((grp) => {
-                  const memberChars = characters.filter((c) => c.groupId === grp.id);
+                  const memberChars = characters.filter((c) => getCharacterGroupIds(c).includes(grp.id));
 
                   return (
                     <div 
@@ -2466,9 +2544,17 @@ export default function CharacterSheetPage() {
                               className="px-2.5 py-1 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 flex items-center gap-1.5 shadow-xs"
                             >
                               {m.avatarUrl ? (
-                                <img src={m.avatarUrl} alt="" className="w-4 h-4 rounded-full object-cover" />
+                                <img src={m.avatarUrl} alt="" className="w-4 h-4 rounded-full object-cover shrink-0" />
                               ) : (
-                                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: m.themeColor }} />
+                                <span 
+                                  className="w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold shrink-0 border border-slate-200" 
+                                  style={{ 
+                                    backgroundColor: m.themeColor,
+                                    color: isLightColor(m.themeColor) ? '#0f172a' : '#ffffff'
+                                  }} 
+                                >
+                                  {m.name ? m.name.slice(0, 1) : '？'}
+                                </span>
                               )}
                               <span>{m.name}</span>
                               <span className="text-[10px] text-slate-400">({m.role})</span>
