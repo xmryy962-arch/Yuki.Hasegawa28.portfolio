@@ -28,7 +28,7 @@ export default function Home() {
     bio: "「好き」と思ってもらえるキャラクターや作品を生み出すことを目標に、イラストを中心とした創作に取り組んでいます。ゲームやグッズ、出版、シナリオなど、ひとつの作品をさまざまな形で広げていくことにも強く関心があります。将来は、制作だけでなく企画やアイデアの提案にも携わり、作品の魅力をより多くの人へ届けられるクリエイターになりたいです。",
     
     // スキル（適宜追加・編集してください）
-    skills: ["イラスト制作", "Clip Studio Paint", "キャラクターデザイン", "Next.js", "React", "HTML/CSS", "GitHub"],
+    skills: ["Next.js", "React", "TypeScript", "HTML5 Canvas", "Web Audio API", "Tailwind CSS", "UI/UXデザイン", "イラスト制作", "Clip Studio Paint", "GitHub"],
     
     // 略歴・活動実績
     history: [
@@ -77,6 +77,14 @@ export default function Home() {
 
     // 制作物
     works: [
+      {
+        title: "CosmoDo (コズモ・ドゥ) 〜 宇宙創成ToDo Webアプリケーション 〜",
+        category: "Interactive Web Application / Front-end & UI/UX",
+        description: "日々のタスク達成のエネルギーによって、画面中央の漆黒の宇宙が少しずつ成長・進化していく新感覚のゲーミフィケーションToDoアプリです。タスク完了ごとに新星・惑星が誕生し、星座ライン、鮮やかな星雲（Nebula）、小惑星帯、スパイラル大銀河へと宇宙が段階的に発展。HTML5 Canvasによる天体シミュレーション、Web Audio APIによる透明感あふれる宇宙サウンド、3Dパララックス、星図詳細カード、Zen Mode（鑑賞モード）を搭載しています。",
+        link: "/cosmic-todo",
+        linkText: "宇宙を育ててみる（アプリを体験）",
+        badge: "Pickup / New"
+      },
       {
         title: "創作プロジェクト管理＋アイデア整理ハブ (Creative Studio Hub)",
         category: "Web Application / Creative Tool",
@@ -253,33 +261,76 @@ export default function Home() {
             {profile.works.map((work, index) => (
               <div 
                 key={index}
-                className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm space-y-3"
+                className={`p-6 rounded-xl shadow-sm space-y-3 transition-all ${
+                  work.link === '/cosmic-todo'
+                    ? 'bg-gradient-to-br from-slate-900 to-indigo-950 text-white border-2 border-cyan-500/40 shadow-cyan-950/20 shadow-md'
+                    : 'bg-white border border-slate-200 hover:shadow-md'
+                }`}
               >
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-400 uppercase tracking-wider">
+                  <span className={`font-semibold uppercase tracking-wider ${
+                    work.link === '/cosmic-todo' ? 'text-cyan-300' : 'text-slate-400'
+                  }`}>
                     {work.category}
                   </span>
                   {work.badge && (
-                    <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-bold rounded-full text-[10px]">
-                      {work.badge}
+                    <span className={`px-2.5 py-0.5 font-bold rounded-full text-[10px] shadow-sm ${
+                      work.link === '/cosmic-todo'
+                        ? 'bg-gradient-to-r from-cyan-400 to-purple-500 text-slate-950 font-extrabold'
+                        : 'bg-emerald-100 text-emerald-800'
+                    }`}>
+                      ✦ {work.badge}
                     </span>
                   )}
                 </div>
-                <h3 className="text-lg font-bold text-slate-900">
-                  {work.title}
-                </h3>
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  {work.description}
-                </p>
-                {work.link && (
-                  <div className="pt-2">
+
+                <h3 className="text-xl font-bold">
+                  {work.link ? (
                     <Link
                       href={work.link}
-                      className="inline-flex items-center justify-center px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors gap-1.5 shadow-sm"
+                      className={`transition-colors inline-flex items-center gap-1.5 ${
+                        work.link === '/cosmic-todo'
+                          ? 'text-white hover:text-cyan-300'
+                          : 'text-slate-900 hover:text-blue-600'
+                      }`}
+                    >
+                      <span>{work.title}</span>
+                      <span className="text-sm">↗</span>
+                    </Link>
+                  ) : (
+                    <span className={work.link === '/cosmic-todo' ? 'text-white' : 'text-slate-900'}>
+                      {work.title}
+                    </span>
+                  )}
+                </h3>
+
+                <p className={`text-sm leading-relaxed ${
+                  work.link === '/cosmic-todo' ? 'text-slate-200' : 'text-slate-600'
+                }`}>
+                  {work.description}
+                </p>
+
+                {work.link && (
+                  <div className="pt-2 flex items-center justify-between flex-wrap gap-2">
+                    <Link
+                      href={work.link}
+                      className={`inline-flex items-center justify-center px-4 py-2.5 text-xs font-bold rounded-lg transition-all gap-1.5 shadow-md ${
+                        work.link === '/cosmic-todo'
+                          ? 'bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white shadow-cyan-500/20'
+                          : 'bg-blue-600 hover:bg-blue-700 text-white'
+                      }`}
                     >
                       <span>{work.linkText || "使ってみる"}</span>
                       <span>➔</span>
                     </Link>
+
+                    <span className={`text-xs font-mono ${
+                      work.link === '/cosmic-todo' ? 'text-slate-400' : 'text-slate-400'
+                    }`}>
+                      アクセス先: <code className={`px-1.5 py-0.5 rounded font-semibold ${
+                        work.link === '/cosmic-todo' ? 'bg-slate-800 text-cyan-300 border border-slate-700' : 'bg-slate-100 text-blue-600'
+                      }`}>{work.link}</code>
+                    </span>
                   </div>
                 )}
               </div>
