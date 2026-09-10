@@ -223,18 +223,18 @@ export const PRIORITY_CONFIG: Record<TaskPriority, { label: string; exp: number;
     label: "最重要 (大星・惑星誕生)",
     exp: 100,
     color: "#f97316", // オレンジ
-    badge: "bg-orange-500/20 text-orange-300 border-orange-500/40"
+    badge: "bg-orange-50 text-orange-700 border-orange-200"
   },
   medium: {
     label: "通常 (輝く恒星誕生)",
     exp: 50,
-    color: "#38bdf8", // スカイブルー
-    badge: "bg-sky-500/20 text-sky-300 border-sky-500/40"
+    color: "#0284c7", // スカイブルー
+    badge: "bg-sky-50 text-sky-700 border-sky-200"
   },
   low: {
     label: "日常 (小星・流星誕生)",
     exp: 25,
-    color: "#94a3b8", // スレート
-    badge: "bg-slate-500/20 text-slate-300 border-slate-500/40"
+    color: "#64748b", // スレート
+    badge: "bg-slate-100 text-slate-700 border-slate-200"
   }
 };

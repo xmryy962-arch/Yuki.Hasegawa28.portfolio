@@ -167,15 +167,15 @@ export default function TaskPanel({
           : 'translate-y-0 md:translate-x-0'
       }`}
     >
-      <div className="h-[75vh] md:h-full mx-2 md:mx-4 flex flex-col rounded-t-2xl md:rounded-2xl bg-slate-950/85 backdrop-blur-xl border border-slate-800 shadow-2xl overflow-hidden">
+      <div className="h-[75vh] md:h-full mx-2 md:mx-4 flex flex-col rounded-t-2xl md:rounded-2xl bg-white/95 md:bg-white/90 backdrop-blur-2xl border border-slate-200/90 shadow-2xl shadow-slate-950/20 overflow-hidden text-slate-800">
         {/* パネル上部ヘッダー */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800/80 bg-slate-900/50">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200/80 bg-white/60">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-            <h2 className="text-sm font-bold text-white tracking-wide">
+            <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
+            <h2 className="text-sm font-bold text-slate-900 tracking-wide">
               ミッション司令室 (Tasks)
             </h2>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono font-medium border border-slate-200">
               {pendingTasks.length}件 未完了
             </span>
           </div>
@@ -183,17 +183,17 @@ export default function TaskPanel({
           <div className="flex items-center gap-1">
             <button
               onClick={() => setShowAddForm(!showAddForm)}
-              className="p-1.5 px-2.5 rounded-lg bg-white hover:bg-cyan-50 text-cyan-900 border border-cyan-200/80 text-xs flex items-center gap-1 font-semibold shadow-md transition-all"
+              className="p-1.5 px-2.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white border border-cyan-500 text-xs flex items-center gap-1 font-bold shadow-sm transition-all"
               title="新規ミッションを追加"
             >
-              <Plus className="w-3.5 h-3.5 text-cyan-700" />
+              <Plus className="w-3.5 h-3.5" />
               <span className="text-[11px] font-semibold hidden sm:inline">タスク追加</span>
             </button>
 
             {/* パネル最小化ボタン */}
             <button
               onClick={onToggleCollapse}
-              className="p-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200/80 shadow-sm transition-colors"
+              className="p-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-sm transition-colors"
               title={isCollapsed ? 'パネルを展開' : 'パネルを最小化'}
             >
               <span className="md:hidden">
@@ -210,16 +210,16 @@ export default function TaskPanel({
         {showAddForm && (
           <form
             onSubmit={handleSubmit}
-            className="p-4 border-b border-slate-800 bg-slate-900/70 space-y-3 animate-fade-in text-xs"
+            className="p-4 border-b border-slate-200 bg-slate-50/80 space-y-3 animate-fade-in text-xs"
           >
             <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-300">ミッション名</label>
+              <label className="text-[11px] font-semibold text-slate-700">ミッション名</label>
               <input
                 type="text"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="例: ポートフォリオのUIデザインを完成させる"
-                className="w-full px-3 py-2 rounded-lg bg-slate-850 bg-slate-900 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-xs"
+                className="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-xs shadow-xs"
                 autoFocus
               />
             </div>
@@ -227,56 +227,56 @@ export default function TaskPanel({
             {/* カテゴリ（星の属性）選択 */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="text-[11px] font-semibold text-slate-300">星の属性 (カテゴリ)</label>
+                <label className="text-[11px] font-semibold text-slate-700">星の属性 (カテゴリ)</label>
                 <button
                   type="button"
                   onClick={() => setShowAddCategory(!showAddCategory)}
-                  className="text-[10px] px-2 py-0.5 rounded-md bg-white hover:bg-cyan-50 text-cyan-800 border border-cyan-200/80 font-semibold shadow-sm flex items-center gap-1 transition-colors"
+                  className="text-[10px] px-2 py-0.5 rounded-md bg-white hover:bg-cyan-50 text-cyan-800 border border-cyan-300 font-semibold shadow-xs flex items-center gap-1 transition-colors"
                 >
-                  <Plus className="w-3 h-3" />
+                  <Plus className="w-3 h-3 text-cyan-600" />
                   {showAddCategory ? '閉じる' : '新しい属性を追加'}
                 </button>
               </div>
 
               {/* 新しい属性の作成フォーム */}
               {showAddCategory && (
-                <div className="p-3 rounded-lg bg-slate-950/90 border border-cyan-500/40 space-y-2.5 shadow-lg shadow-cyan-950/30">
+                <div className="p-3 rounded-lg bg-white border border-cyan-300 space-y-2.5 shadow-md">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-cyan-300 flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-cyan-400" />
+                    <span className="text-[11px] font-bold text-cyan-900 flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-cyan-600" />
                       星の属性をカスタマイズ追加
                     </span>
                     <button
                       type="button"
                       onClick={() => setShowAddCategory(false)}
-                      className="text-slate-400 hover:text-white text-xs px-1"
+                      className="text-slate-400 hover:text-slate-700 text-xs px-1 font-bold"
                     >
                       ✕
                     </button>
                   </div>
 
                   <div>
-                    <label className="text-[10px] text-slate-400 mb-1 block">属性名</label>
+                    <label className="text-[10px] text-slate-600 mb-1 block font-medium">属性名</label>
                     <input
                       type="text"
                       value={newCatLabel}
                       onChange={(e) => setNewCatLabel(e.target.value)}
                       placeholder="例: 仕事, 趣味, 筋トレ, 勉強..."
                       maxLength={14}
-                      className="w-full px-2.5 py-1.5 rounded-md bg-slate-900 border border-slate-700 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+                      className="w-full px-2.5 py-1.5 rounded-md bg-slate-50 border border-slate-300 text-slate-900 text-xs placeholder-slate-400 focus:outline-none focus:border-cyan-500"
                     />
                   </div>
 
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="text-[10px] text-slate-400">星の輝き色 (Color)</label>
+                      <label className="text-[10px] text-slate-600 font-medium">星の輝き色 (Color)</label>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-[10px] text-slate-400 font-mono">{newCatColor}</span>
+                        <span className="text-[10px] text-slate-500 font-mono">{newCatColor}</span>
                         <input
                           type="color"
                           value={newCatColor}
                           onChange={(e) => setNewCatColor(e.target.value)}
-                          className="w-5 h-5 rounded cursor-pointer border border-slate-600 bg-transparent"
+                          className="w-5 h-5 rounded cursor-pointer border border-slate-300 bg-transparent"
                           title="カラーピッカーで色を選ぶ"
                         />
                       </div>
@@ -291,8 +291,8 @@ export default function TaskPanel({
                           onClick={() => setNewCatColor(c)}
                           className={`w-5 h-5 rounded-full border transition-all ${
                             newCatColor.toLowerCase() === c.toLowerCase()
-                              ? 'scale-125 border-white shadow-[0_0_8px_currentColor] ring-1 ring-white/50'
-                              : 'border-slate-700 hover:scale-110 opacity-80 hover:opacity-100'
+                              ? 'scale-125 border-slate-900 shadow-[0_0_8px_currentColor] ring-2 ring-slate-400/50'
+                              : 'border-slate-300 hover:scale-110 opacity-80 hover:opacity-100'
                           }`}
                           style={{ backgroundColor: c, color: c }}
                         />
@@ -301,16 +301,16 @@ export default function TaskPanel({
                   </div>
 
                   {/* プレビュー & 追加ボタン */}
-                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
+                  <div className="pt-2 border-t border-slate-200 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <span className="text-[10px] text-slate-500 flex-shrink-0">プレビュー:</span>
                       <span
                         className="px-2 py-0.5 rounded text-[10px] font-medium border flex items-center gap-1 truncate"
                         style={{
-                          backgroundColor: hexToRgba(newCatColor, 0.15),
+                          backgroundColor: hexToRgba(newCatColor, 0.12),
                           borderColor: hexToRgba(newCatColor, 0.4),
                           color: newCatColor,
-                          boxShadow: `0 0 8px ${hexToRgba(newCatColor, 0.3)}`
+                          boxShadow: `0 0 6px ${hexToRgba(newCatColor, 0.2)}`
                         }}
                       >
                         <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: newCatColor }} />
@@ -322,9 +322,9 @@ export default function TaskPanel({
                       type="button"
                       disabled={!newCatLabel.trim()}
                       onClick={handleCreateCategory}
-                      className="px-3.5 py-1.5 rounded-lg bg-white hover:bg-cyan-50 disabled:opacity-40 disabled:cursor-not-allowed text-cyan-900 border border-cyan-300 font-bold text-[11px] shadow-sm transition-all flex items-center gap-1 flex-shrink-0"
+                      className="px-3.5 py-1.5 rounded-lg bg-white hover:bg-cyan-50 disabled:opacity-40 disabled:cursor-not-allowed text-cyan-900 border border-cyan-300 font-bold text-[11px] shadow-xs transition-all flex items-center gap-1 flex-shrink-0"
                     >
-                      <Plus className="w-3 h-3" />
+                      <Plus className="w-3 h-3 text-cyan-600" />
                       追加
                     </button>
                   </div>
@@ -369,7 +369,7 @@ export default function TaskPanel({
                               }
                             }
                           }}
-                          className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white flex items-center justify-center opacity-0 group-hover/cat:opacity-100 transition-opacity border border-slate-700 text-[8px]"
+                          className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-slate-200 hover:bg-rose-600 text-slate-600 hover:text-white flex items-center justify-center opacity-0 group-hover/cat:opacity-100 transition-opacity border border-slate-300 text-[8px]"
                           title="このカスタム属性を削除"
                         >
                           ✕
@@ -383,17 +383,17 @@ export default function TaskPanel({
 
             {/* 優先度選択（星の大きさ・タイプに影響） */}
             <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-300">天体の規模 (優先度)</label>
+              <label className="text-[11px] font-semibold text-slate-700">天体の規模 (優先度)</label>
               <div className="grid grid-cols-3 gap-1.5">
                 {(Object.keys(PRIORITY_CONFIG) as TaskPriority[]).map((p) => (
                   <button
                     key={p}
                     type="button"
                     onClick={() => setPriority(p)}
-                    className={`px-2 py-1.5 rounded-md border text-[10px] font-medium transition-all shadow-sm ${
+                    className={`px-2 py-1.5 rounded-md border text-[10px] font-medium transition-all shadow-xs ${
                       priority === p
-                        ? 'bg-white text-slate-900 font-bold border-2 border-cyan-400 ring-2 ring-cyan-400/20 shadow-md'
-                        : 'bg-white/90 hover:bg-white border-slate-200 text-slate-700 hover:text-slate-900'
+                        ? 'bg-white text-slate-900 font-bold border-2 border-cyan-500 ring-2 ring-cyan-500/20 shadow-xs'
+                        : 'bg-white/90 hover:bg-white border-slate-200 text-slate-700 hover:text-slate-950'
                     }`}
                   >
                     {p === 'high' ? '🪐 大星・惑星' : p === 'medium' ? '⭐ 恒星' : '✨ 小星'}
@@ -405,26 +405,26 @@ export default function TaskPanel({
             {/* 期限 & メモ */}
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-[10px] text-slate-400 flex items-center gap-1 mb-1">
-                  <Clock className="w-3 h-3" /> 期限
+                <label className="text-[10px] text-slate-600 flex items-center gap-1 mb-1 font-medium">
+                  <Clock className="w-3 h-3 text-slate-400" /> 期限
                 </label>
                 <input
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
-                  className="w-full px-2 py-1.5 rounded-md bg-slate-900 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-cyan-400"
+                  className="w-full px-2 py-1.5 rounded-md bg-white border border-slate-300 text-slate-900 text-[11px] focus:outline-none focus:border-cyan-500 shadow-xs"
                 />
               </div>
               <div>
-                <label className="text-[10px] text-slate-400 flex items-center gap-1 mb-1">
-                  <FileText className="w-3 h-3" /> メモ
+                <label className="text-[10px] text-slate-600 flex items-center gap-1 mb-1 font-medium">
+                  <FileText className="w-3 h-3 text-slate-400" /> メモ
                 </label>
                 <input
                   type="text"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="任意のメモ"
-                  className="w-full px-2 py-1.5 rounded-md bg-slate-900 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-cyan-400"
+                  className="w-full px-2 py-1.5 rounded-md bg-white border border-slate-300 text-slate-900 text-[11px] placeholder-slate-400 focus:outline-none focus:border-cyan-500 shadow-xs"
                 />
               </div>
             </div>
@@ -433,14 +433,14 @@ export default function TaskPanel({
               <button
                 type="button"
                 onClick={() => setShowAddForm(false)}
-                className="px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200 text-xs font-semibold shadow-sm transition-colors"
+                className="px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200 text-xs font-semibold shadow-xs transition-colors"
               >
                 キャンセル
               </button>
               <button
                 type="submit"
                 disabled={!title.trim()}
-                className="px-4 py-1.5 rounded-lg bg-white hover:bg-cyan-50 text-cyan-900 border-2 border-cyan-400 font-bold text-xs shadow-md shadow-cyan-950/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                className="px-4 py-1.5 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs shadow-md shadow-cyan-600/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 宇宙へ放つ ✦
               </button>
@@ -449,15 +449,15 @@ export default function TaskPanel({
         )}
 
         {/* タブ切り替え & フィルター */}
-        <div className="px-3 pt-2 pb-1 border-b border-slate-800/80 flex flex-col gap-2">
+        <div className="px-3 pt-2.5 pb-2 border-b border-slate-200/80 bg-white/50 flex flex-col gap-2">
           <div className="flex items-center justify-between text-xs">
-            <div className="flex bg-slate-900/90 p-0.5 rounded-xl border border-slate-800">
+            <div className="flex bg-slate-100 p-0.5 rounded-xl border border-slate-200">
               <button
                 onClick={() => setActiveTab('pending')}
                 className={`px-3 py-1 rounded-lg transition-all text-xs font-semibold ${
                   activeTab === 'pending'
-                    ? 'bg-white text-slate-900 shadow-md'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 未完了 ({pendingTasks.length})
@@ -466,8 +466,8 @@ export default function TaskPanel({
                 onClick={() => setActiveTab('completed')}
                 className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1 text-xs font-semibold ${
                   activeTab === 'completed'
-                    ? 'bg-white text-slate-900 shadow-md'
-                    : 'text-slate-400 hover:text-white'
+                    ? 'bg-white text-slate-900 shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
                 <Sparkles className="w-3 h-3 text-amber-500" />
@@ -476,12 +476,12 @@ export default function TaskPanel({
             </div>
 
             {/* カテゴリフィルター */}
-            <div className="flex items-center gap-1 text-[11px] text-slate-400">
+            <div className="flex items-center gap-1 text-[11px] text-slate-500">
               <Filter className="w-3 h-3" />
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-slate-800 text-[10px] font-medium shadow-sm focus:outline-none max-w-[120px]"
+                className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-slate-800 text-[10px] font-medium shadow-xs focus:outline-none max-w-[120px]"
               >
                 <option value="all">全カテゴリ</option>
                 {Object.values(categories).map((cat) => (
@@ -495,19 +495,19 @@ export default function TaskPanel({
         </div>
 
         {/* タスク一覧リスト */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-2.5 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-3 space-y-2.5 custom-scrollbar bg-slate-50/40">
           {filteredTasks.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-500 text-xs">
               {activeTab === 'pending' ? (
                 <>
-                  <Sparkles className="w-8 h-8 text-slate-600 mb-2 stroke-[1.5]" />
-                  <p className="text-slate-400 font-medium">未完了のミッションはありません</p>
+                  <Sparkles className="w-8 h-8 text-slate-300 mb-2 stroke-[1.5]" />
+                  <p className="text-slate-700 font-semibold">未完了のミッションはありません</p>
                   <p className="text-[11px] text-slate-500 mt-1">「タスク追加」から新しい目標を設定して、宇宙を成長させましょう！</p>
                 </>
               ) : (
                 <>
-                  <Circle className="w-8 h-8 text-slate-600 mb-2 stroke-[1.5]" />
-                  <p className="text-slate-400 font-medium">まだ誕生した星はありません</p>
+                  <Circle className="w-8 h-8 text-slate-300 mb-2 stroke-[1.5]" />
+                  <p className="text-slate-700 font-semibold">まだ誕生した星はありません</p>
                   <p className="text-[11px] text-slate-500 mt-1">タスクを完了すると、ここに星々の軌跡が刻まれます。</p>
                 </>
               )}
@@ -519,17 +519,17 @@ export default function TaskPanel({
                   <form
                     key={task.id}
                     onSubmit={(e) => handleSaveEdit(e, task)}
-                    className="p-3.5 rounded-xl border border-cyan-500/50 bg-slate-900/95 shadow-xl shadow-cyan-950/30 space-y-2.5 animate-fade-in text-xs"
+                    className="p-3.5 rounded-xl border-2 border-cyan-400 bg-white shadow-lg space-y-2.5 animate-fade-in text-xs"
                   >
-                    <div className="flex items-center justify-between pb-1 border-b border-slate-800">
-                      <span className="text-[11px] font-bold text-cyan-300 flex items-center gap-1">
-                        <Edit3 className="w-3 h-3 text-cyan-400" />
+                    <div className="flex items-center justify-between pb-1 border-b border-slate-200">
+                      <span className="text-[11px] font-bold text-cyan-900 flex items-center gap-1">
+                        <Edit3 className="w-3 h-3 text-cyan-600" />
                         ミッションを編集
                       </span>
                       <button
                         type="button"
                         onClick={cancelEditing}
-                        className="w-5 h-5 rounded flex items-center justify-center bg-white/90 hover:bg-white text-slate-700 hover:text-slate-950 font-bold text-xs transition-colors shadow-sm"
+                        className="w-5 h-5 rounded flex items-center justify-center bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 font-bold text-xs transition-colors"
                         title="キャンセル"
                       >
                         ✕
@@ -538,19 +538,19 @@ export default function TaskPanel({
 
                     {/* ミッション名 */}
                     <div className="space-y-1">
-                      <label className="text-[10px] text-slate-400 font-semibold">ミッション名</label>
+                      <label className="text-[10px] text-slate-600 font-semibold">ミッション名</label>
                       <input
                         type="text"
                         value={editTitle}
                         onChange={(e) => setEditTitle(e.target.value)}
-                        className="w-full px-2.5 py-1.5 rounded-md bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:border-cyan-400"
+                        className="w-full px-2.5 py-1.5 rounded-md bg-slate-50 border border-slate-300 text-slate-900 text-xs focus:outline-none focus:border-cyan-500"
                         autoFocus
                       />
                     </div>
 
                     {/* 属性（カテゴリ）選択 */}
                     <div className="space-y-1">
-                      <label className="text-[10px] text-slate-400 font-semibold">星の属性 (カテゴリ)</label>
+                      <label className="text-[10px] text-slate-600 font-semibold">星の属性 (カテゴリ)</label>
                       <div className="grid grid-cols-3 gap-1 max-h-28 overflow-y-auto pr-0.5 custom-scrollbar">
                         {Object.values(categories).map((cat) => {
                           const isSelected = editCategory === cat.id;
@@ -561,10 +561,10 @@ export default function TaskPanel({
                               onClick={() => setEditCategory(cat.id)}
                               className="px-2 py-1 rounded border text-[10px] font-medium flex items-center justify-center gap-1 transition-all truncate"
                               style={{
-                                backgroundColor: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.92)',
+                                backgroundColor: isSelected ? '#ffffff' : 'rgba(248, 250, 252, 0.95)',
                                 borderColor: isSelected ? cat.color : 'rgba(226, 232, 240, 0.9)',
                                 color: isSelected ? cat.color : '#1e293b',
-                                boxShadow: isSelected ? `0 0 8px ${hexToRgba(cat.color, 0.4)}` : '0 1px 2px rgba(0,0,0,0.06)',
+                                boxShadow: isSelected ? `0 0 8px ${hexToRgba(cat.color, 0.3)}` : '0 1px 2px rgba(0,0,0,0.04)',
                                 fontWeight: isSelected ? 700 : 500,
                               }}
                             >
@@ -581,17 +581,17 @@ export default function TaskPanel({
 
                     {/* 優先度（天体の規模） */}
                     <div className="space-y-1">
-                      <label className="text-[10px] text-slate-400 font-semibold">天体の規模 (優先度)</label>
+                      <label className="text-[10px] text-slate-600 font-semibold">天体の規模 (優先度)</label>
                       <div className="grid grid-cols-3 gap-1">
                         {(Object.keys(PRIORITY_CONFIG) as TaskPriority[]).map((p) => (
                           <button
                             key={p}
                             type="button"
                             onClick={() => setEditPriority(p)}
-                            className={`px-1.5 py-1 rounded border text-[10px] font-medium transition-all shadow-sm ${
+                            className={`px-1.5 py-1 rounded border text-[10px] font-medium transition-all shadow-xs ${
                               editPriority === p
-                                ? 'bg-white text-slate-900 font-bold border-2 border-cyan-400 ring-2 ring-cyan-400/20 shadow-md'
-                                : 'bg-white/90 hover:bg-white border-slate-200 text-slate-700 hover:text-slate-900'
+                                ? 'bg-white text-slate-900 font-bold border-2 border-cyan-500 ring-2 ring-cyan-500/20 shadow-xs'
+                                : 'bg-slate-50 hover:bg-white border-slate-200 text-slate-700 hover:text-slate-900'
                             }`}
                           >
                             {p === 'high' ? '🪐 惑星' : p === 'medium' ? '⭐ 恒星' : '✨ 小星'}
@@ -603,45 +603,45 @@ export default function TaskPanel({
                     {/* 期限 & メモ */}
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="text-[10px] text-slate-400 flex items-center gap-1 mb-1">
-                          <Clock className="w-2.5 h-2.5" /> 期限
+                        <label className="text-[10px] text-slate-600 flex items-center gap-1 mb-1 font-medium">
+                          <Clock className="w-2.5 h-2.5 text-slate-400" /> 期限
                         </label>
                         <input
                           type="date"
                           value={editDueDate}
                           onChange={(e) => setEditDueDate(e.target.value)}
-                          className="w-full px-2 py-1 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-cyan-400"
+                          className="w-full px-2 py-1 rounded bg-slate-50 border border-slate-300 text-slate-900 text-[11px] focus:outline-none focus:border-cyan-500"
                         />
                       </div>
                       <div>
-                        <label className="text-[10px] text-slate-400 flex items-center gap-1 mb-1">
-                          <FileText className="w-2.5 h-2.5" /> メモ
+                        <label className="text-[10px] text-slate-600 flex items-center gap-1 mb-1 font-medium">
+                          <FileText className="w-2.5 h-2.5 text-slate-400" /> メモ
                         </label>
                         <input
                           type="text"
                           value={editNotes}
                           onChange={(e) => setEditNotes(e.target.value)}
                           placeholder="任意のメモ"
-                          className="w-full px-2 py-1 rounded bg-slate-950 border border-slate-700 text-white text-[11px] focus:outline-none focus:border-cyan-400"
+                          className="w-full px-2 py-1 rounded bg-slate-50 border border-slate-300 text-slate-900 text-[11px] focus:outline-none focus:border-cyan-500"
                         />
                       </div>
                     </div>
 
                     {/* アクションボタン */}
-                    <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-800">
+                    <div className="flex items-center justify-end gap-2 pt-1 border-t border-slate-200">
                       <button
                         type="button"
                         onClick={cancelEditing}
-                        className="px-2.5 py-1 rounded-md bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200 text-[11px] font-semibold shadow-sm transition-colors"
+                        className="px-2.5 py-1 rounded-md bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200 text-[11px] font-semibold shadow-xs transition-colors"
                       >
                         キャンセル
                       </button>
                       <button
                         type="submit"
                         disabled={!editTitle.trim()}
-                        className="px-3.5 py-1 rounded-md bg-white hover:bg-cyan-50 text-cyan-900 border-2 border-cyan-400 font-bold text-[11px] shadow-md shadow-cyan-950/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-1"
+                        className="px-3.5 py-1 rounded-md bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-[11px] shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-1"
                       >
-                        <Check className="w-3 h-3 text-cyan-700" />
+                        <Check className="w-3 h-3" />
                         保存する
                       </button>
                     </div>
@@ -657,18 +657,18 @@ export default function TaskPanel({
                   key={task.id}
                   className={`group relative p-3 rounded-xl border transition-all duration-200 ${
                     task.completed
-                      ? 'bg-slate-900/40 border-slate-800/80 hover:border-purple-500/30'
-                      : 'bg-slate-900/80 border-slate-800 hover:border-cyan-500/40 shadow-sm hover:shadow-cyan-950/20'
+                      ? 'bg-slate-100/60 border-slate-200/80 hover:border-purple-300'
+                      : 'bg-white border-slate-200/90 hover:border-cyan-400/80 shadow-sm hover:shadow-md'
                   }`}
                 >
                   <div className="flex items-start gap-2.5">
                     {/* チェックボックス（タスク完了トリガー） */}
                     <button
                       onClick={() => onToggleTask(task.id)}
-                      className={`mt-0.5 flex-shrink-0 w-4.5 h-4.5 rounded-full border flex items-center justify-center transition-all ${
+                      className={`mt-0.5 flex-shrink-0 w-4.5 h-4.5 rounded-full border-2 flex items-center justify-center transition-all ${
                         task.completed
-                          ? 'bg-gradient-to-tr from-cyan-500 to-purple-500 border-transparent text-white shadow-[0_0_8px_rgba(56,189,248,0.5)]'
-                          : 'bg-white/90 hover:bg-white border-slate-300 hover:border-cyan-400 text-transparent hover:text-cyan-600 shadow-xs'
+                          ? 'bg-gradient-to-tr from-cyan-500 to-purple-500 border-transparent text-white shadow-sm'
+                          : 'border-slate-300 bg-white hover:border-cyan-500 text-transparent hover:text-cyan-500 shadow-xs'
                       }`}
                       title={task.completed ? '未完了に戻す（星を宇宙塵に戻す）' : 'タスクを達成して星を誕生させる！'}
                     >
@@ -679,8 +679,8 @@ export default function TaskPanel({
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
                         <p
-                          className={`text-xs font-medium leading-snug break-words ${
-                            task.completed ? 'text-slate-400 line-through' : 'text-slate-100'
+                          className={`text-xs font-semibold leading-snug break-words ${
+                            task.completed ? 'text-slate-400 line-through' : 'text-slate-900'
                           }`}
                         >
                           {task.title}
@@ -688,7 +688,7 @@ export default function TaskPanel({
                         <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex-shrink-0">
                           <button
                             onClick={() => startEditingTask(task)}
-                            className="p-1 rounded-md bg-white hover:bg-slate-100 text-slate-700 hover:text-cyan-700 border border-slate-200/80 shadow-xs transition-colors"
+                            className="p-1 rounded-md bg-white hover:bg-slate-100 text-slate-600 hover:text-cyan-700 border border-slate-200 shadow-xs transition-colors"
                             title="ミッションを編集"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -698,7 +698,7 @@ export default function TaskPanel({
                               if (editingTaskId === task.id) cancelEditing();
                               onDeleteTask(task.id);
                             }}
-                            className="p-1 rounded-md bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200/80 shadow-xs transition-colors"
+                            className="p-1 rounded-md bg-white hover:bg-rose-50 text-slate-600 hover:text-rose-600 border border-slate-200 shadow-xs transition-colors"
                             title="削除"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -708,7 +708,7 @@ export default function TaskPanel({
 
                       {/* メモ */}
                       {task.notes && (
-                        <p className="text-[11px] text-slate-400 mt-1 line-clamp-2">
+                        <p className="text-[11px] text-slate-600 mt-1 line-clamp-2">
                           {task.notes}
                         </p>
                       )}
@@ -719,8 +719,8 @@ export default function TaskPanel({
                         <span
                           className="px-1.5 py-0.5 rounded text-[10px] font-medium border flex items-center gap-1"
                           style={{
-                            backgroundColor: hexToRgba(catConfig.color, 0.15),
-                            borderColor: hexToRgba(catConfig.color, 0.4),
+                            backgroundColor: hexToRgba(catConfig.color, 0.12),
+                            borderColor: hexToRgba(catConfig.color, 0.35),
                             color: catConfig.color,
                           }}
                         >
@@ -740,15 +740,15 @@ export default function TaskPanel({
 
                         {/* 期限 */}
                         {task.dueDate && (
-                          <span className="text-[10px] text-slate-400 flex items-center gap-1 font-mono">
-                            <Clock className="w-2.5 h-2.5" />
+                          <span className="text-[10px] text-slate-500 flex items-center gap-1 font-mono">
+                            <Clock className="w-2.5 h-2.5 text-slate-400" />
                             {task.dueDate}
                           </span>
                         )}
 
                         {/* 完了日時（完了済みの場合） */}
                         {task.completed && task.completedAt && (
-                          <span className="text-[10px] text-purple-300/80 flex items-center gap-0.5 ml-auto font-mono">
+                          <span className="text-[10px] text-purple-600 flex items-center gap-0.5 ml-auto font-mono font-medium">
                             ✦ 誕生: {new Date(task.completedAt).toLocaleDateString()}
                           </span>
                         )}
