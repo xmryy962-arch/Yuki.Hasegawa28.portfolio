@@ -261,24 +261,14 @@ export default function Home() {
             {profile.works.map((work, index) => (
               <div 
                 key={index}
-                className={`p-6 rounded-xl shadow-sm space-y-3 transition-all ${
-                  work.link === '/cosmic-todo'
-                    ? 'bg-gradient-to-br from-slate-900 to-indigo-950 text-white border-2 border-cyan-500/40 shadow-cyan-950/20 shadow-md'
-                    : 'bg-white border border-slate-200 hover:shadow-md'
-                }`}
+                className="p-6 bg-white border border-slate-200 rounded-xl shadow-sm hover:shadow-md transition-all space-y-3"
               >
                 <div className="flex items-center justify-between text-xs">
-                  <span className={`font-semibold uppercase tracking-wider ${
-                    work.link === '/cosmic-todo' ? 'text-cyan-300' : 'text-slate-400'
-                  }`}>
+                  <span className="font-semibold uppercase tracking-wider text-slate-400">
                     {work.category}
                   </span>
                   {work.badge && (
-                    <span className={`px-2.5 py-0.5 font-bold rounded-full text-[10px] shadow-sm ${
-                      work.link === '/cosmic-todo'
-                        ? 'bg-gradient-to-r from-cyan-400 to-purple-500 text-slate-950 font-extrabold'
-                        : 'bg-emerald-100 text-emerald-800'
-                    }`}>
+                    <span className="px-2.5 py-0.5 font-bold rounded-full text-[10px] shadow-sm bg-emerald-100 text-emerald-800">
                       ✦ {work.badge}
                     </span>
                   )}
@@ -288,25 +278,19 @@ export default function Home() {
                   {work.link ? (
                     <Link
                       href={work.link}
-                      className={`transition-colors inline-flex items-center gap-1.5 ${
-                        work.link === '/cosmic-todo'
-                          ? 'text-white hover:text-cyan-300'
-                          : 'text-slate-900 hover:text-blue-600'
-                      }`}
+                      className="text-slate-900 hover:text-blue-600 transition-colors inline-flex items-center gap-1.5"
                     >
                       <span>{work.title}</span>
                       <span className="text-sm">↗</span>
                     </Link>
                   ) : (
-                    <span className={work.link === '/cosmic-todo' ? 'text-white' : 'text-slate-900'}>
+                    <span className="text-slate-900">
                       {work.title}
                     </span>
                   )}
                 </h3>
 
-                <p className={`text-sm leading-relaxed ${
-                  work.link === '/cosmic-todo' ? 'text-slate-200' : 'text-slate-600'
-                }`}>
+                <p className="text-sm leading-relaxed text-slate-600">
                   {work.description}
                 </p>
 
@@ -314,22 +298,14 @@ export default function Home() {
                   <div className="pt-2 flex items-center justify-between flex-wrap gap-2">
                     <Link
                       href={work.link}
-                      className={`inline-flex items-center justify-center px-4 py-2.5 text-xs font-bold rounded-lg transition-all gap-1.5 shadow-md ${
-                        work.link === '/cosmic-todo'
-                          ? 'bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white shadow-cyan-500/20'
-                          : 'bg-blue-600 hover:bg-blue-700 text-white'
-                      }`}
+                      className="inline-flex items-center justify-center px-4 py-2.5 text-xs font-bold rounded-lg transition-all gap-1.5 shadow-md bg-blue-600 hover:bg-blue-700 text-white"
                     >
                       <span>{work.linkText || "使ってみる"}</span>
                       <span>➔</span>
                     </Link>
 
-                    <span className={`text-xs font-mono ${
-                      work.link === '/cosmic-todo' ? 'text-slate-400' : 'text-slate-400'
-                    }`}>
-                      アクセス先: <code className={`px-1.5 py-0.5 rounded font-semibold ${
-                        work.link === '/cosmic-todo' ? 'bg-slate-800 text-cyan-300 border border-slate-700' : 'bg-slate-100 text-blue-600'
-                      }`}>{work.link}</code>
+                    <span className="text-xs font-mono text-slate-400">
+                      アクセス先: <code className="px-1.5 py-0.5 rounded font-semibold bg-slate-100 text-blue-600">{work.link}</code>
                     </span>
                   </div>
                 )}
