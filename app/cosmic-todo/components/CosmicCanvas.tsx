@@ -95,6 +95,9 @@ export default function CosmicCanvas({
       if (existing) {
         return {
           ...existing,
+          taskTitle: task.title,
+          category: task.category,
+          priority: task.priority,
           color: catConfig.color,
           glowColor: catConfig.glow,
           ringColor: catConfig.glow,

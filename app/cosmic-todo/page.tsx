@@ -14,7 +14,8 @@ import {
   PRIORITY_CONFIG,
   CategoryInfo,
   DEFAULT_CATEGORY_CONFIG,
-  createCategoryConfig
+  createCategoryConfig,
+  getCategoryInfo
 } from './types';
 import { soundManager } from './utils/sound';
 
@@ -206,6 +207,28 @@ export default function CosmicTodoPage() {
     }
   };
 
+  // タスク編集・更新
+  const handleUpdateTask = (updatedTask: Task) => {
+    setTasks((prev) =>
+      prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+    );
+    if (selectedCelestial && selectedCelestial.taskId === updatedTask.id) {
+      const catConfig = getCategoryInfo(categories, updatedTask.category);
+      setSelectedCelestial((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          taskTitle: updatedTask.title,
+          category: updatedTask.category,
+          priority: updatedTask.priority,
+          color: catConfig.color,
+          glowColor: catConfig.glow,
+          ringColor: catConfig.glow,
+        };
+      });
+    }
+  };
+
   // 属性（カテゴリ）追加
   const handleAddCategory = (newCat: { label: string; color: string }): string => {
     const id = 'cat_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
@@ -333,6 +356,7 @@ export default function CosmicTodoPage() {
           onAddTask={handleAddTask}
           onToggleTask={handleToggleTask}
           onDeleteTask={handleDeleteTask}
+          onUpdateTask={handleUpdateTask}
           onAddCategory={handleAddCategory}
           onDeleteCategory={handleDeleteCategory}
           isCollapsed={isPanelCollapsed}
