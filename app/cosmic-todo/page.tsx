@@ -11,11 +11,15 @@ import {
   CelestialBody, 
   UNIVERSE_STAGES, 
   UniverseStage, 
-  PRIORITY_CONFIG 
+  PRIORITY_CONFIG,
+  CategoryInfo,
+  DEFAULT_CATEGORY_CONFIG,
+  createCategoryConfig
 } from './types';
 import { soundManager } from './utils/sound';
 
 const STORAGE_KEY = 'cosmic_todo_tasks_v1';
+const CATEGORIES_STORAGE_KEY = 'cosmic_todo_categories_v1';
 
 const INITIAL_TASKS: Task[] = [
   {
@@ -52,6 +56,7 @@ const INITIAL_TASKS: Task[] = [
 
 export default function CosmicTodoPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [categories, setCategories] = useState<Record<string, CategoryInfo>>(DEFAULT_CATEGORY_CONFIG);
   const [isLoaded, setIsLoaded] = useState(false);
   const [zenMode, setZenMode] = useState(false);
   const [isPanelCollapsed, setIsPanelCollapsed] = useState(false);
@@ -71,18 +76,29 @@ export default function CosmicTodoPage() {
           const completedCount = parsed.filter((t: Task) => t.completed).length;
           const currentLvl = calculateLevel(completedCount);
           setPrevLevel(currentLvl);
-          setIsLoaded(true);
-          return;
+        } else {
+          setTasks(INITIAL_TASKS);
+        }
+      } else {
+        setTasks(INITIAL_TASKS);
+      }
+
+      // カテゴリ（属性）のロード
+      const savedCats = localStorage.getItem(CATEGORIES_STORAGE_KEY);
+      if (savedCats) {
+        const parsedCats = JSON.parse(savedCats);
+        if (parsedCats && typeof parsedCats === 'object') {
+          setCategories({ ...DEFAULT_CATEGORY_CONFIG, ...parsedCats });
         }
       }
     } catch {
       // LocalStorage error fallback
+      setTasks(INITIAL_TASKS);
     }
-    setTasks(INITIAL_TASKS);
     setIsLoaded(true);
   }, []);
 
-  // 保存
+  // タスク保存
   useEffect(() => {
     if (!isLoaded) return;
     try {
@@ -91,6 +107,16 @@ export default function CosmicTodoPage() {
       // ignore
     }
   }, [tasks, isLoaded]);
+
+  // カテゴリ（属性）保存
+  useEffect(() => {
+    if (!isLoaded) return;
+    try {
+      localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(categories));
+    } catch {
+      // ignore
+    }
+  }, [categories, isLoaded]);
 
   // レベル計算ロジック
   const calculateLevel = (completedCount: number): number => {
@@ -180,6 +206,26 @@ export default function CosmicTodoPage() {
     }
   };
 
+  // 属性（カテゴリ）追加
+  const handleAddCategory = (newCat: { label: string; color: string }): string => {
+    const id = 'cat_' + Date.now() + '_' + Math.random().toString(36).substring(2, 6);
+    const catConfig = createCategoryConfig(id, newCat.label, newCat.color, true);
+    setCategories((prev) => ({
+      ...prev,
+      [id]: catConfig,
+    }));
+    return id;
+  };
+
+  // 属性（カテゴリ）削除
+  const handleDeleteCategory = (categoryId: string) => {
+    setCategories((prev) => {
+      const next = { ...prev };
+      delete next[categoryId];
+      return next;
+    });
+  };
+
   // 宇宙のスクリーンショット保存
   const handleCaptureScreenshot = useCallback(() => {
     const canvas = document.querySelector('canvas');
@@ -197,11 +243,13 @@ export default function CosmicTodoPage() {
 
   // データ初期化
   const handleResetData = () => {
-    if (window.confirm('宇宙のデータを初期状態にリセットしますか？')) {
+    if (window.confirm('宇宙のデータと追加した属性を初期状態にリセットしますか？')) {
       setTasks(INITIAL_TASKS);
+      setCategories(DEFAULT_CATEGORY_CONFIG);
       setPrevLevel(0);
       setSelectedCelestial(null);
       localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(CATEGORIES_STORAGE_KEY);
     }
   };
 
@@ -220,7 +268,7 @@ export default function CosmicTodoPage() {
     }
 
     const diff = nextTarget - completedCount;
-    const categories: Task['category'][] = ['creative', 'tech', 'study', 'life', 'quest'];
+    const catKeys = Object.keys(categories);
     const priorities: Task['priority'][] = ['high', 'medium', 'low'];
 
     const newTasks: Task[] = [];
@@ -229,7 +277,7 @@ export default function CosmicTodoPage() {
       newTasks.push({
         id: `demo_task_${Date.now()}_${idx}`,
         title: `★ 達成ミッション #${idx}: 宇宙の開拓者`,
-        category: categories[idx % categories.length],
+        category: catKeys[idx % catKeys.length],
         priority: priorities[idx % priorities.length],
         completed: true,
         completedAt: new Date(Date.now() - (diff - i) * 3600000).toISOString(),
@@ -270,6 +318,7 @@ export default function CosmicTodoPage() {
       <CosmicCanvas
         completedTasks={completedTasks}
         universeLevel={currentLevel}
+        categories={categories}
         onSelectCelestial={setSelectedCelestial}
         selectedCelestialId={selectedCelestial?.id || null}
         newCompletedTaskId={newCompletedTaskId}
@@ -280,9 +329,12 @@ export default function CosmicTodoPage() {
       {!zenMode && (
         <TaskPanel
           tasks={tasks}
+          categories={categories}
           onAddTask={handleAddTask}
           onToggleTask={handleToggleTask}
           onDeleteTask={handleDeleteTask}
+          onAddCategory={handleAddCategory}
+          onDeleteCategory={handleDeleteCategory}
           isCollapsed={isPanelCollapsed}
           onToggleCollapse={() => setIsPanelCollapsed(!isPanelCollapsed)}
         />
@@ -292,6 +344,7 @@ export default function CosmicTodoPage() {
       {selectedCelestial && (
         <StarDetailModal
           celestial={selectedCelestial}
+          categories={categories}
           onClose={() => setSelectedCelestial(null)}
         />
       )}

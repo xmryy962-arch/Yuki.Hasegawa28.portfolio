@@ -1,7 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Task, TaskCategory, TaskPriority, CATEGORY_CONFIG, PRIORITY_CONFIG } from '../types';
+import { 
+  Task, 
+  TaskCategory, 
+  TaskPriority, 
+  PRIORITY_CONFIG, 
+  CategoryInfo, 
+  getCategoryInfo, 
+  hexToRgba 
+} from '../types';
 import { 
   Plus, 
   Check, 
@@ -18,20 +26,41 @@ import {
   Filter
 } from 'lucide-react';
 
+const PRESET_COLORS = [
+  '#f43f5e', // ローズ
+  '#f97316', // コーラルオレンジ
+  '#eab308', // ゴールド
+  '#10b981', // エメラルド
+  '#06b6d4', // シアン
+  '#38bdf8', // スカイブルー
+  '#6366f1', // インディゴ
+  '#a855f7', // パープル
+  '#ec4899', // ピンク
+  '#14b8a6', // ティール
+  '#84cc16', // ライム
+  '#f8fafc', // ピュアホワイト
+];
+
 interface TaskPanelProps {
   tasks: Task[];
+  categories: Record<string, CategoryInfo>;
   onAddTask: (task: Omit<Task, 'id' | 'completed' | 'completedAt'>) => void;
   onToggleTask: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
+  onAddCategory: (data: { label: string; color: string }) => string;
+  onDeleteCategory?: (categoryId: string) => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
 }
 
 export default function TaskPanel({
   tasks,
+  categories,
   onAddTask,
   onToggleTask,
   onDeleteTask,
+  onAddCategory,
+  onDeleteCategory,
   isCollapsed,
   onToggleCollapse,
 }: TaskPanelProps) {
@@ -45,6 +74,24 @@ export default function TaskPanel({
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [dueDate, setDueDate] = useState('');
   const [notes, setNotes] = useState('');
+
+  // 属性自作用のState
+  const [showAddCategory, setShowAddCategory] = useState(false);
+  const [newCatLabel, setNewCatLabel] = useState('');
+  const [newCatColor, setNewCatColor] = useState('#38bdf8');
+
+  const handleCreateCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCatLabel.trim()) return;
+
+    const newId = onAddCategory({
+      label: newCatLabel.trim(),
+      color: newCatColor,
+    });
+    setCategory(newId);
+    setNewCatLabel('');
+    setShowAddCategory(false);
+  };
 
   const pendingTasks = tasks.filter((t) => !t.completed);
   const completedTasks = tasks.filter((t) => t.completed);
@@ -137,28 +184,159 @@ export default function TaskPanel({
               />
             </div>
 
-            {/* カテゴリ選択 */}
-            <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-300">星の属性 (カテゴリ)</label>
-              <div className="grid grid-cols-3 gap-1.5">
-                {(Object.keys(CATEGORY_CONFIG) as TaskCategory[]).map((cat) => (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setCategory(cat)}
-                    className={`px-2 py-1.5 rounded-md border text-[10px] font-medium flex items-center justify-center gap-1 transition-all ${
-                      category === cat
-                        ? `${CATEGORY_CONFIG[cat].bg} ${CATEGORY_CONFIG[cat].border} ring-1 ring-white/20`
-                        : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
-                    }`}
-                  >
-                    <span
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: CATEGORY_CONFIG[cat].color }}
+            {/* カテゴリ（星の属性）選択 */}
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-semibold text-slate-300">星の属性 (カテゴリ)</label>
+                <button
+                  type="button"
+                  onClick={() => setShowAddCategory(!showAddCategory)}
+                  className="text-[10px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-medium transition-colors"
+                >
+                  <Plus className="w-3 h-3" />
+                  {showAddCategory ? '閉じる' : '新しい属性を追加'}
+                </button>
+              </div>
+
+              {/* 新しい属性の作成フォーム */}
+              {showAddCategory && (
+                <div className="p-3 rounded-lg bg-slate-950/90 border border-cyan-500/40 space-y-2.5 shadow-lg shadow-cyan-950/30">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-cyan-300 flex items-center gap-1">
+                      <Sparkles className="w-3 h-3 text-cyan-400" />
+                      星の属性をカスタマイズ追加
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddCategory(false)}
+                      className="text-slate-400 hover:text-white text-xs px-1"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-slate-400 mb-1 block">属性名</label>
+                    <input
+                      type="text"
+                      value={newCatLabel}
+                      onChange={(e) => setNewCatLabel(e.target.value)}
+                      placeholder="例: 仕事, 趣味, 筋トレ, 勉強..."
+                      maxLength={14}
+                      className="w-full px-2.5 py-1.5 rounded-md bg-slate-900 border border-slate-700 text-white text-xs placeholder-slate-500 focus:outline-none focus:border-cyan-400"
                     />
-                    {CATEGORY_CONFIG[cat].label.split('・')[0]}
-                  </button>
-                ))}
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="text-[10px] text-slate-400">星の輝き色 (Color)</label>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-[10px] text-slate-400 font-mono">{newCatColor}</span>
+                        <input
+                          type="color"
+                          value={newCatColor}
+                          onChange={(e) => setNewCatColor(e.target.value)}
+                          className="w-5 h-5 rounded cursor-pointer border border-slate-600 bg-transparent"
+                          title="カラーピッカーで色を選ぶ"
+                        />
+                      </div>
+                    </div>
+
+                    {/* プリセットパレット */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {PRESET_COLORS.map((c) => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => setNewCatColor(c)}
+                          className={`w-5 h-5 rounded-full border transition-all ${
+                            newCatColor.toLowerCase() === c.toLowerCase()
+                              ? 'scale-125 border-white shadow-[0_0_8px_currentColor] ring-1 ring-white/50'
+                              : 'border-slate-700 hover:scale-110 opacity-80 hover:opacity-100'
+                          }`}
+                          style={{ backgroundColor: c, color: c }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* プレビュー & 追加ボタン */}
+                  <div className="pt-2 border-t border-slate-800 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-[10px] text-slate-500 flex-shrink-0">プレビュー:</span>
+                      <span
+                        className="px-2 py-0.5 rounded text-[10px] font-medium border flex items-center gap-1 truncate"
+                        style={{
+                          backgroundColor: hexToRgba(newCatColor, 0.15),
+                          borderColor: hexToRgba(newCatColor, 0.4),
+                          color: newCatColor,
+                          boxShadow: `0 0 8px ${hexToRgba(newCatColor, 0.3)}`
+                        }}
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: newCatColor }} />
+                        <span className="truncate">{newCatLabel.trim() || '属性名'}</span>
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      disabled={!newCatLabel.trim()}
+                      onClick={handleCreateCategory}
+                      className="px-3 py-1 rounded-md bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium text-[10px] shadow transition-all flex items-center gap-1 flex-shrink-0"
+                    >
+                      <Plus className="w-3 h-3" />
+                      追加
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 属性一覧グリッド */}
+              <div className="grid grid-cols-3 gap-1.5 max-h-36 overflow-y-auto pr-0.5 custom-scrollbar">
+                {Object.values(categories).map((cat) => {
+                  const isSelected = category === cat.id;
+                  return (
+                    <div key={cat.id} className="relative group/cat">
+                      <button
+                        type="button"
+                        onClick={() => setCategory(cat.id)}
+                        className={`w-full px-2 py-1.5 rounded-md border text-[10px] font-medium flex items-center justify-center gap-1 transition-all truncate`}
+                        style={{
+                          backgroundColor: isSelected ? hexToRgba(cat.color, 0.2) : 'rgba(15, 23, 42, 0.6)',
+                          borderColor: isSelected ? cat.color : 'rgba(51, 65, 85, 0.6)',
+                          color: isSelected ? cat.color : '#94a3b8',
+                          boxShadow: isSelected ? `0 0 10px ${hexToRgba(cat.color, 0.4)}` : 'none',
+                        }}
+                      >
+                        <span
+                          className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: cat.color }}
+                        />
+                        <span className="truncate">{cat.label.split('・')[0]}</span>
+                      </button>
+
+                      {/* カスタム属性の削除ボタン */}
+                      {cat.isCustom && onDeleteCategory && (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm(`属性「${cat.label}」を削除しますか？`)) {
+                              onDeleteCategory(cat.id);
+                              if (category === cat.id) {
+                                setCategory('creative');
+                              }
+                            }
+                          }}
+                          className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white flex items-center justify-center opacity-0 group-hover/cat:opacity-100 transition-opacity border border-slate-700 text-[8px]"
+                          title="このカスタム属性を削除"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -261,15 +439,15 @@ export default function TaskPanel({
               <Filter className="w-3 h-3" />
               <select
                 value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value as TaskCategory | 'all')}
-                className="bg-slate-900 border border-slate-800 rounded px-1.5 py-0.5 text-slate-300 text-[10px] focus:outline-none"
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                className="bg-slate-900 border border-slate-800 rounded px-1.5 py-0.5 text-slate-300 text-[10px] focus:outline-none max-w-[120px]"
               >
                 <option value="all">全カテゴリ</option>
-                <option value="creative">創作・アート</option>
-                <option value="tech">開発・IT</option>
-                <option value="study">学習・読書</option>
-                <option value="life">生活・健康</option>
-                <option value="quest">クエスト</option>
+                {Object.values(categories).map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.label}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -295,7 +473,7 @@ export default function TaskPanel({
             </div>
           ) : (
             filteredTasks.map((task) => {
-              const catConfig = CATEGORY_CONFIG[task.category];
+              const catConfig = getCategoryInfo(categories, task.category);
               const priConfig = PRIORITY_CONFIG[task.priority];
 
               return (
@@ -351,8 +529,17 @@ export default function TaskPanel({
                       <div className="flex flex-wrap items-center gap-1.5 mt-2">
                         {/* カテゴリバッジ */}
                         <span
-                          className={`px-1.5 py-0.5 rounded text-[10px] font-medium border ${catConfig.bg} ${catConfig.border}`}
+                          className="px-1.5 py-0.5 rounded text-[10px] font-medium border flex items-center gap-1"
+                          style={{
+                            backgroundColor: hexToRgba(catConfig.color, 0.15),
+                            borderColor: hexToRgba(catConfig.color, 0.4),
+                            color: catConfig.color,
+                          }}
                         >
+                          <span
+                            className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: catConfig.color }}
+                          />
                           {catConfig.label.split('・')[0]}
                         </span>
 

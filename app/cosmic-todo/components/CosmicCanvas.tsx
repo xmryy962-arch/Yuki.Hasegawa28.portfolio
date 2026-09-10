@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { CelestialBody, Task, TaskCategory, TaskPriority, CATEGORY_CONFIG } from '../types';
+import { CelestialBody, Task, TaskPriority, CategoryInfo, getCategoryInfo } from '../types';
 import { soundManager } from '../utils/sound';
 
 interface CosmicCanvasProps {
   completedTasks: Task[];
   universeLevel: number;
+  categories?: Record<string, CategoryInfo>;
   onSelectCelestial: (celestial: CelestialBody) => void;
   selectedCelestialId: string | null;
   newCompletedTaskId: string | null;
@@ -46,6 +47,7 @@ interface NovaParticle {
 export default function CosmicCanvas({
   completedTasks,
   universeLevel,
+  categories,
   onSelectCelestial,
   selectedCelestialId,
   newCompletedTaskId,
@@ -88,10 +90,18 @@ export default function CosmicCanvas({
   useEffect(() => {
     const updated: CelestialBody[] = completedTasks.map((task, index) => {
       const existing = celestialsRef.current.find((c) => c.taskId === task.id);
-      if (existing) return existing;
+      const catConfig = getCategoryInfo(categories, task.category);
+
+      if (existing) {
+        return {
+          ...existing,
+          color: catConfig.color,
+          glowColor: catConfig.glow,
+          ringColor: catConfig.glow,
+        };
+      }
 
       const rng = pseudoRandom(task.id + task.completedAt);
-      const catConfig = CATEGORY_CONFIG[task.category];
 
       // 天体タイプの決定
       let type: CelestialBody['type'] = 'star';
@@ -162,7 +172,7 @@ export default function CosmicCanvas({
     });
 
     celestialsRef.current = updated;
-  }, [completedTasks]);
+  }, [completedTasks, categories]);
 
   // 新タスク達成時のパーティクル爆発エフェクトトリガー
   useEffect(() => {
@@ -171,7 +181,7 @@ export default function CosmicCanvas({
     if (!canvas) return;
 
     const target = celestialsRef.current.find((c) => c.taskId === newCompletedTaskId);
-    const cat = target ? CATEGORY_CONFIG[target.category].color : '#38bdf8';
+    const cat = target ? target.color : '#38bdf8';
 
     // 中心から放射するスパークを生成
     const particles: NovaParticle[] = [];
@@ -602,8 +612,9 @@ export default function CosmicCanvas({
         const currAngle = foundHover.angle + time * foundHover.orbitSpeed;
         const cx = Math.cos(currAngle) * foundHover.distance;
         const cy = Math.sin(currAngle) * foundHover.distance * 0.92;
+        const catConfig = getCategoryInfo(categories, foundHover.category);
         setHoveredInfo({
-          name: foundHover.taskTitle,
+          name: `${foundHover.taskTitle} (${catConfig.label.split('・')[0]})`,
           x: centerX + shiftX * 0.7 + cx,
           y: centerY + shiftY * 0.7 + cy,
           color: foundHover.color

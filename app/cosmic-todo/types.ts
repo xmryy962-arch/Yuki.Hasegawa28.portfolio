@@ -1,6 +1,6 @@
 export type TaskPriority = 'low' | 'medium' | 'high';
 
-export type TaskCategory = 'creative' | 'tech' | 'study' | 'life' | 'quest';
+export type TaskCategory = string;
 
 export interface Task {
   id: string;
@@ -119,43 +119,104 @@ export const UNIVERSE_STAGES: UniverseStage[] = [
   }
 ];
 
-export const CATEGORY_CONFIG: Record<TaskCategory, { label: string; color: string; glow: string; bg: string; border: string }> = {
+export interface CategoryInfo {
+  id: string;
+  label: string;
+  color: string;
+  glow: string;
+  bg?: string;
+  border?: string;
+  isCustom?: boolean;
+}
+
+export function hexToRgba(hex: string, alpha: number): string {
+  let cleanHex = hex.replace('#', '');
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split('').map((c) => c + c).join('');
+  }
+  const r = parseInt(cleanHex.substring(0, 2), 16) || 0;
+  const g = parseInt(cleanHex.substring(2, 4), 16) || 0;
+  const b = parseInt(cleanHex.substring(4, 6), 16) || 0;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+export function createCategoryConfig(id: string, label: string, color: string, isCustom = true): CategoryInfo {
+  return {
+    id,
+    label,
+    color,
+    glow: hexToRgba(color, 0.6),
+    bg: '',
+    border: '',
+    isCustom,
+  };
+}
+
+export const DEFAULT_CATEGORY_CONFIG: Record<string, CategoryInfo> = {
   creative: {
+    id: "creative",
     label: "創作・アート",
     color: "#f43f5e", // ローズピンク
     glow: "rgba(244, 63, 94, 0.6)",
     bg: "bg-rose-500/10 text-rose-300",
-    border: "border-rose-500/30"
+    border: "border-rose-500/30",
+    isCustom: false,
   },
   tech: {
+    id: "tech",
     label: "開発・IT",
     color: "#06b6d4", // シアン
     glow: "rgba(6, 182, 212, 0.6)",
     bg: "bg-cyan-500/10 text-cyan-300",
-    border: "border-cyan-500/30"
+    border: "border-cyan-500/30",
+    isCustom: false,
   },
   study: {
+    id: "study",
     label: "学習・読書",
     color: "#eab308", // アンバーゴールド
     glow: "rgba(234, 179, 8, 0.6)",
     bg: "bg-amber-500/10 text-amber-300",
-    border: "border-amber-500/30"
+    border: "border-amber-500/30",
+    isCustom: false,
   },
   life: {
+    id: "life",
     label: "生活・健康",
     color: "#10b981", // エメラルド
     glow: "rgba(16, 185, 129, 0.6)",
     bg: "bg-emerald-500/10 text-emerald-300",
-    border: "border-emerald-500/30"
+    border: "border-emerald-500/30",
+    isCustom: false,
   },
   quest: {
+    id: "quest",
     label: "特別クエスト",
     color: "#a855f7", // パープル
     glow: "rgba(168, 85, 247, 0.6)",
     bg: "bg-purple-500/10 text-purple-300",
-    border: "border-purple-500/30"
+    border: "border-purple-500/30",
+    isCustom: false,
   }
 };
+
+export const CATEGORY_CONFIG: Record<string, CategoryInfo> = DEFAULT_CATEGORY_CONFIG;
+
+export function getCategoryInfo(categories: Record<string, CategoryInfo> | undefined, catId: string): CategoryInfo {
+  if (categories && categories[catId]) {
+    return categories[catId];
+  }
+  if (DEFAULT_CATEGORY_CONFIG[catId]) {
+    return DEFAULT_CATEGORY_CONFIG[catId];
+  }
+  return {
+    id: catId,
+    label: catId,
+    color: '#38bdf8',
+    glow: 'rgba(56, 189, 248, 0.6)',
+    isCustom: true,
+  };
+}
 
 export const PRIORITY_CONFIG: Record<TaskPriority, { label: string; exp: number; color: string; badge: string }> = {
   high: {

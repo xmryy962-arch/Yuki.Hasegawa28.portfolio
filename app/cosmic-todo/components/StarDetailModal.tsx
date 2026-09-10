@@ -1,21 +1,23 @@
 'use client';
 
 import React from 'react';
-import { CelestialBody, CATEGORY_CONFIG, PRIORITY_CONFIG } from '../types';
+import { CelestialBody, PRIORITY_CONFIG, CategoryInfo, getCategoryInfo, hexToRgba } from '../types';
 import { Sparkles, Calendar, Orbit, X, CheckCircle2, Bookmark } from 'lucide-react';
 
 interface StarDetailModalProps {
   celestial: CelestialBody | null;
+  categories?: Record<string, CategoryInfo>;
   onClose: () => void;
 }
 
 export default function StarDetailModal({
   celestial,
+  categories,
   onClose,
 }: StarDetailModalProps) {
   if (!celestial) return null;
 
-  const catConfig = CATEGORY_CONFIG[celestial.category];
+  const catConfig = getCategoryInfo(categories, celestial.category);
   const priConfig = PRIORITY_CONFIG[celestial.priority];
 
   const getCelestialTypeName = (type: CelestialBody['type'], hasRing?: boolean) => {
@@ -77,8 +79,15 @@ export default function StarDetailModal({
               <Bookmark className="w-3.5 h-3.5" /> 属性カテゴリ
             </span>
             <span
-              className={`px-2 py-0.5 rounded text-[10px] font-medium border ${catConfig.bg} ${catConfig.border}`}
+              className="px-2 py-0.5 rounded text-[10px] font-medium border flex items-center gap-1"
+              style={{
+                backgroundColor: hexToRgba(catConfig.color, 0.15),
+                borderColor: hexToRgba(catConfig.color, 0.4),
+                color: catConfig.color,
+                boxShadow: `0 0 8px ${hexToRgba(catConfig.color, 0.2)}`
+              }}
             >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: catConfig.color }} />
               {catConfig.label}
             </span>
           </div>

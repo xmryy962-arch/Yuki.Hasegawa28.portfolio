@@ -82,7 +82,7 @@ export default function Home() {
         category: "Interactive Web Application / Front-end & UI/UX",
         description: "日々のタスク達成のエネルギーによって、画面中央の漆黒の宇宙が少しずつ成長・進化していく新感覚のゲーミフィケーションToDoアプリです。タスク完了ごとに新星・惑星が誕生し、星座ライン、鮮やかな星雲（Nebula）、小惑星帯、スパイラル大銀河へと宇宙が段階的に発展。HTML5 Canvasによる天体シミュレーション、Web Audio APIによる透明感あふれる宇宙サウンド、3Dパララックス、星図詳細カード、Zen Mode（鑑賞モード）を搭載しています。",
         link: "/cosmic-todo",
-        linkText: "宇宙を育ててみる（アプリを体験）",
+        linkText: "アプリを使ってみる",
         badge: "Pickup / New"
       },
       {
