@@ -41,7 +41,7 @@ export default function StarDetailModal({
         {/* 閉じるボタン */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800 transition-colors"
+          className="absolute top-4 right-4 p-1.5 rounded-xl bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200 shadow-sm transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
@@ -118,7 +118,7 @@ export default function StarDetailModal({
 
         <button
           onClick={onClose}
-          className="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white text-xs font-medium transition-colors"
+          className="w-full py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs transition-all shadow-md border border-slate-200"
         >
           宇宙の観測を続ける
         </button>

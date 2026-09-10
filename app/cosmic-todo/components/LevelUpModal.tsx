@@ -62,7 +62,7 @@ export default function LevelUpModal({
         {/* 了解ボタン */}
         <button
           onClick={onClose}
-          className="w-full py-3 rounded-xl bg-gradient-to-r from-cyan-500 via-sky-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-bold text-xs tracking-wide shadow-lg shadow-cyan-500/30 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+          className="w-full py-3 rounded-xl bg-white hover:bg-cyan-50 text-cyan-950 border-2 border-cyan-400 font-bold text-xs tracking-wide shadow-xl shadow-cyan-950/40 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
         >
           宇宙の進化を受け入れる ✦
         </button>

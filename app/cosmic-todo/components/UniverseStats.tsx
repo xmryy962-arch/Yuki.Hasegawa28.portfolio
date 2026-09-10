@@ -72,10 +72,10 @@ export default function UniverseStats({
         <div className="pointer-events-auto flex items-center gap-3">
           <Link
             href="/"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/80 hover:bg-slate-800 text-slate-300 hover:text-white text-xs font-medium border border-slate-700/60 backdrop-blur-md transition-all shadow-lg group"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-slate-100 text-slate-900 hover:text-slate-950 text-xs font-semibold border border-white/90 backdrop-blur-md transition-all shadow-md group"
             title="ポートフォリオトップに戻る"
           >
-            <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+            <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5 text-slate-700" />
             <span>ポートフォリオへ</span>
           </Link>
 
@@ -140,17 +140,17 @@ export default function UniverseStats({
           {/* デモ用高速シミュレーションボタン */}
           <button
             onClick={onFastForwardDemo}
-            className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-indigo-950/70 hover:bg-indigo-900 border border-indigo-700/50 text-indigo-300 hover:text-white text-xs font-medium backdrop-blur-md transition-all shadow-md"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-indigo-50 border border-white/90 text-indigo-950 text-xs font-semibold backdrop-blur-md transition-all shadow-md"
             title="【審査・デモ用】クリックするごとにタスク達成数を増やし、宇宙の各成長段階を即座にシミュレーションします"
           >
-            <FastForward className="w-3.5 h-3.5 text-indigo-400" />
+            <FastForward className="w-3.5 h-3.5 text-indigo-600" />
             <span className="hidden sm:inline">進化シミュレート</span>
           </button>
 
           {/* 宇宙スクショ保存ボタン */}
           <button
             onClick={onCaptureScreenshot}
-            className="p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white backdrop-blur-md transition-all shadow-md"
+            className="p-2 rounded-xl bg-white hover:bg-slate-100 border border-white/90 text-slate-800 hover:text-slate-950 backdrop-blur-md transition-all shadow-md"
             title="現在の宇宙を画像（PNG）として保存"
           >
             <Camera className="w-4 h-4" />
@@ -159,19 +159,19 @@ export default function UniverseStats({
           {/* サウンド切り替え */}
           <button
             onClick={handleToggleMute}
-            className="p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white backdrop-blur-md transition-all shadow-md"
+            className="p-2 rounded-xl bg-white hover:bg-slate-100 border border-white/90 text-slate-800 hover:text-slate-950 backdrop-blur-md transition-all shadow-md"
             title={isMuted ? 'サウンドをONにする' : 'サウンドをミュート'}
           >
-            {isMuted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4 text-cyan-400" />}
+            {isMuted ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4 text-cyan-600" />}
           </button>
 
           {/* Zen Mode / 全画面鑑賞モード */}
           <button
             onClick={onToggleZenMode}
-            className={`p-2 rounded-lg border backdrop-blur-md transition-all shadow-md ${
+            className={`p-2 rounded-xl border backdrop-blur-md transition-all shadow-md ${
               zenMode
-                ? 'bg-cyan-500/20 border-cyan-500/60 text-cyan-300'
-                : 'bg-slate-900/80 hover:bg-slate-800 border-slate-700/60 text-slate-300 hover:text-white'
+                ? 'bg-cyan-100 border-cyan-400 text-cyan-900 ring-2 ring-cyan-400/40'
+                : 'bg-white hover:bg-slate-100 border-white/90 text-slate-800 hover:text-slate-950'
             }`}
             title={zenMode ? 'タスク画面を表示' : 'Zen Mode（宇宙鑑賞に没入）'}
           >
@@ -181,7 +181,7 @@ export default function UniverseStats({
           {/* ガイド・情報モーダル */}
           <button
             onClick={() => setShowInfoModal(true)}
-            className="p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-700/60 text-slate-300 hover:text-white backdrop-blur-md transition-all shadow-md"
+            className="p-2 rounded-xl bg-white hover:bg-slate-100 border border-white/90 text-slate-800 hover:text-slate-950 backdrop-blur-md transition-all shadow-md"
             title="宇宙の進化ルールと使い方"
           >
             <HelpCircle className="w-4 h-4" />
@@ -190,7 +190,7 @@ export default function UniverseStats({
           {/* リセット */}
           <button
             onClick={onResetData}
-            className="p-2 rounded-lg bg-slate-900/80 hover:bg-rose-900/60 border border-slate-700/60 text-slate-400 hover:text-rose-300 backdrop-blur-md transition-all shadow-md"
+            className="p-2 rounded-xl bg-white hover:bg-rose-50 border border-white/90 text-rose-600 hover:text-rose-700 backdrop-blur-md transition-all shadow-md"
             title="データを初期化（宇宙をリセット）"
           >
             <RotateCcw className="w-4 h-4" />
@@ -209,7 +209,7 @@ export default function UniverseStats({
               </h2>
               <button
                 onClick={() => setShowInfoModal(false)}
-                className="text-slate-400 hover:text-white text-xs px-2 py-1 rounded-md hover:bg-slate-800"
+                className="px-2.5 py-1 rounded-lg bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 text-xs font-semibold shadow-sm transition-all"
               >
                 ✕ 閉じる
               </button>

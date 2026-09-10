@@ -183,17 +183,17 @@ export default function TaskPanel({
           <div className="flex items-center gap-1">
             <button
               onClick={() => setShowAddForm(!showAddForm)}
-              className="p-1.5 rounded-lg bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 border border-cyan-500/40 text-xs flex items-center gap-1 transition-all"
+              className="p-1.5 px-2.5 rounded-lg bg-white hover:bg-cyan-50 text-cyan-900 border border-cyan-200/80 text-xs flex items-center gap-1 font-semibold shadow-md transition-all"
               title="新規ミッションを追加"
             >
-              <Plus className="w-3.5 h-3.5" />
-              <span className="text-[11px] font-medium hidden sm:inline">タスク追加</span>
+              <Plus className="w-3.5 h-3.5 text-cyan-700" />
+              <span className="text-[11px] font-semibold hidden sm:inline">タスク追加</span>
             </button>
 
             {/* パネル最小化ボタン */}
             <button
               onClick={onToggleCollapse}
-              className="p-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+              className="p-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200/80 shadow-sm transition-colors"
               title={isCollapsed ? 'パネルを展開' : 'パネルを最小化'}
             >
               <span className="md:hidden">
@@ -231,7 +231,7 @@ export default function TaskPanel({
                 <button
                   type="button"
                   onClick={() => setShowAddCategory(!showAddCategory)}
-                  className="text-[10px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-medium transition-colors"
+                  className="text-[10px] px-2 py-0.5 rounded-md bg-white hover:bg-cyan-50 text-cyan-800 border border-cyan-200/80 font-semibold shadow-sm flex items-center gap-1 transition-colors"
                 >
                   <Plus className="w-3 h-3" />
                   {showAddCategory ? '閉じる' : '新しい属性を追加'}
@@ -322,7 +322,7 @@ export default function TaskPanel({
                       type="button"
                       disabled={!newCatLabel.trim()}
                       onClick={handleCreateCategory}
-                      className="px-3 py-1 rounded-md bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium text-[10px] shadow transition-all flex items-center gap-1 flex-shrink-0"
+                      className="px-3.5 py-1.5 rounded-lg bg-white hover:bg-cyan-50 disabled:opacity-40 disabled:cursor-not-allowed text-cyan-900 border border-cyan-300 font-bold text-[11px] shadow-sm transition-all flex items-center gap-1 flex-shrink-0"
                     >
                       <Plus className="w-3 h-3" />
                       追加
@@ -342,10 +342,11 @@ export default function TaskPanel({
                         onClick={() => setCategory(cat.id)}
                         className={`w-full px-2 py-1.5 rounded-md border text-[10px] font-medium flex items-center justify-center gap-1 transition-all truncate`}
                         style={{
-                          backgroundColor: isSelected ? hexToRgba(cat.color, 0.2) : 'rgba(15, 23, 42, 0.6)',
-                          borderColor: isSelected ? cat.color : 'rgba(51, 65, 85, 0.6)',
-                          color: isSelected ? cat.color : '#94a3b8',
-                          boxShadow: isSelected ? `0 0 10px ${hexToRgba(cat.color, 0.4)}` : 'none',
+                          backgroundColor: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.92)',
+                          borderColor: isSelected ? cat.color : 'rgba(226, 232, 240, 0.9)',
+                          color: isSelected ? cat.color : '#1e293b',
+                          boxShadow: isSelected ? `0 0 10px ${hexToRgba(cat.color, 0.4)}` : '0 1px 2px rgba(0,0,0,0.06)',
+                          fontWeight: isSelected ? 700 : 500,
                         }}
                       >
                         <span
@@ -389,10 +390,10 @@ export default function TaskPanel({
                     key={p}
                     type="button"
                     onClick={() => setPriority(p)}
-                    className={`px-2 py-1.5 rounded-md border text-[10px] font-medium transition-all ${
+                    className={`px-2 py-1.5 rounded-md border text-[10px] font-medium transition-all shadow-sm ${
                       priority === p
-                        ? `${PRIORITY_CONFIG[p].badge} ring-1 ring-white/20`
-                        : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                        ? 'bg-white text-slate-900 font-bold border-2 border-cyan-400 ring-2 ring-cyan-400/20 shadow-md'
+                        : 'bg-white/90 hover:bg-white border-slate-200 text-slate-700 hover:text-slate-900'
                     }`}
                   >
                     {p === 'high' ? '🪐 大星・惑星' : p === 'medium' ? '⭐ 恒星' : '✨ 小星'}
@@ -432,14 +433,14 @@ export default function TaskPanel({
               <button
                 type="button"
                 onClick={() => setShowAddForm(false)}
-                className="px-3 py-1 rounded-md text-slate-400 hover:text-white"
+                className="px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200 text-xs font-semibold shadow-sm transition-colors"
               >
                 キャンセル
               </button>
               <button
                 type="submit"
                 disabled={!title.trim()}
-                className="px-4 py-1.5 rounded-md bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-white font-medium shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-1.5 rounded-lg bg-white hover:bg-cyan-50 text-cyan-900 border-2 border-cyan-400 font-bold text-xs shadow-md shadow-cyan-950/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
               >
                 宇宙へ放つ ✦
               </button>
@@ -450,26 +451,26 @@ export default function TaskPanel({
         {/* タブ切り替え & フィルター */}
         <div className="px-3 pt-2 pb-1 border-b border-slate-800/80 flex flex-col gap-2">
           <div className="flex items-center justify-between text-xs">
-            <div className="flex bg-slate-900/90 p-0.5 rounded-lg border border-slate-800">
+            <div className="flex bg-slate-900/90 p-0.5 rounded-xl border border-slate-800">
               <button
                 onClick={() => setActiveTab('pending')}
-                className={`px-3 py-1 rounded-md transition-all ${
+                className={`px-3 py-1 rounded-lg transition-all text-xs font-semibold ${
                   activeTab === 'pending'
-                    ? 'bg-cyan-500/20 text-cyan-300 font-semibold shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-white text-slate-900 shadow-md'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
                 未完了 ({pendingTasks.length})
               </button>
               <button
                 onClick={() => setActiveTab('completed')}
-                className={`px-3 py-1 rounded-md transition-all flex items-center gap-1 ${
+                className={`px-3 py-1 rounded-lg transition-all flex items-center gap-1 text-xs font-semibold ${
                   activeTab === 'completed'
-                    ? 'bg-purple-500/20 text-purple-300 font-semibold shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200'
+                    ? 'bg-white text-slate-900 shadow-md'
+                    : 'text-slate-400 hover:text-white'
                 }`}
               >
-                <Sparkles className="w-3 h-3 text-amber-300" />
+                <Sparkles className="w-3 h-3 text-amber-500" />
                 星となった記録 ({completedTasks.length})
               </button>
             </div>
@@ -480,7 +481,7 @@ export default function TaskPanel({
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="bg-slate-900 border border-slate-800 rounded px-1.5 py-0.5 text-slate-300 text-[10px] focus:outline-none max-w-[120px]"
+                className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-slate-800 text-[10px] font-medium shadow-sm focus:outline-none max-w-[120px]"
               >
                 <option value="all">全カテゴリ</option>
                 {Object.values(categories).map((cat) => (
@@ -528,7 +529,7 @@ export default function TaskPanel({
                       <button
                         type="button"
                         onClick={cancelEditing}
-                        className="text-slate-400 hover:text-white text-xs px-1"
+                        className="w-5 h-5 rounded flex items-center justify-center bg-white/90 hover:bg-white text-slate-700 hover:text-slate-950 font-bold text-xs transition-colors shadow-sm"
                         title="キャンセル"
                       >
                         ✕
@@ -560,10 +561,11 @@ export default function TaskPanel({
                               onClick={() => setEditCategory(cat.id)}
                               className="px-2 py-1 rounded border text-[10px] font-medium flex items-center justify-center gap-1 transition-all truncate"
                               style={{
-                                backgroundColor: isSelected ? hexToRgba(cat.color, 0.2) : 'rgba(15, 23, 42, 0.6)',
-                                borderColor: isSelected ? cat.color : 'rgba(51, 65, 85, 0.6)',
-                                color: isSelected ? cat.color : '#94a3b8',
-                                boxShadow: isSelected ? `0 0 8px ${hexToRgba(cat.color, 0.3)}` : 'none',
+                                backgroundColor: isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.92)',
+                                borderColor: isSelected ? cat.color : 'rgba(226, 232, 240, 0.9)',
+                                color: isSelected ? cat.color : '#1e293b',
+                                boxShadow: isSelected ? `0 0 8px ${hexToRgba(cat.color, 0.4)}` : '0 1px 2px rgba(0,0,0,0.06)',
+                                fontWeight: isSelected ? 700 : 500,
                               }}
                             >
                               <span
@@ -586,10 +588,10 @@ export default function TaskPanel({
                             key={p}
                             type="button"
                             onClick={() => setEditPriority(p)}
-                            className={`px-1.5 py-1 rounded border text-[10px] font-medium transition-all ${
+                            className={`px-1.5 py-1 rounded border text-[10px] font-medium transition-all shadow-sm ${
                               editPriority === p
-                                ? `${PRIORITY_CONFIG[p].badge} ring-1 ring-white/20`
-                                : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200'
+                                ? 'bg-white text-slate-900 font-bold border-2 border-cyan-400 ring-2 ring-cyan-400/20 shadow-md'
+                                : 'bg-white/90 hover:bg-white border-slate-200 text-slate-700 hover:text-slate-900'
                             }`}
                           >
                             {p === 'high' ? '🪐 惑星' : p === 'medium' ? '⭐ 恒星' : '✨ 小星'}
@@ -630,16 +632,16 @@ export default function TaskPanel({
                       <button
                         type="button"
                         onClick={cancelEditing}
-                        className="px-2.5 py-1 rounded text-[11px] text-slate-400 hover:text-white transition-colors"
+                        className="px-2.5 py-1 rounded-md bg-white hover:bg-slate-100 text-slate-700 hover:text-slate-950 border border-slate-200 text-[11px] font-semibold shadow-sm transition-colors"
                       >
                         キャンセル
                       </button>
                       <button
                         type="submit"
                         disabled={!editTitle.trim()}
-                        className="px-3.5 py-1 rounded-md bg-cyan-600 hover:bg-cyan-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-medium text-[11px] shadow transition-all flex items-center gap-1"
+                        className="px-3.5 py-1 rounded-md bg-white hover:bg-cyan-50 text-cyan-900 border-2 border-cyan-400 font-bold text-[11px] shadow-md shadow-cyan-950/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-1"
                       >
-                        <Check className="w-3 h-3" />
+                        <Check className="w-3 h-3 text-cyan-700" />
                         保存する
                       </button>
                     </div>
@@ -666,7 +668,7 @@ export default function TaskPanel({
                       className={`mt-0.5 flex-shrink-0 w-4.5 h-4.5 rounded-full border flex items-center justify-center transition-all ${
                         task.completed
                           ? 'bg-gradient-to-tr from-cyan-500 to-purple-500 border-transparent text-white shadow-[0_0_8px_rgba(56,189,248,0.5)]'
-                          : 'border-slate-600 hover:border-cyan-400 text-transparent hover:text-cyan-400/50'
+                          : 'bg-white/90 hover:bg-white border-slate-300 hover:border-cyan-400 text-transparent hover:text-cyan-600 shadow-xs'
                       }`}
                       title={task.completed ? '未完了に戻す（星を宇宙塵に戻す）' : 'タスクを達成して星を誕生させる！'}
                     >
@@ -683,10 +685,10 @@ export default function TaskPanel({
                         >
                           {task.title}
                         </p>
-                        <div className="flex items-center gap-0.5 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex-shrink-0">
+                        <div className="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex-shrink-0">
                           <button
                             onClick={() => startEditingTask(task)}
-                            className="p-1 rounded text-slate-400 hover:text-cyan-300 hover:bg-slate-800/80 transition-colors"
+                            className="p-1 rounded-md bg-white hover:bg-slate-100 text-slate-700 hover:text-cyan-700 border border-slate-200/80 shadow-xs transition-colors"
                             title="ミッションを編集"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -696,7 +698,7 @@ export default function TaskPanel({
                               if (editingTaskId === task.id) cancelEditing();
                               onDeleteTask(task.id);
                             }}
-                            className="p-1 rounded text-slate-400 hover:text-rose-400 hover:bg-slate-800/80 transition-colors"
+                            className="p-1 rounded-md bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-600 border border-slate-200/80 shadow-xs transition-colors"
                             title="削除"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
