@@ -197,6 +197,15 @@ export const DEFAULT_CATEGORY_CONFIG: Record<string, CategoryInfo> = {
     bg: "bg-purple-500/10 text-purple-300",
     border: "border-purple-500/30",
     isCustom: false,
+  },
+  uncategorized: {
+    id: "uncategorized",
+    label: "未分類",
+    color: "#64748b", // スレート
+    glow: "rgba(100, 116, 139, 0.6)",
+    bg: "bg-slate-100 text-slate-700",
+    border: "border-slate-200",
+    isCustom: false,
   }
 };
 
@@ -209,11 +218,14 @@ export function getCategoryInfo(categories: Record<string, CategoryInfo> | undef
   if (DEFAULT_CATEGORY_CONFIG[catId]) {
     return DEFAULT_CATEGORY_CONFIG[catId];
   }
+  if (catId === 'uncategorized') {
+    return DEFAULT_CATEGORY_CONFIG.uncategorized;
+  }
   return {
     id: catId,
     label: catId,
-    color: '#38bdf8',
-    glow: 'rgba(56, 189, 248, 0.6)',
+    color: '#64748b',
+    glow: 'rgba(100, 116, 139, 0.6)',
     isCustom: true,
   };
 }

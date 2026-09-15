@@ -89,7 +89,11 @@ export default function CosmicTodoPage() {
       if (savedCats) {
         const parsedCats = JSON.parse(savedCats);
         if (parsedCats && typeof parsedCats === 'object') {
-          setCategories({ ...DEFAULT_CATEGORY_CONFIG, ...parsedCats });
+          setCategories({
+            uncategorized: DEFAULT_CATEGORY_CONFIG.uncategorized,
+            ...DEFAULT_CATEGORY_CONFIG,
+            ...parsedCats,
+          });
         }
       }
     } catch {
@@ -242,9 +246,35 @@ export default function CosmicTodoPage() {
 
   // 属性（カテゴリ）削除
   const handleDeleteCategory = (categoryId: string) => {
+    if (categoryId === 'uncategorized') return;
+
+    // 1. 削除されたカテゴリに属していた全タスクを自動的に「未分類」に更新
+    setTasks((prev) =>
+      prev.map((t) => (t.category === categoryId ? { ...t, category: 'uncategorized' } : t))
+    );
+
+    // 2. 選択中の天体が削除対象カテゴリだった場合、未分類に同期
+    if (selectedCelestial && selectedCelestial.category === categoryId) {
+      const uncatConfig = getCategoryInfo(categories, 'uncategorized');
+      setSelectedCelestial((prev) => {
+        if (!prev) return null;
+        return {
+          ...prev,
+          category: 'uncategorized',
+          color: uncatConfig.color,
+          glowColor: uncatConfig.glow,
+          ringColor: uncatConfig.glow,
+        };
+      });
+    }
+
+    // 3. カテゴリ一覧から削除
     setCategories((prev) => {
       const next = { ...prev };
       delete next[categoryId];
+      if (!next.uncategorized) {
+        next.uncategorized = DEFAULT_CATEGORY_CONFIG.uncategorized;
+      }
       return next;
     });
   };

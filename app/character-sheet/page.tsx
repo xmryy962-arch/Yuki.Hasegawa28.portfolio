@@ -271,6 +271,11 @@ export default function CharacterSheetPage() {
   const [isPanning, setIsPanning] = useState<boolean>(false);
   const panStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
+  // タッチ操作用（スマホでのパン・ピンチズーム・ノード移動用Ref）
+  const lastTouchDistRef = useRef<number | null>(null);
+  const lastTouchMidRef = useRef<{ x: number; y: number } | null>(null);
+  const nodeTouchMovedRef = useRef<boolean>(false);
+
   // 新規・編集関係性フォーム用
   const [editingRelId, setEditingRelId] = useState<string | null>(null);
   const [newRelFrom, setNewRelFrom] = useState<string>('');
@@ -733,6 +738,144 @@ export default function CharacterSheetPage() {
     setZoom(newZoom);
   };
 
+  // タッチ用：キャラクターノードのドラッグ開始
+  const handleTouchStartNode = (charId: string, e: React.TouchEvent) => {
+    e.stopPropagation();
+    if (e.touches.length === 1) {
+      const char = characters.find((c) => c.id === charId);
+      if (!char) return;
+      setDraggingCharId(charId);
+      nodeTouchMovedRef.current = false;
+      const touch = e.touches[0];
+      const worldPos = screenToWorld(touch.clientX, touch.clientY);
+      dragOffset.current = {
+        x: worldPos.x - char.x,
+        y: worldPos.y - char.y
+      };
+    }
+  };
+
+  // タッチ用：キャラクターノードのドラッグ終了
+  const handleTouchEndNode = (charId: string, e: React.TouchEvent) => {
+    e.stopPropagation();
+    // 移動しておらずタップだった場合はキャラクターを選択
+    if (!nodeTouchMovedRef.current) {
+      setSelectedCharId(charId);
+    }
+    setDraggingCharId(null);
+    saveAll(characters, relations, groups);
+  };
+
+  // タッチ用：背景タッチ開始（1本指パン移動または2本指ピンチズーム）
+  const handleTouchStartBackground = (e: React.TouchEvent) => {
+    if (e.touches.length === 1) {
+      setIsPanning(true);
+      panStartRef.current = {
+        x: e.touches[0].clientX - pan.x,
+        y: e.touches[0].clientY - pan.y
+      };
+      lastTouchDistRef.current = null;
+      lastTouchMidRef.current = null;
+    } else if (e.touches.length === 2) {
+      setIsPanning(false);
+      setDraggingCharId(null);
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      lastTouchDistRef.current = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      lastTouchMidRef.current = {
+        x: (t1.clientX + t2.clientX) / 2,
+        y: (t1.clientY + t2.clientY) / 2
+      };
+    }
+  };
+
+  // タッチ用：SVG全体の移動（ノード移動・マップパン・ピンチズーム）
+  const handleTouchMoveSvg = (e: React.TouchEvent) => {
+    // 2本指によるピンチズーム＆パン
+    if (e.touches.length === 2 && lastTouchDistRef.current && lastTouchMidRef.current && svgRef.current) {
+      const t1 = e.touches[0];
+      const t2 = e.touches[1];
+      const currentDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      const currentMid = {
+        x: (t1.clientX + t2.clientX) / 2,
+        y: (t1.clientY + t2.clientY) / 2
+      };
+
+      if (lastTouchDistRef.current > 0) {
+        const factor = currentDist / lastTouchDistRef.current;
+        const newZoom = Math.min(2.5, Math.max(0.3, +(zoom * factor).toFixed(2)));
+
+        const svg = svgRef.current;
+        const pt = svg.createSVGPoint();
+        pt.x = currentMid.x;
+        pt.y = currentMid.y;
+        const ctm = svg.getScreenCTM();
+        if (ctm) {
+          const svgPoint = pt.matrixTransform(ctm.inverse());
+          const deltaMidX = currentMid.x - lastTouchMidRef.current.x;
+          const deltaMidY = currentMid.y - lastTouchMidRef.current.y;
+          const newPanX = svgPoint.x - (svgPoint.x - pan.x) * (newZoom / zoom) + deltaMidX;
+          const newPanY = svgPoint.y - (svgPoint.y - pan.y) * (newZoom / zoom) + deltaMidY;
+          setPan({ x: Math.round(newPanX), y: Math.round(newPanY) });
+        }
+        setZoom(newZoom);
+      }
+
+      lastTouchDistRef.current = currentDist;
+      lastTouchMidRef.current = currentMid;
+      return;
+    }
+
+    // 1本指での操作
+    if (e.touches.length === 1) {
+      const touch = e.touches[0];
+      if (draggingCharId) {
+        // キャラクターノードのドラッグ
+        nodeTouchMovedRef.current = true;
+        const worldPos = screenToWorld(touch.clientX, touch.clientY);
+        const freeX = Math.round(worldPos.x - dragOffset.current.x);
+        const freeY = Math.round(worldPos.y - dragOffset.current.y);
+
+        setCharacters((prev) =>
+          prev.map((c) => (c.id === draggingCharId ? { ...c, x: freeX, y: freeY } : c))
+        );
+      } else if (isPanning) {
+        // マップ背景のパン移動
+        const newPanX = touch.clientX - panStartRef.current.x;
+        const newPanY = touch.clientY - panStartRef.current.y;
+        setPan({ x: Math.round(newPanX), y: Math.round(newPanY) });
+      }
+    }
+  };
+
+  // タッチ用：指が離れた・キャンセルされたとき
+  const handleTouchEndSvg = (e: React.TouchEvent) => {
+    if (e.touches.length === 0) {
+      if (draggingCharId) {
+        setDraggingCharId(null);
+        saveAll(characters, relations, groups);
+      }
+      if (isPanning) {
+        setIsPanning(false);
+      }
+      lastTouchDistRef.current = null;
+      lastTouchMidRef.current = null;
+    } else if (e.touches.length === 1) {
+      // 2本指から1本指へ遷移した際の位置ジャンプを防止
+      lastTouchDistRef.current = null;
+      lastTouchMidRef.current = null;
+      panStartRef.current = {
+        x: e.touches[0].clientX - pan.x,
+        y: e.touches[0].clientY - pan.y
+      };
+    }
+  };
+
+  // ボタンによる画面パン移動（上下左右）
+  const handlePanBy = (dx: number, dy: number) => {
+    setPan((prev) => ({ x: Math.round(prev.x + dx), y: Math.round(prev.y + dy) }));
+  };
+
   // テキストエクスポート
   const handleExportText = () => {
     let text = `【作品・キャラクター相関図設定】\n\n`;
@@ -1138,7 +1281,7 @@ export default function CharacterSheetPage() {
                     <span>🕸️</span> インタラクティブ超広大相関図マップ
                   </h2>
                   <p className="text-xs text-slate-500">
-                    💡 マウスホイールでズーム、余白ドラッグで画面移動、キャラクターをドラッグして上下左右どこまでも自由に配置できます。
+                    💡 【PC】ホイールでズーム、余白ドラッグで移動、キャラドラッグで自由配置 ／ 【スマホ】1本指スワイプで移動、2本指ピンチでズーム、キャラ移動対応
                   </p>
                 </div>
                 
@@ -1207,15 +1350,19 @@ export default function CharacterSheetPage() {
 
               {/* 相関図SVGキャンバス（超広大 2400x1800 空間、ズーム＆パン対応） */}
               <div 
-                className="relative w-full h-[680px] md:h-[760px] bg-slate-900/5 rounded-xl border-2 border-dashed border-slate-300 overflow-hidden select-none"
+                className="relative w-full h-[540px] sm:h-[660px] md:h-[760px] bg-slate-900/5 rounded-xl border-2 border-dashed border-slate-300 overflow-hidden select-none touch-none"
               >
                 <svg
                   ref={svgRef}
-                  className={`w-full h-full ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
+                  className={`w-full h-full touch-none ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
                   onMouseDown={handleMouseDownBackground}
                   onMouseMove={handleMouseMoveSvg}
                   onMouseUp={handleMouseUpSvg}
                   onWheel={handleWheelSvg}
+                  onTouchStart={handleTouchStartBackground}
+                  onTouchMove={handleTouchMoveSvg}
+                  onTouchEnd={handleTouchEndSvg}
+                  onTouchCancel={handleTouchEndSvg}
                   viewBox="0 0 2400 1800"
                 >
                   {/* クリップパスとグリッド定義 */}
@@ -1503,6 +1650,11 @@ export default function CharacterSheetPage() {
                                     const orig = relations.find((r) => r.id === edge.id || edge.id.startsWith(r.id));
                                     if (orig) handleStartEditRelation(orig);
                                   }}
+                                  onTouchEnd={(e) => {
+                                    e.stopPropagation();
+                                    const orig = relations.find((r) => r.id === edge.id || edge.id.startsWith(r.id));
+                                    if (orig) handleStartEditRelation(orig);
+                                  }}
                                   className={`px-3.5 py-0.5 rounded-full text-[11px] font-bold text-white flex items-center gap-1 border border-white/80 max-w-[165px] truncate cursor-pointer hover:scale-105 transition-all duration-200 shadow-sm ${badgeScaleClass}`}
                                   style={{ backgroundColor: color }}
                                   title={`クリックして編集: ${fromChar.name} ➔ ${toChar.name}: ${label}`}
@@ -1522,7 +1674,7 @@ export default function CharacterSheetPage() {
                       });
                     })()}
 
-                    {/* 3. キャラクターノード (Draggable Nodes with Avatar Image Support) */}
+                    {/* 3. キャラクターノード (Draggable Nodes with Avatar Image Support & Touch Support) */}
                     {characters.map((char) => {
                       const isSelected = char.id === selectedCharId;
                       const isConnected = relations.some(
@@ -1539,6 +1691,8 @@ export default function CharacterSheetPage() {
                           key={char.id}
                           transform={`translate(${char.x}, ${char.y})`}
                           onMouseDown={(e) => handleMouseDownNode(char.id, e)}
+                          onTouchStart={(e) => handleTouchStartNode(char.id, e)}
+                          onTouchEnd={(e) => handleTouchEndNode(char.id, e)}
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedCharId(char.id);
@@ -1631,6 +1785,64 @@ export default function CharacterSheetPage() {
 
                   </g>
                 </svg>
+
+                {/* 左上: タッチ・モバイル操作ガイドバッジ */}
+                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-xs px-2.5 py-1 rounded-full border border-slate-200 text-[11px] font-medium text-slate-700 shadow-xs pointer-events-none flex items-center gap-1.5 z-10">
+                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span className="hidden sm:inline">📱 スワイプで移動 / 2本指でズーム / キャラをドラッグ</span>
+                  <span className="sm:hidden">📱 1本指で移動 / 2本指でズーム</span>
+                </div>
+
+                {/* 右下: スマホ・タッチ端末用クイック移動・原点コントローラー */}
+                <div className="absolute bottom-3 right-3 flex flex-col items-end gap-1.5 pointer-events-auto z-20">
+                  {/* 方向キーコントローラー */}
+                  <div className="bg-white/95 backdrop-blur-md p-1.5 rounded-2xl shadow-lg border border-slate-200 flex flex-col items-center gap-1 text-slate-700">
+                    <button
+                      onClick={() => handlePanBy(0, 150)}
+                      className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 active:bg-blue-100 flex items-center justify-center font-bold text-xs transition shadow-2xs"
+                      title="上へ画面移動"
+                      aria-label="上へ画面移動"
+                    >
+                      ▲
+                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handlePanBy(150, 0)}
+                        className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 active:bg-blue-100 flex items-center justify-center font-bold text-xs transition shadow-2xs"
+                        title="左へ画面移動"
+                        aria-label="左へ画面移動"
+                      >
+                        ◀
+                      </button>
+                      <button
+                        onClick={() => {
+                          setZoom(1.0);
+                          setPan({ x: 0, y: 0 });
+                        }}
+                        className="w-8 h-8 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-100 active:scale-95 flex items-center justify-center text-[10px] font-extrabold transition shadow-2xs"
+                        title="原点・100%にリセット"
+                      >
+                        原点
+                      </button>
+                      <button
+                        onClick={() => handlePanBy(-150, 0)}
+                        className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 active:bg-blue-100 flex items-center justify-center font-bold text-xs transition shadow-2xs"
+                        title="右へ画面移動"
+                        aria-label="右へ画面移動"
+                      >
+                        ▶
+                      </button>
+                    </div>
+                    <button
+                      onClick={() => handlePanBy(0, -150)}
+                      className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 active:bg-blue-100 flex items-center justify-center font-bold text-xs transition shadow-2xs"
+                      title="下へ画面移動"
+                      aria-label="下へ画面移動"
+                    >
+                      ▼
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
 

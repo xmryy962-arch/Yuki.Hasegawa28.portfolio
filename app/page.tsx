@@ -24,6 +24,9 @@ export default function Home() {
   const profile = {
     name: "長谷川 優希",
     nameKana: "はせがわ ゆき",
+    // 顔写真・アイコン画像（publicフォルダ内に配置したファイル名を指定。例: "/profile.jpg"）
+    // 画像を指定しない場合はスタイリッシュな人型アイコンが表示されます
+    avatar: "",
     university: "東京都市大学 メディア情報学部 社会メディア学科",
     bio: "「好き」と思ってもらえるキャラクターや作品を生み出すことを目標に、イラストを中心とした創作に取り組んでいます。ゲームやグッズ、出版、シナリオなど、ひとつの作品をさまざまな形で広げていくことにも強く関心があります。将来は、制作だけでなく企画やアイデアの提案にも携わり、作品の魅力をより多くの人へ届けられるクリエイターになりたいです。",
     
@@ -100,16 +103,6 @@ export default function Home() {
         link: "/character-sheet",
         linkText: "アプリを使ってみる",
         badge: "Popular"
-      },
-      {
-        title: "ポートフォリオWebサイト",
-        category: "Web Development",
-        description: "Next.jsとVercelを活用して構築した自己紹介・実績紹介ポートフォリオサイトです。レスポンシブデザインとモダンなUI設計を採用しています。"
-      },
-      {
-        title: "キャラクターデザイン・イラスト作品（準備中）",
-        category: "Illustration / Design",
-        description: "オリジナルキャラクターのビジュアルおよびポーズ・背景描画等の作品を順次追加予定です。"
       }
     ],
 
@@ -125,20 +118,42 @@ export default function Home() {
       <div className="max-w-3xl mx-auto space-y-16">
         
         {/* ヘッダー / プロフィール */}
-        <section className="space-y-4">
-          <div className="inline-block px-3 py-1 bg-slate-200 text-slate-700 text-xs rounded-full font-medium tracking-wide">
-            Portfolio
+        <section className="space-y-6">
+          <div className="flex items-center gap-5 sm:gap-6">
+            {/* プロフィール画像 / 顔写真 */}
+            <div className="relative shrink-0">
+              {profile.avatar ? (
+                <img
+                  src={profile.avatar}
+                  alt={profile.name}
+                  className="w-20 h-20 sm:w-28 sm:h-28 rounded-full object-cover border-2 border-slate-200 shadow-sm bg-white"
+                />
+              ) : (
+                <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-full bg-slate-100 border-2 border-slate-200 flex items-center justify-center text-slate-400 shadow-inner">
+                  <svg className="w-10 h-10 sm:w-14 sm:h-14 text-slate-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                  </svg>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-1.5 sm:space-y-2 min-w-0">
+              <div className="inline-block px-2.5 py-0.5 sm:px-3 sm:py-1 bg-slate-200 text-slate-700 text-xs rounded-full font-medium tracking-wide">
+                Portfolio
+              </div>
+              <div>
+                <span className="text-xs sm:text-sm text-slate-500 font-medium block">{profile.nameKana}</span>
+                <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mt-0.5">
+                  {profile.name}
+                </h1>
+              </div>
+              <p className="text-xs sm:text-sm font-semibold text-slate-600 bg-slate-100 inline-block px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-md">
+                🎓 {profile.university}
+              </p>
+            </div>
           </div>
-          <div>
-            <span className="text-sm text-slate-500 font-medium block">{profile.nameKana}</span>
-            <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mt-1">
-              {profile.name}
-            </h1>
-          </div>
-          <p className="text-sm font-semibold text-slate-600 bg-slate-100 inline-block px-3 py-1.5 rounded-md">
-            🎓 {profile.university}
-          </p>
-          <p className="text-slate-600 leading-relaxed pt-2 whitespace-pre-line">
+
+          <p className="text-slate-600 leading-relaxed whitespace-pre-line pt-1">
             {profile.bio}
           </p>
         </section>

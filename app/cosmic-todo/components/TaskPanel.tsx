@@ -141,6 +141,34 @@ export default function TaskPanel({
     return t.category === categoryFilter;
   });
 
+  // 属性削除ハンドラー（タスクを自動的に未分類に移動する確認メッセージ付き）
+  const handleCategoryDelete = (cat: CategoryInfo) => {
+    if (!onDeleteCategory) return;
+    if (cat.id === 'uncategorized') {
+      alert('「未分類」属性は削除できません。');
+      return;
+    }
+    const matchingTasks = tasks.filter((t) => t.category === cat.id);
+    const count = matchingTasks.length;
+    const confirmMsg =
+      count > 0
+        ? `属性「${cat.label}」を削除しますか？\n\n現在この属性が設定されている【${count}件】のタスクは、自動的に「未分類」ステータスへ移動します。`
+        : `属性「${cat.label}」を削除しますか？`;
+
+    if (window.confirm(confirmMsg)) {
+      onDeleteCategory(cat.id);
+      if (category === cat.id) {
+        setCategory('uncategorized');
+      }
+      if (editCategory === cat.id) {
+        setEditCategory('uncategorized');
+      }
+      if (categoryFilter === cat.id) {
+        setCategoryFilter('all');
+      }
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) return;
