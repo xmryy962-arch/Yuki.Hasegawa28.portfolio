@@ -659,6 +659,246 @@ export default function CreativeHubPage() {
 
   return (
     <main className="min-h-screen bg-slate-100 text-slate-800 p-4 md:p-8 font-sans">
+      {/* ======================================================== */}
+      {/* 🚀 左からスライドインするサイドレーン（ドロワーメニュー） */}
+      {/* ======================================================== */}
+      {/* 背景オーバーレイ */}
+      <div
+        className={`fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 transition-opacity duration-300 ${
+          isMenuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+        onClick={() => setIsMenuOpen(false)}
+        aria-hidden="true"
+      />
+
+      {/* サイドレーン本体（左からスライド） */}
+      <aside
+        ref={menuRef}
+        className={`fixed top-0 left-0 bottom-0 w-80 sm:w-96 bg-white shadow-2xl z-50 flex flex-col transition-transform duration-300 ease-out border-r border-slate-200 ${
+          isMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="ナビゲーションメニュー"
+      >
+        {/* レーンヘッダー */}
+        <div className="p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/80">
+          <div className="flex items-center gap-2.5">
+            <span className="w-9 h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center text-lg shadow-sm">
+              🎨
+            </span>
+            <div>
+              <h2 className="text-base font-extrabold text-slate-900 leading-tight">
+                Creative Studio Hub
+              </h2>
+              <p className="text-[11px] text-slate-500 font-medium">
+                メニューナビゲーション
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsMenuOpen(false)}
+            className="w-8 h-8 flex items-center justify-center rounded-xl bg-white hover:bg-slate-200 text-slate-500 hover:text-slate-800 border border-slate-200 transition shadow-2xs cursor-pointer"
+            aria-label="メニューを閉じる"
+            title="閉じる (Esc)"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* レーンナビゲーション一覧 */}
+        <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
+          <div className="px-3 py-1 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+            ワークスペース
+          </div>
+
+          {/* 1. プロジェクト */}
+          <button
+            onClick={() => {
+              setActiveTab('projects');
+              setIsMenuOpen(false);
+            }}
+            className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group border cursor-pointer ${
+              activeTab === 'projects'
+                ? 'bg-blue-50/90 border-blue-200 text-blue-900 shadow-2xs'
+                : 'hover:bg-slate-50 border-transparent text-slate-800'
+            }`}
+          >
+            <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
+              activeTab === 'projects' ? 'bg-blue-600 text-white shadow-2xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
+            }`}>
+              📁
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-xs font-bold">
+                  プロジェクト一覧
+                </span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-bold">
+                  デフォルト
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                制作中の作品一覧、進捗率、締切、タスクの管理
+              </p>
+            </div>
+            {activeTab === 'projects' && (
+              <Check className="w-4 h-4 text-blue-600 shrink-0 self-center" />
+            )}
+          </button>
+
+          {/* 2. アイデア整理 */}
+          <button
+            onClick={() => {
+              setActiveTab('ideas');
+              setIsMenuOpen(false);
+            }}
+            className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group border cursor-pointer ${
+              activeTab === 'ideas'
+                ? 'bg-amber-50/90 border-amber-200 text-amber-900 shadow-2xs'
+                : 'hover:bg-slate-50 border-transparent text-slate-800'
+            }`}
+          >
+            <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
+              activeTab === 'ideas' ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
+            }`}>
+              💡
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-xs font-bold">
+                  アイデア整理
+                </span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
+                  {data.ideas.length}件
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                世界観・プロット・キャラ・ビジュアル・ギミックの発想ストック
+              </p>
+            </div>
+            {activeTab === 'ideas' && (
+              <Check className="w-4 h-4 text-amber-600 shrink-0 self-center" />
+            )}
+          </button>
+
+          {/* 3. タスク */}
+          <button
+            onClick={() => {
+              setActiveTab('kanban');
+              setIsMenuOpen(false);
+            }}
+            className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group border cursor-pointer ${
+              activeTab === 'kanban'
+                ? 'bg-indigo-50/90 border-indigo-200 text-indigo-900 shadow-2xs'
+                : 'hover:bg-slate-50 border-transparent text-slate-800'
+            }`}
+          >
+            <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
+              activeTab === 'kanban' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
+            }`}>
+              📋
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-xs font-bold">
+                  タスクカンバン
+                </span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
+                  {data.tasks.length}件
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                構想・構成・下書き・執筆・仕上げ・完了の工程別カンバン進捗
+              </p>
+            </div>
+            {activeTab === 'kanban' && (
+              <Check className="w-4 h-4 text-indigo-600 shrink-0 self-center" />
+            )}
+          </button>
+
+          {/* 4. プロット */}
+          <button
+            onClick={() => {
+              setActiveTab('lore');
+              setIsMenuOpen(false);
+            }}
+            className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group border cursor-pointer ${
+              activeTab === 'lore'
+                ? 'bg-purple-50/90 border-purple-200 text-purple-900 shadow-2xs'
+                : 'hover:bg-slate-50 border-transparent text-slate-800'
+            }`}
+          >
+            <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
+              activeTab === 'lore' ? 'bg-purple-600 text-white shadow-2xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
+            }`}>
+              📖
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-xs font-bold">
+                  プロット ＆ 世界観設定
+                </span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
+                  {data.lores.length + data.plots.length}件
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                起承転結の章立てプロット ＆ 世界観・用語事典（裏設定メモ）
+              </p>
+            </div>
+            {activeTab === 'lore' && (
+              <Check className="w-4 h-4 text-purple-600 shrink-0 self-center" />
+            )}
+          </button>
+
+          {/* 5. 保存 */}
+          <button
+            onClick={() => {
+              setActiveTab('export');
+              setIsMenuOpen(false);
+            }}
+            className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group border cursor-pointer ${
+              activeTab === 'export'
+                ? 'bg-slate-100 border-slate-300 text-slate-900 shadow-2xs'
+                : 'hover:bg-slate-50 border-transparent text-slate-800'
+            }`}
+          >
+            <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
+              activeTab === 'export' ? 'bg-slate-800 text-white shadow-2xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
+            }`}>
+              💾
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-xs font-bold">
+                  保存・エクスポート
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
+                Markdown出力、JSONバックアップ保存・復元、サンプル初期化
+              </p>
+            </div>
+            {activeTab === 'export' && (
+              <Check className="w-4 h-4 text-slate-800 shrink-0 self-center" />
+            )}
+          </button>
+        </div>
+
+        {/* レーンフッター */}
+        <div className="p-4 border-t border-slate-200 bg-slate-50/50 space-y-2">
+          <Link
+            href="/"
+            className="w-full py-2 px-3 bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold rounded-xl border border-slate-200 transition flex items-center justify-center gap-1.5 shadow-2xs"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>ポートフォリオトップへ戻る</span>
+          </Link>
+          <p className="text-[10px] text-slate-400 text-center font-mono">
+            Creative Studio Hub v1.0
+          </p>
+        </div>
+      </aside>
       {/* トースト通知 */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-2 text-sm font-medium border border-slate-700 animate-bounce">
@@ -671,21 +911,37 @@ export default function CreativeHubPage() {
 
         {/* ナビゲーション・ヘッダー（白基調カード） */}
         <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-5 md:p-6 rounded-2xl shadow-sm border border-slate-200">
-          <div>
-            <Link 
-              href="/"
-              className="text-xs text-blue-600 hover:underline font-medium inline-flex items-center gap-1 mb-1.5"
+          <div className="flex items-start gap-3.5">
+            {/* 🍔 左上のハンバーガーメニューボタン（押すと左からレーンが出現） */}
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              aria-label="メニューレーンを開く"
+              className="p-3 rounded-2xl bg-slate-900 hover:bg-blue-600 text-white transition shadow-sm hover:shadow-md flex items-center justify-center shrink-0 mt-0.5 group cursor-pointer"
+              title="メニューを開く（左からサイドレーンが出現）"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>ポートフォリオトップへ戻る</span>
-            </Link>
-            <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 flex items-center gap-2.5">
-              <span>🎨</span>
-              <span>創作プロジェクト管理 ＆ アイデア整理ハブ</span>
-            </h1>
-            <p className="text-xs md:text-sm text-slate-500 mt-1">
-              イラスト集・同人誌・コミック・ゲーム企画・シナリオの進捗管理、アイデア発想・世界観設定・プロット章立てを一元化できる創作支援ツール
-            </p>
+              <div className="w-5 h-4 flex flex-col justify-between items-center">
+                <span className="block h-0.5 w-5 bg-white rounded-full group-hover:scale-x-110 transition-transform" />
+                <span className="block h-0.5 w-5 bg-white rounded-full group-hover:scale-x-90 transition-transform" />
+                <span className="block h-0.5 w-5 bg-white rounded-full group-hover:scale-x-110 transition-transform" />
+              </div>
+            </button>
+
+            <div>
+              <Link 
+                href="/"
+                className="text-xs text-blue-600 hover:underline font-medium inline-flex items-center gap-1 mb-1.5"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>ポートフォリオトップへ戻る</span>
+              </Link>
+              <h1 className="text-xl md:text-2xl lg:text-3xl font-extrabold text-slate-900 flex items-center gap-2">
+                <span>🎨</span>
+                <span>創作プロジェクト管理 ＆ アイデア整理ハブ</span>
+              </h1>
+              <p className="text-xs md:text-sm text-slate-500 mt-1">
+                イラスト集・同人誌・コミック・ゲーム企画・シナリオの進捗管理、アイデア発想・世界観設定・プロット章立てを一元化できる創作支援ツール
+              </p>
+            </div>
           </div>
 
           {/* クイックアクションボタン */}
@@ -828,263 +1084,43 @@ export default function CreativeHubPage() {
           </div>
         </div>
 
-        {/* ナビゲーションバー（ハンバーガーメニュー ＋ 検索バー） */}
+        {/* ナビゲーションバー（メニューボタン ＋ 検索バー） */}
         <div className="flex flex-wrap items-center justify-between gap-3 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 shadow-sm relative z-30">
           
-          {/* ハンバーガーメニュー */}
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setIsMenuOpen((prev) => !prev)}
-              aria-expanded={isMenuOpen}
-              aria-label="メニューを開閉"
-              className={`flex items-center gap-2.5 px-4 py-2 rounded-xl font-bold text-xs transition shadow-2xs border ${
-                isMenuOpen
-                  ? 'bg-slate-900 text-white border-slate-900 ring-2 ring-blue-400/50'
-                  : 'bg-white hover:bg-slate-50 text-slate-800 border-slate-300'
-              }`}
-            >
-              {/* ハンバーガー 3本線 ⇔ バツ アイコンアニメーション */}
-              <div className="w-4 h-3.5 flex flex-col justify-between items-center relative shrink-0">
-                <span
-                  className={`block h-0.5 w-4 rounded-full transition-all duration-300 ${
-                    isMenuOpen ? 'bg-white rotate-45 translate-y-1.5' : 'bg-slate-700'
-                  }`}
-                />
-                <span
-                  className={`block h-0.5 w-4 rounded-full transition-all duration-200 ${
-                    isMenuOpen ? 'opacity-0 scale-x-0' : 'bg-slate-700'
-                  }`}
-                />
-                <span
-                  className={`block h-0.5 w-4 rounded-full transition-all duration-300 ${
-                    isMenuOpen ? 'bg-white -rotate-45 -translate-y-1.5' : 'bg-slate-700'
-                  }`}
-                />
-              </div>
+          {/* メニューレーンを開くボタン */}
+          <button
+            onClick={() => setIsMenuOpen(true)}
+            aria-expanded={isMenuOpen}
+            aria-label="メニューレーンを開く"
+            className="flex items-center gap-2.5 px-3.5 py-2 rounded-xl font-bold text-xs bg-slate-50 hover:bg-slate-100 text-slate-800 border border-slate-300 transition shadow-2xs group cursor-pointer"
+          >
+            {/* ハンバーガーアイコン */}
+            <div className="w-4 h-3.5 flex flex-col justify-between items-center relative shrink-0">
+              <span className="block h-0.5 w-4 bg-slate-700 rounded-full group-hover:bg-blue-600 transition-colors" />
+              <span className="block h-0.5 w-4 bg-slate-700 rounded-full group-hover:bg-blue-600 transition-colors" />
+              <span className="block h-0.5 w-4 bg-slate-700 rounded-full group-hover:bg-blue-600 transition-colors" />
+            </div>
 
-              <div className="flex items-center gap-1.5 text-left">
-                <span className="text-slate-400 font-normal">メニュー:</span>
-                <span className="flex items-center gap-1 font-bold">
-                  {activeTab === 'projects' && <><span>📁</span><span>プロジェクト</span></>}
-                  {activeTab === 'ideas' && <><span>💡</span><span>アイデア整理</span></>}
-                  {activeTab === 'kanban' && <><span>📋</span><span>タスク</span></>}
-                  {activeTab === 'lore' && <><span>📖</span><span>プロット</span></>}
-                  {activeTab === 'export' && <><span>💾</span><span>保存</span></>}
-                </span>
-                {activeTab === 'projects' && (
-                  <span className="text-[10px] px-1.5 py-0.2 bg-blue-100 text-blue-700 font-bold rounded">
-                    デフォルト
-                  </span>
-                )}
-              </div>
-
-              <span className={`text-[10px] text-slate-400 transition-transform duration-200 ${isMenuOpen ? 'rotate-180 text-white' : ''}`}>
-                ▼
+            <div className="flex items-center gap-1.5 text-left">
+              <span className="text-slate-400 font-normal">メニュー:</span>
+              <span className="flex items-center gap-1 font-bold text-slate-900">
+                {activeTab === 'projects' && <><span>📁</span><span>プロジェクト</span></>}
+                {activeTab === 'ideas' && <><span>💡</span><span>アイデア整理</span></>}
+                {activeTab === 'kanban' && <><span>📋</span><span>タスク</span></>}
+                {activeTab === 'lore' && <><span>📖</span><span>プロット</span></>}
+                {activeTab === 'export' && <><span>💾</span><span>保存</span></>}
               </span>
-            </button>
+              {activeTab === 'projects' && (
+                <span className="text-[10px] px-1.5 py-0.2 bg-blue-100 text-blue-700 font-bold rounded">
+                  デフォルト
+                </span>
+              )}
+            </div>
 
-            {/* ハンバーガードロップダウンメニュー */}
-            {isMenuOpen && (
-              <>
-                {/* モバイル用背景オーバーレイ */}
-                <div 
-                  className="fixed inset-0 bg-black/20 md:hidden z-40"
-                  onClick={() => setIsMenuOpen(false)}
-                />
-
-                <div 
-                  className="absolute left-0 top-full mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border border-slate-200 p-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150"
-                  role="menu"
-                >
-                  <div className="px-3 py-2 border-b border-slate-100 flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-                      メニュー切り替え
-                    </span>
-                    <span className="text-[11px] text-slate-400">Escで閉じる</span>
-                  </div>
-
-                  <div className="py-1 space-y-1">
-                    {/* 1. プロジェクト (デフォルト) */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('projects');
-                        setIsMenuOpen(false);
-                      }}
-                      className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group ${
-                        activeTab === 'projects'
-                          ? 'bg-blue-50/80 border border-blue-200/80 shadow-2xs'
-                          : 'hover:bg-slate-50 border border-transparent'
-                      }`}
-                      role="menuitem"
-                    >
-                      <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
-                        activeTab === 'projects' ? 'bg-blue-600 text-white shadow-2xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
-                      }`}>
-                        📁
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-1">
-                          <span className={`text-xs font-bold ${activeTab === 'projects' ? 'text-blue-900' : 'text-slate-800'}`}>
-                            プロジェクト
-                          </span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 font-bold">
-                            デフォルト
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                          制作中の作品一覧、進捗率、締切、企画概要、タスクの管理
-                        </p>
-                      </div>
-                      {activeTab === 'projects' && (
-                        <Check className="w-4 h-4 text-blue-600 shrink-0 self-center" />
-                      )}
-                    </button>
-
-                    {/* 2. アイデア整理 */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('ideas');
-                        setIsMenuOpen(false);
-                      }}
-                      className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group ${
-                        activeTab === 'ideas'
-                          ? 'bg-amber-50/80 border border-amber-200/80 shadow-2xs'
-                          : 'hover:bg-slate-50 border border-transparent'
-                      }`}
-                      role="menuitem"
-                    >
-                      <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
-                        activeTab === 'ideas' ? 'bg-amber-500 text-white shadow-2xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
-                      }`}>
-                        💡
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-1">
-                          <span className={`text-xs font-bold ${activeTab === 'ideas' ? 'text-amber-900' : 'text-slate-800'}`}>
-                            アイデア整理
-                          </span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
-                            {data.ideas.length}件
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                          世界観・プロット・キャラ・ビジュアル・ギミックの発想ストック
-                        </p>
-                      </div>
-                      {activeTab === 'ideas' && (
-                        <Check className="w-4 h-4 text-amber-600 shrink-0 self-center" />
-                      )}
-                    </button>
-
-                    {/* 3. タスク */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('kanban');
-                        setIsMenuOpen(false);
-                      }}
-                      className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group ${
-                        activeTab === 'kanban'
-                          ? 'bg-indigo-50/80 border border-indigo-200/80 shadow-2xs'
-                          : 'hover:bg-slate-50 border border-transparent'
-                      }`}
-                      role="menuitem"
-                    >
-                      <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
-                        activeTab === 'kanban' ? 'bg-indigo-600 text-white shadow-2xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
-                      }`}>
-                        📋
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-1">
-                          <span className={`text-xs font-bold ${activeTab === 'kanban' ? 'text-indigo-900' : 'text-slate-800'}`}>
-                            タスク
-                          </span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
-                            {data.tasks.length}件
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                          構想・構成・下書き・執筆・仕上げ・完了の工程別カンバン進捗
-                        </p>
-                      </div>
-                      {activeTab === 'kanban' && (
-                        <Check className="w-4 h-4 text-indigo-600 shrink-0 self-center" />
-                      )}
-                    </button>
-
-                    {/* 4. プロット */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('lore');
-                        setIsMenuOpen(false);
-                      }}
-                      className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group ${
-                        activeTab === 'lore'
-                          ? 'bg-purple-50/80 border border-purple-200/80 shadow-2xs'
-                          : 'hover:bg-slate-50 border border-transparent'
-                      }`}
-                      role="menuitem"
-                    >
-                      <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
-                        activeTab === 'lore' ? 'bg-purple-600 text-white shadow-2xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
-                      }`}>
-                        📖
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-1">
-                          <span className={`text-xs font-bold ${activeTab === 'lore' ? 'text-purple-900' : 'text-slate-800'}`}>
-                            プロット
-                          </span>
-                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
-                            {data.lores.length + data.plots.length}件
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                          起承転結の章立てプロット ＆ 世界観・用語事典（裏設定メモ）
-                        </p>
-                      </div>
-                      {activeTab === 'lore' && (
-                        <Check className="w-4 h-4 text-purple-600 shrink-0 self-center" />
-                      )}
-                    </button>
-
-                    {/* 5. 保存 */}
-                    <button
-                      onClick={() => {
-                        setActiveTab('export');
-                        setIsMenuOpen(false);
-                      }}
-                      className={`w-full text-left p-3 rounded-xl transition flex items-start gap-3 group ${
-                        activeTab === 'export'
-                          ? 'bg-slate-100 border border-slate-300 shadow-2xs'
-                          : 'hover:bg-slate-50 border border-transparent'
-                      }`}
-                      role="menuitem"
-                    >
-                      <span className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg shrink-0 transition ${
-                        activeTab === 'export' ? 'bg-slate-800 text-white shadow-2xs' : 'bg-slate-100 group-hover:bg-slate-200 text-slate-700'
-                      }`}>
-                        💾
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-1">
-                          <span className={`text-xs font-bold ${activeTab === 'export' ? 'text-slate-900' : 'text-slate-800'}`}>
-                            保存
-                          </span>
-                        </div>
-                        <p className="text-[11px] text-slate-500 mt-0.5 leading-snug">
-                          Markdown出力、JSONバックアップ保存・復元、サンプル初期化
-                        </p>
-                      </div>
-                      {activeTab === 'export' && (
-                        <Check className="w-4 h-4 text-slate-800 shrink-0 self-center" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+            <span className="text-[10px] text-slate-400 font-bold ml-0.5 group-hover:text-blue-600 transition-colors">
+              ➔
+            </span>
+          </button>
 
           {/* 検索入力欄 */}
           <div className="relative flex-1 sm:w-64 max-w-xs">
