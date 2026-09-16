@@ -124,6 +124,17 @@ export const calculateDeadlineInfo = (deadlineStr?: string) => {
   }
 };
 
+// プロジェクト進捗計算ヘルパー（タスク完了率から自動計算）
+export const calculateProjectProgress = (projectId: string, tasks: KanbanTask[]) => {
+  const projTasks = tasks.filter((t) => t.projectId === projectId);
+  if (projTasks.length === 0) {
+    return { percent: 0, completed: 0, total: 0 };
+  }
+  const completed = projTasks.filter((t) => t.lane === 'done').length;
+  const percent = Math.round((completed / projTasks.length) * 100);
+  return { percent, completed, total: projTasks.length };
+};
+
 export default function CreativeHubPage() {
   // --- データ状態 ---
   const [data, setData] = useState<CreativeHubData>(initialCreativeData);
@@ -220,17 +231,21 @@ export default function CreativeHubPage() {
   // --- プロジェクト CRUD ---
   const handleSaveProject = (project: CreativeProject) => {
     setData((prev) => {
+      const progress = calculateProjectProgress(project.id, prev.tasks);
       const exists = prev.projects.some((p) => p.id === project.id);
       let updatedProjects: CreativeProject[];
       if (exists) {
         updatedProjects = prev.projects.map((p) =>
-          p.id === project.id ? { ...project, updatedAt: new Date().toISOString().split('T')[0] } : p
+          p.id === project.id
+            ? { ...project, progressPercent: progress.percent, updatedAt: new Date().toISOString().split('T')[0] }
+            : p
         );
       } else {
         updatedProjects = [
           ...prev.projects,
           {
             ...project,
+            progressPercent: 0,
             createdAt: new Date().toISOString().split('T')[0],
             updatedAt: new Date().toISOString().split('T')[0]
           }
@@ -253,35 +268,6 @@ export default function CreativeHubPage() {
         setDetailProjectModal(null);
       }
       showToast('プロジェクトを削除しました');
-    }
-  };
-
-  const handleQuickUpdateProgress = (projectId: string, percent: number) => {
-    const val = Math.min(100, Math.max(0, percent));
-    setData((prev) => ({
-      ...prev,
-      projects: prev.projects.map((p) =>
-        p.id === projectId
-          ? {
-              ...p,
-              progressPercent: val,
-              status: val === 100 ? 'completed' : p.status === 'completed' ? 'in_progress' : p.status,
-              updatedAt: new Date().toISOString().split('T')[0]
-            }
-          : p
-      )
-    }));
-    if (detailProjectModal && detailProjectModal.id === projectId) {
-      setDetailProjectModal((prev) =>
-        prev
-          ? {
-              ...prev,
-              progressPercent: val,
-              status: val === 100 ? 'completed' : prev.status === 'completed' ? 'in_progress' : prev.status,
-              updatedAt: new Date().toISOString().split('T')[0]
-            }
-          : null
-      );
     }
   };
 
@@ -513,7 +499,8 @@ export default function CreativeHubPage() {
     data.projects.forEach((p, idx) => {
       md += `### ${idx + 1}. ${p.title} (${categoryLabels[p.category]?.label || p.category})\n`;
       if (p.subtitle) md += `*${p.subtitle}*\n\n`;
-      md += `- **ステータス**: ${statusLabels[p.status]?.label || p.status} (進捗 ${p.progressPercent}%)\n`;
+      const progress = calculateProjectProgress(p.id, data.tasks);
+      md += `- **ステータス**: ${statusLabels[p.status]?.label || p.status} (進捗 ${progress.percent}%: ${progress.completed}/${progress.total}タスク完了)\n`;
       if (p.targetDeadline) md += `- **目標締切**: ${p.targetDeadline}\n`;
       md += `- **概要**: ${p.summary}\n`;
       md += `- **コンセプト・世界観**: \n  ${p.concept.replace(/\n/g, '\n  ')}\n`;
@@ -1351,18 +1338,29 @@ export default function CreativeHubPage() {
                       })()}
 
                       {/* 進捗バー */}
-                      <div className="space-y-1.5 pt-1">
-                        <div className="flex justify-between text-[11px] text-slate-500 font-semibold">
-                          <span>制作進捗</span>
-                          <span className="font-bold text-slate-900">{project.progressPercent}%</span>
-                        </div>
-                        <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
-                          <div
-                            className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
-                            style={{ width: `${project.progressPercent}%` }}
-                          />
-                        </div>
-                      </div>
+                      {/* 進捗バー（タスク自動連動） */}
+                      {(() => {
+                        const progress = calculateProjectProgress(project.id, data.tasks);
+                        return (
+                          <div className="space-y-1.5 pt-1">
+                            <div className="flex justify-between items-center text-[11px] text-slate-500 font-semibold">
+                              <span className="flex items-center gap-1">
+                                <span>制作進捗</span>
+                                <span className="text-[10px] text-slate-400 font-normal">
+                                  ({progress.completed}/{progress.total} 完了)
+                                </span>
+                              </span>
+                              <span className="font-bold text-slate-900">{progress.percent}%</span>
+                            </div>
+                            <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden border border-slate-200/60">
+                              <div
+                                className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
+                                style={{ width: `${progress.percent}%` }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                       {/* 関連データ数カウント */}
                       <div className="flex items-center gap-3 pt-2 text-[11px] text-slate-500 border-t border-slate-100">
@@ -2276,168 +2274,34 @@ export default function CreativeHubPage() {
                 }
               })()}
 
-              {/* 進捗プログレス */}
-              <div className="bg-slate-50 p-4 rounded-xl space-y-2.5 border border-slate-200 text-xs">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="font-bold text-slate-800 block text-xs">全体の制作進捗率</span>
-                    <span className="text-[11px] text-slate-400">5%刻み目盛 / 数値入力で1%単位調整</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleQuickUpdateProgress(
-                          detailProjectModal.id,
-                          Math.max(0, detailProjectModal.progressPercent - 1)
-                        )
-                      }
-                      className="w-6 h-6 flex items-center justify-center bg-white hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-md font-bold text-xs transition shadow-2xs"
-                      title="-1%"
-                    >
-                      -
-                    </button>
-                    <div className="relative flex items-center">
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="1"
-                        value={detailProjectModal.progressPercent}
-                        onChange={(e) => {
-                          const val = e.target.value === '' ? 0 : Number(e.target.value);
-                          handleQuickUpdateProgress(detailProjectModal.id, val);
-                        }}
-                        className="w-16 px-1.5 py-1 text-center font-bold text-sm text-slate-900 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 shadow-2xs"
+              {/* 進捗プログレス（タスク連動自動計算） */}
+              {(() => {
+                const progress = calculateProjectProgress(detailProjectModal.id, data.tasks);
+                return (
+                  <div className="bg-slate-50 p-4 rounded-xl space-y-2 border border-slate-200 text-xs">
+                    <div className="flex justify-between items-center text-slate-700 font-semibold">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-slate-900">全体の制作進捗率</span>
+                        <span className="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200 font-bold">
+                          ⚡ タスク自動連動
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-500 font-medium">
+                          完了: <strong className="text-slate-800">{progress.completed}</strong> / {progress.total} 件
+                        </span>
+                        <span className="font-black text-slate-900 text-sm">{progress.percent}%</span>
+                      </div>
+                    </div>
+                    <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden border border-slate-300/60">
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
+                        style={{ width: `${progress.percent}%` }}
                       />
-                      <span className="ml-1 text-xs font-bold text-slate-700">%</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleQuickUpdateProgress(
-                          detailProjectModal.id,
-                          Math.min(100, detailProjectModal.progressPercent + 1)
-                        )
-                      }
-                      className="w-6 h-6 flex items-center justify-center bg-white hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-md font-bold text-xs transition shadow-2xs"
-                      title="+1%"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-
-                {/* スライダー本体 & 5%ごとのdatalist */}
-                <div className="space-y-1">
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    step="1"
-                    list="progress-ticks-detail"
-                    value={detailProjectModal.progressPercent}
-                    onChange={(e) =>
-                      handleQuickUpdateProgress(detailProjectModal.id, Number(e.target.value))
-                    }
-                    className="w-full accent-blue-600 cursor-pointer h-2 bg-slate-200 rounded-lg"
-                  />
-                  <datalist id="progress-ticks-detail">
-                    {Array.from({ length: 21 }, (_, i) => i * 5).map((val) => (
-                      <option key={val} value={val} />
-                    ))}
-                  </datalist>
-
-                  {/* 5%ごとの目盛線 */}
-                  <div className="relative w-full px-1 pt-0.5 select-none">
-                    <div className="flex justify-between items-start w-full">
-                      {Array.from({ length: 21 }, (_, i) => {
-                        const val = i * 5;
-                        const isMajor = val % 25 === 0;
-                        const isMedium = val % 10 === 0 && !isMajor;
-                        const isReached = detailProjectModal.progressPercent >= val;
-                        return (
-                          <button
-                            key={val}
-                            type="button"
-                            onClick={() => handleQuickUpdateProgress(detailProjectModal.id, val)}
-                            className="group flex flex-col items-center focus:outline-none cursor-pointer p-0.5"
-                            title={`${val}%にセット`}
-                          >
-                            <div
-                              className={`w-0.5 transition-colors ${
-                                isMajor
-                                  ? `h-3 ${isReached ? 'bg-blue-600' : 'bg-slate-400 group-hover:bg-blue-400'}`
-                                  : isMedium
-                                  ? `h-2 ${isReached ? 'bg-blue-500' : 'bg-slate-300 group-hover:bg-blue-300'}`
-                                  : `h-1.5 ${isReached ? 'bg-blue-400' : 'bg-slate-200 group-hover:bg-blue-200'}`
-                              }`}
-                            />
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* 主要目盛りの数値ラベル */}
-                    <div className="flex justify-between text-[10px] text-slate-400 font-semibold px-0.5 mt-0.5">
-                      <span className={detailProjectModal.progressPercent === 0 ? 'text-blue-600 font-bold' : ''}>0%</span>
-                      <span className={detailProjectModal.progressPercent === 25 ? 'text-blue-600 font-bold' : ''}>25%</span>
-                      <span className={detailProjectModal.progressPercent === 50 ? 'text-blue-600 font-bold' : ''}>50%</span>
-                      <span className={detailProjectModal.progressPercent === 75 ? 'text-blue-600 font-bold' : ''}>75%</span>
-                      <span className={detailProjectModal.progressPercent === 100 ? 'text-blue-600 font-bold' : ''}>100%</span>
                     </div>
                   </div>
-                </div>
-
-                {/* 5%ごとの増減 & 主要プリセットボタン */}
-                <div className="flex items-center justify-between pt-1 border-t border-slate-200/70">
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleQuickUpdateProgress(
-                          detailProjectModal.id,
-                          Math.max(0, detailProjectModal.progressPercent - 5)
-                        )
-                      }
-                      className="px-2 py-0.5 text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 rounded border border-slate-200 transition shadow-2xs"
-                      title="5%減らす"
-                    >
-                      -5%
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleQuickUpdateProgress(
-                          detailProjectModal.id,
-                          Math.min(100, detailProjectModal.progressPercent + 5)
-                        )
-                      }
-                      className="px-2 py-0.5 text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 rounded border border-slate-200 transition shadow-2xs"
-                      title="5%増やす"
-                    >
-                      +5%
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    {[0, 25, 50, 75, 100].map((preset) => (
-                      <button
-                        key={preset}
-                        type="button"
-                        onClick={() => handleQuickUpdateProgress(detailProjectModal.id, preset)}
-                        className={`px-1.5 py-0.5 text-[10px] font-bold rounded transition ${
-                          detailProjectModal.progressPercent === preset
-                            ? 'bg-blue-600 text-white shadow-2xs'
-                            : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
-                        }`}
-                      >
-                        {preset}%
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                );
+              })()}
             </div>
 
             {/* 📋 【新規追加】プロジェクトのタスク一覧 */}
@@ -2777,182 +2641,27 @@ export default function CreativeHubPage() {
                 />
               </div>
 
-              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="block text-slate-800 font-bold text-xs">
-                      制作進捗率
-                    </label>
-                    <span className="text-[11px] text-slate-400">
-                      5%刻み目盛 / 数値入力で1%単位調整
-                    </span>
-                  </div>
-
-                  {/* 数値入力フィールド（1%単位で微調整可能） */}
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setEditingProject({
-                          ...editingProject,
-                          progressPercent: Math.max(0, editingProject.progressPercent - 1)
-                        })
-                      }
-                      className="w-6 h-6 flex items-center justify-center bg-white hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-md font-bold text-xs transition shadow-2xs"
-                      title="-1%"
-                    >
-                      -
-                    </button>
-                    <div className="relative flex items-center">
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        step="1"
-                        value={editingProject.progressPercent}
-                        onChange={(e) => {
-                          const val = e.target.value === '' ? 0 : Number(e.target.value);
-                          setEditingProject({
-                            ...editingProject,
-                            progressPercent: Math.min(100, Math.max(0, val))
-                          });
-                        }}
-                        className="w-16 px-1.5 py-1 text-center font-bold text-sm text-slate-900 bg-white border border-slate-300 rounded-lg focus:outline-none focus:border-blue-500 shadow-2xs"
-                      />
-                      <span className="ml-1 text-xs font-bold text-slate-700">%</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setEditingProject({
-                          ...editingProject,
-                          progressPercent: Math.min(100, editingProject.progressPercent + 1)
-                        })
-                      }
-                      className="w-6 h-6 flex items-center justify-center bg-white hover:bg-slate-200 border border-slate-300 text-slate-700 rounded-md font-bold text-xs transition shadow-2xs"
-                      title="+1%"
-                    >
-                      +
-                    </button>
-                  </div>
+              {/* 制作進捗率（タスクから自動計算） */}
+              <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+                <div>
+                  <label className="block text-slate-800 font-bold">
+                    制作進捗率
+                  </label>
+                  <span className="text-[11px] text-slate-400">
+                    ※登録されたタスクの完了数から自動計算されます（手動入力不要）
+                  </span>
                 </div>
-
-                {/* スライダー本体 & 5%ごとのdatalist */}
-                <div className="space-y-1">
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    step="1"
-                    list="progress-ticks-editing"
-                    value={editingProject.progressPercent}
-                    onChange={(e) =>
-                      setEditingProject({
-                        ...editingProject,
-                        progressPercent: Math.min(100, Math.max(0, Number(e.target.value)))
-                      })
-                    }
-                    className="w-full accent-blue-600 cursor-pointer h-2 bg-slate-200 rounded-lg"
-                  />
-                  <datalist id="progress-ticks-editing">
-                    {Array.from({ length: 21 }, (_, i) => i * 5).map((val) => (
-                      <option key={val} value={val} />
-                    ))}
-                  </datalist>
-
-                  {/* 5%ごとの目盛線 (0% 〜 100%) */}
-                  <div className="relative w-full px-1 pt-0.5 select-none">
-                    <div className="flex justify-between items-start w-full">
-                      {Array.from({ length: 21 }, (_, i) => {
-                        const val = i * 5;
-                        const isMajor = val % 25 === 0;
-                        const isMedium = val % 10 === 0 && !isMajor;
-                        const isReached = editingProject.progressPercent >= val;
-                        return (
-                          <button
-                            key={val}
-                            type="button"
-                            onClick={() =>
-                              setEditingProject({ ...editingProject, progressPercent: val })
-                            }
-                            className="group flex flex-col items-center focus:outline-none cursor-pointer p-0.5"
-                            title={`${val}%にセット`}
-                          >
-                            <div
-                              className={`w-0.5 transition-colors ${
-                                isMajor
-                                  ? `h-3 ${isReached ? 'bg-blue-600' : 'bg-slate-400 group-hover:bg-blue-400'}`
-                                  : isMedium
-                                  ? `h-2 ${isReached ? 'bg-blue-500' : 'bg-slate-300 group-hover:bg-blue-300'}`
-                                  : `h-1.5 ${isReached ? 'bg-blue-400' : 'bg-slate-200 group-hover:bg-blue-200'}`
-                              }`}
-                            />
-                          </button>
-                        );
-                      })}
+                {(() => {
+                  const progress = calculateProjectProgress(editingProject.id, data.tasks);
+                  return (
+                    <div className="text-right">
+                      <span className="text-base font-black text-slate-900">{progress.percent}%</span>
+                      <span className="block text-[10px] text-slate-500 font-medium">
+                        ({progress.completed}/{progress.total} タスク完了)
+                      </span>
                     </div>
-
-                    {/* 主要目盛りの数値ラベル (0%, 25%, 50%, 75%, 100%) */}
-                    <div className="flex justify-between text-[10px] text-slate-400 font-semibold px-0.5 mt-0.5">
-                      <span className={editingProject.progressPercent === 0 ? 'text-blue-600 font-bold' : ''}>0%</span>
-                      <span className={editingProject.progressPercent === 25 ? 'text-blue-600 font-bold' : ''}>25%</span>
-                      <span className={editingProject.progressPercent === 50 ? 'text-blue-600 font-bold' : ''}>50%</span>
-                      <span className={editingProject.progressPercent === 75 ? 'text-blue-600 font-bold' : ''}>75%</span>
-                      <span className={editingProject.progressPercent === 100 ? 'text-blue-600 font-bold' : ''}>100%</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 5%ごとの増減 & 主要プリセットボタン */}
-                <div className="flex items-center justify-between pt-1 border-t border-slate-200/70">
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setEditingProject({
-                          ...editingProject,
-                          progressPercent: Math.max(0, editingProject.progressPercent - 5)
-                        })
-                      }
-                      className="px-2 py-0.5 text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 rounded border border-slate-200 transition shadow-2xs"
-                      title="5%減らす"
-                    >
-                      -5%
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setEditingProject({
-                          ...editingProject,
-                          progressPercent: Math.min(100, editingProject.progressPercent + 5)
-                        })
-                      }
-                      className="px-2 py-0.5 text-[10px] font-bold bg-white hover:bg-slate-100 text-slate-700 rounded border border-slate-200 transition shadow-2xs"
-                      title="5%増やす"
-                    >
-                      +5%
-                    </button>
-                  </div>
-
-                  <div className="flex items-center gap-1">
-                    {[0, 25, 50, 75, 100].map((preset) => (
-                      <button
-                        key={preset}
-                        type="button"
-                        onClick={() =>
-                          setEditingProject({ ...editingProject, progressPercent: preset })
-                        }
-                        className={`px-1.5 py-0.5 text-[10px] font-bold rounded transition ${
-                          editingProject.progressPercent === preset
-                            ? 'bg-blue-600 text-white shadow-2xs'
-                            : 'bg-white hover:bg-slate-100 text-slate-600 border border-slate-200'
-                        }`}
-                      >
-                        {preset}%
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                  );
+                })()}
               </div>
 
               <div>
