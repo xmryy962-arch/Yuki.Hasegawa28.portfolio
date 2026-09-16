@@ -5,6 +5,7 @@ interface HistoryItem {
   period: string;
   title: string;
   description: string;
+  images?: string[];
   books?: {
     title: string;
     role: string;
@@ -65,6 +66,10 @@ export default function Home() {
         period: "実績",
         title: "LightningMiniHack 本選出場",
         description: "ハッカソンイベント「LightningMiniHack」の本選に出場しました。",
+        images: [
+          "/LightningMiniHack_1.jpg",
+          "/LightningMiniHack_2.png"
+        ],
         links: [
           {
             text: "イベント詳細を見る",
@@ -175,6 +180,24 @@ export default function Home() {
                 <p className="text-sm text-slate-600 leading-relaxed">
                   {item.description}
                 </p>
+
+                {/* 実績写真・画像がある場合の表示 */}
+                {item.images && item.images.length > 0 && (
+                  <div className="space-y-3 pt-2">
+                    {item.images.map((imgSrc, imgIndex) => (
+                      <div 
+                        key={imgIndex} 
+                        className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50 shadow-sm"
+                      >
+                        <img
+                          src={imgSrc}
+                          alt={`${item.title} 写真 ${imgIndex + 1}`}
+                          className="w-full h-auto block object-cover"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {/* 書籍実績がある場合はカード表示 */}
                 {item.books && item.books.length > 0 && (
