@@ -5,6 +5,7 @@ interface HistoryItem {
   period: string;
   title: string;
   description: string;
+  imageTitle?: string;
   images?: string[];
   books?: {
     title: string;
@@ -66,6 +67,7 @@ export default function Home() {
         period: "実績",
         title: "LightningMiniHack 本選出場",
         description: "ハッカソンイベント「LightningMiniHack」の本選に出場しました。",
+        imageTitle: "大会の様子",
         images: [
           "/LightningMiniHack_1.jpg",
           "/LightningMiniHack_2.png"
@@ -183,19 +185,27 @@ export default function Home() {
 
                 {/* 実績写真・画像がある場合の表示 */}
                 {item.images && item.images.length > 0 && (
-                  <div className="space-y-3 pt-2">
-                    {item.images.map((imgSrc, imgIndex) => (
-                      <div 
-                        key={imgIndex} 
-                        className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50 shadow-sm"
-                      >
-                        <img
-                          src={imgSrc}
-                          alt={`${item.title} 写真 ${imgIndex + 1}`}
-                          className="w-full h-auto block object-cover"
-                        />
-                      </div>
-                    ))}
+                  <div className="space-y-2.5 pt-2">
+                    {item.imageTitle && (
+                      <p className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <span className="text-slate-400">📷</span>
+                        <span>{item.imageTitle}</span>
+                      </p>
+                    )}
+                    <div className="space-y-3">
+                      {item.images.map((imgSrc, imgIndex) => (
+                        <div 
+                          key={imgIndex} 
+                          className="overflow-hidden rounded-lg border border-slate-200 bg-slate-50 shadow-sm"
+                        >
+                          <img
+                            src={imgSrc}
+                            alt={`${item.title} ${item.imageTitle || "写真"} ${imgIndex + 1}`}
+                            className="w-full h-auto block object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
 
@@ -292,9 +302,14 @@ export default function Home() {
 
         {/* 制作物 */}
         <section className="space-y-6">
-          <h2 className="text-xl font-bold text-slate-900 border-b border-slate-200 pb-2">
-            Works & Projects
-          </h2>
+          <div className="border-b border-slate-200 pb-2 flex items-center flex-wrap gap-2.5">
+            <h2 className="text-xl font-bold text-slate-900">
+              Works & Projects
+            </h2>
+            <span className="text-xs px-2.5 py-1 bg-slate-100 text-slate-600 border border-slate-200 rounded-md font-medium">
+              制作にはAntigravity CLIを使用しています
+            </span>
+          </div>
           <div className="grid gap-6 md:grid-cols-1">
             {profile.works.map((work, index) => (
               <div 
