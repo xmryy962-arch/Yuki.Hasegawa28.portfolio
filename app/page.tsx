@@ -19,6 +19,7 @@ interface HistoryItem {
   links?: {
     text: string;
     url: string;
+    description?: string;
   }[];
 }
 
@@ -75,11 +76,13 @@ export default function Home() {
         links: [
           {
             text: "イベント詳細を見る",
-            url: "https://developer.salesforce.com/jpblogs/2026/04/lightning-minihack-live-2026-jp"
+            url: "https://developer.salesforce.com/jpblogs/2026/04/lightning-minihack-live-2026-jp",
+            description: "Salesforce 開発者の腕試し！「Lightning MiniHack Live」イベント概要&予選参加ガイド"
           },
           {
             text: "参加者インタビュー記事を見る",
-            url: "https://developer.salesforce.com/jpblogs/2026/08/tdx-tokyo-2026-lightning-minihack-live"
+            url: "https://developer.salesforce.com/jpblogs/2026/08/tdx-tokyo-2026-lightning-minihack-live",
+            description: "【TDX東京2026】Lightning MiniHack Live ファイナリスト座談会: 初代チャンピオンと挑戦者が語る「最速」の舞台裏とAI時代の実現力"
           }
         ]
       }
@@ -250,20 +253,46 @@ export default function Home() {
 
                 {/* リンクがある場合の表示 */}
                 {item.links && item.links.length > 0 && (
-                  <div className="pt-2 flex flex-wrap items-center gap-3">
-                    {item.links.map((linkItem, lIndex) => (
-                      <a 
-                        key={lIndex}
-                        href={linkItem.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 rounded-lg transition-all gap-1.5 shadow-sm"
-                      >
-                        <span>{linkItem.text}</span>
-                        <span className="text-slate-400">↗</span>
-                      </a>
-                    ))}
-                  </div>
+                  item.links.some((l) => l.description) ? (
+                    <div className="pt-2 grid gap-3 sm:grid-cols-2">
+                      {item.links.map((linkItem, lIndex) => (
+                        <div 
+                          key={lIndex} 
+                          className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex flex-col justify-between space-y-3"
+                        >
+                          <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">
+                            {linkItem.description}
+                          </p>
+                          <div className="pt-1">
+                            <a 
+                              href={linkItem.url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center w-full px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 hover:text-blue-600 bg-white hover:bg-blue-50 border border-slate-200 hover:border-blue-200 rounded-lg transition-all gap-1.5 shadow-sm"
+                            >
+                              <span>{linkItem.text}</span>
+                              <span className="text-slate-400">↗</span>
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="pt-2 flex flex-wrap items-center gap-3">
+                      {item.links.map((linkItem, lIndex) => (
+                        <a 
+                          key={lIndex}
+                          href={linkItem.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 rounded-lg transition-all gap-1.5 shadow-sm"
+                        >
+                          <span>{linkItem.text}</span>
+                          <span className="text-slate-400">↗</span>
+                        </a>
+                      ))}
+                    </div>
+                  )
                 )}
                 {item.link && !item.links && (
                   <div className="pt-2">
