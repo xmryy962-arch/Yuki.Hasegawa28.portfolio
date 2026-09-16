@@ -250,31 +250,31 @@ export default function Home() {
 
                 {/* リンクがある場合の表示 */}
                 {item.links && item.links.length > 0 && (
-                  <div className="pt-1 flex flex-col gap-1.5 items-start">
+                  <div className="pt-2 flex flex-wrap items-center gap-3">
                     {item.links.map((linkItem, lIndex) => (
                       <a 
                         key={lIndex}
                         href={linkItem.url} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 font-medium"
+                        className="inline-flex items-center justify-center px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 rounded-lg transition-all gap-1.5 shadow-sm"
                       >
                         <span>{linkItem.text}</span>
-                        <span>↗</span>
+                        <span className="text-slate-400">↗</span>
                       </a>
                     ))}
                   </div>
                 )}
                 {item.link && !item.links && (
-                  <div className="pt-1">
+                  <div className="pt-2">
                     <a 
                       href={item.link} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline inline-flex items-center gap-1 font-medium"
+                      className="inline-flex items-center justify-center px-4 py-2.5 text-xs sm:text-sm font-semibold text-slate-700 hover:text-blue-600 bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 rounded-lg transition-all gap-1.5 shadow-sm"
                     >
                       <span>{item.linkText || "詳細を見る"}</span>
-                      <span>↗</span>
+                      <span className="text-slate-400">↗</span>
                     </a>
                   </div>
                 )}
