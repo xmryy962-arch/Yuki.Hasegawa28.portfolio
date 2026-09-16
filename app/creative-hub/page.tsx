@@ -27,6 +27,8 @@ import {
   X,
   Layers,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   CheckCircle2,
   Circle,
   SlidersHorizontal,
@@ -172,6 +174,9 @@ export default function CreativeHubPage() {
   const [editingPlot, setEditingPlot] = useState<PlotOutline | null>(null);
 
   const [detailProjectModal, setDetailProjectModal] = useState<CreativeProject | null>(null);
+
+  // --- プロジェクト一覧のタスク展開状態 (プロジェクトID -> 展開フラグ) ---
+  const [expandedProjectTasks, setExpandedProjectTasks] = useState<Record<string, boolean>>({});
 
   // --- ハンバーガーメニュー外側クリック & ESCキー対応 ---
   useEffect(() => {
@@ -1285,14 +1290,17 @@ export default function CreativeHubPage() {
                         });
 
                         completed.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
-                        const displayTasks = [...uncompleted, ...completed].slice(0, 3);
+                        const allSortedTasks = [...uncompleted, ...completed];
+                        const isExpanded = !!expandedProjectTasks[project.id];
+                        const displayTasks = isExpanded ? allSortedTasks : allSortedTasks.slice(0, 3);
+                        const hasMoreTasks = allSortedTasks.length > 3;
 
                         return (
                           <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 space-y-1.5">
                             <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 pb-1 border-b border-slate-200/60">
                               <span className="flex items-center gap-1">
                                 <CheckSquare className="w-3.5 h-3.5 text-blue-600" />
-                                <span>直近タスク ({uncompleted.length}件 未完了)</span>
+                                <span>{isExpanded ? `全タスク (${allSortedTasks.length}件 / 未完了 ${uncompleted.length}件)` : `直近タスク (${uncompleted.length}件 未完了)`}</span>
                               </span>
                               <button
                                 type="button"
@@ -1363,6 +1371,32 @@ export default function CreativeHubPage() {
                                     </div>
                                   );
                                 })}
+
+                                {hasMoreTasks && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedProjectTasks((prev) => ({
+                                        ...prev,
+                                        [project.id]: !prev[project.id]
+                                      }));
+                                    }}
+                                    className="w-full mt-1.5 py-1 px-2 text-center text-[10px] font-semibold text-blue-600 hover:text-blue-800 bg-blue-50/60 hover:bg-blue-100/70 border border-blue-200/60 rounded-lg transition flex items-center justify-center gap-1 cursor-pointer"
+                                  >
+                                    {isExpanded ? (
+                                      <>
+                                        <span>折りたたむ</span>
+                                        <ChevronUp className="w-3 h-3" />
+                                      </>
+                                    ) : (
+                                      <>
+                                        <span>さらに表示 (残り{allSortedTasks.length - 3}件)</span>
+                                        <ChevronDown className="w-3 h-3" />
+                                      </>
+                                    )}
+                                  </button>
+                                )}
                               </div>
                             ) : (
                               <div className="text-[11px] text-slate-400 text-center py-2">
