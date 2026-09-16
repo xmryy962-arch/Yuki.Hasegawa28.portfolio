@@ -36,7 +36,8 @@ import {
   AlertTriangle,
   Flame,
   Hourglass,
-  CheckSquare
+  CheckSquare,
+  ArrowUpDown
 } from 'lucide-react';
 import {
   CreativeHubData,
@@ -136,11 +137,12 @@ export default function CreativeHubPage() {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // --- フィルタ・検索 ---
+  // --- フィルタ・検索・並び替え ---
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProjectFilter, setSelectedProjectFilter] = useState<string>('all');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
+  const [projectSortOrder, setProjectSortOrder] = useState<'deadline' | 'category' | 'name_asc' | 'name_desc'>('deadline');
 
   // --- モーダル管理 ---
   const [projectModalOpen, setProjectModalOpen] = useState(false);
@@ -592,9 +594,9 @@ export default function CreativeHubPage() {
     done: { label: '完了・公開', icon: '✨', desc: '頒布・完了', topBorder: 'border-t-emerald-500', badgeBg: 'bg-emerald-50 text-emerald-800' }
   };
 
-  // --- フィルタ済みアイテム ---
+  // --- フィルタ＆ソート済みプロジェクト ---
   const filteredProjects = useMemo(() => {
-    return data.projects.filter((p) => {
+    const list = data.projects.filter((p) => {
       const matchSearch =
         p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (p.subtitle && p.subtitle.toLowerCase().includes(searchQuery.toLowerCase())) ||
@@ -603,7 +605,40 @@ export default function CreativeHubPage() {
       const matchStat = selectedStatusFilter === 'all' || p.status === selectedStatusFilter;
       return matchSearch && matchCat && matchStat;
     });
-  }, [data.projects, searchQuery, selectedCategoryFilter, selectedStatusFilter]);
+
+    return [...list].sort((a, b) => {
+      if (projectSortOrder === 'deadline') {
+        // 締切順: 設定されている締切が近い順（未設定は後方）
+        if (a.targetDeadline && b.targetDeadline) {
+          return a.targetDeadline.localeCompare(b.targetDeadline);
+        }
+        if (a.targetDeadline) return -1;
+        if (b.targetDeadline) return 1;
+        return a.title.localeCompare(b.title, 'ja');
+      }
+
+      if (projectSortOrder === 'category') {
+        // カテゴリ別
+        const catA = categoryLabels[a.category]?.label || a.category;
+        const catB = categoryLabels[b.category]?.label || b.category;
+        const catCompare = catA.localeCompare(catB, 'ja');
+        if (catCompare !== 0) return catCompare;
+        return a.title.localeCompare(b.title, 'ja');
+      }
+
+      if (projectSortOrder === 'name_asc') {
+        // 名前順（昇順）
+        return a.title.localeCompare(b.title, 'ja');
+      }
+
+      if (projectSortOrder === 'name_desc') {
+        // 名前順（降順）
+        return b.title.localeCompare(a.title, 'ja');
+      }
+
+      return 0;
+    });
+  }, [data.projects, searchQuery, selectedCategoryFilter, selectedStatusFilter, projectSortOrder]);
 
   const filteredIdeas = useMemo(() => {
     return data.ideas.filter((i) => {
@@ -1121,6 +1156,23 @@ export default function CreativeHubPage() {
                   <option value="polishing">仕上げ・校正中</option>
                   <option value="completed">完成・頒布中</option>
                 </select>
+
+                <div className="h-4 w-px bg-slate-200 mx-1 hidden sm:block" />
+
+                <div className="flex items-center gap-1.5">
+                  <ArrowUpDown className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="text-slate-600 font-semibold">並び替え:</span>
+                  <select
+                    value={projectSortOrder}
+                    onChange={(e) => setProjectSortOrder(e.target.value as any)}
+                    className="bg-slate-50 border border-slate-300 text-slate-700 font-medium rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500"
+                  >
+                    <option value="deadline">締切順（デフォルト）</option>
+                    <option value="category">カテゴリ別</option>
+                    <option value="name_asc">名前順（昇順）</option>
+                    <option value="name_desc">名前順（降順）</option>
+                  </select>
+                </div>
               </div>
 
               <span className="text-xs text-slate-500 font-medium">
@@ -1196,10 +1248,107 @@ export default function CreativeHubPage() {
                         </button>
                       )}
 
-                      {/* 概要 */}
-                      <p className="text-xs text-slate-600 leading-relaxed line-clamp-3 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
-                        {project.summary}
-                      </p>
+                      {/* 📋 直近のタスク（締切が近い順に最大3件表示＆その場で完了チェック） */}
+                      {(() => {
+                        const uncompleted = projTasks.filter((t) => t.lane !== 'done');
+                        const completed = projTasks.filter((t) => t.lane === 'done');
+
+                        // 未完了タスクを締切順（近い順）にソート
+                        uncompleted.sort((a, b) => {
+                          if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate);
+                          if (a.dueDate) return -1;
+                          if (b.dueDate) return 1;
+                          return b.createdAt.localeCompare(a.createdAt);
+                        });
+
+                        completed.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+                        const displayTasks = [...uncompleted, ...completed].slice(0, 3);
+
+                        return (
+                          <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-200/80 space-y-1.5">
+                            <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 pb-1 border-b border-slate-200/60">
+                              <span className="flex items-center gap-1">
+                                <CheckSquare className="w-3.5 h-3.5 text-blue-600" />
+                                <span>直近タスク ({uncompleted.length}件 未完了)</span>
+                              </span>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingTask({
+                                    id: `task-${Date.now()}`,
+                                    projectId: project.id,
+                                    title: '',
+                                    lane: 'production',
+                                    priority: 'medium',
+                                    createdAt: '',
+                                    updatedAt: ''
+                                  });
+                                  setTaskModalOpen(true);
+                                }}
+                                className="text-blue-600 hover:text-blue-700 hover:underline text-[10px] font-bold flex items-center gap-0.5"
+                              >
+                                + 追加
+                              </button>
+                            </div>
+
+                            {displayTasks.length > 0 ? (
+                              <div className="space-y-1">
+                                {displayTasks.map((task) => {
+                                  const isDone = task.lane === 'done';
+                                  return (
+                                    <div
+                                      key={task.id}
+                                      onClick={(e) => e.stopPropagation()}
+                                      className={`flex items-center justify-between p-1.5 rounded-lg border text-xs transition ${
+                                        isDone
+                                          ? 'bg-emerald-50/50 border-emerald-200/70 text-slate-400'
+                                          : 'bg-white border-slate-200 hover:border-blue-300 text-slate-800 shadow-2xs'
+                                      }`}
+                                    >
+                                      <label className="flex items-center gap-2 cursor-pointer min-w-0 flex-1">
+                                        <input
+                                          type="checkbox"
+                                          checked={isDone}
+                                          onChange={() => {
+                                            handleToggleTaskDone(task.id);
+                                            showToast(isDone ? 'タスクを未完了に戻しました' : 'タスクを完了にしました！🎉');
+                                          }}
+                                          className="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500 cursor-pointer accent-blue-600 shrink-0"
+                                        />
+                                        <span
+                                          className={`truncate text-xs font-medium ${
+                                            isDone ? 'line-through text-slate-400' : 'text-slate-800'
+                                          }`}
+                                          title={task.title}
+                                        >
+                                          {task.title}
+                                        </span>
+                                      </label>
+                                      {task.dueDate && (
+                                        <span
+                                          className={`text-[10px] font-mono shrink-0 ml-1.5 px-1.5 py-0.5 rounded font-semibold ${
+                                            isDone
+                                              ? 'text-slate-400 bg-slate-100'
+                                              : 'text-amber-700 bg-amber-50 border border-amber-200'
+                                          }`}
+                                          title={`締切日: ${task.dueDate}`}
+                                        >
+                                          {task.dueDate}
+                                        </span>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div className="text-[11px] text-slate-400 text-center py-2">
+                                登録されたタスクはありません
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
 
                       {/* 進捗バー */}
                       <div className="space-y-1.5 pt-1">
