@@ -23,6 +23,16 @@ interface HistoryItem {
   }[];
 }
 
+interface WorkItem {
+  title: string;
+  role?: string;
+  category: string;
+  description: string;
+  link?: string;
+  linkText?: string;
+  badge?: string;
+}
+
 export default function Home() {
   const profile = {
     name: "長谷川 優希",
@@ -91,6 +101,21 @@ export default function Home() {
     // 制作物
     works: [
       {
+        title: "青い月の裏側でー Behind the blue moon ー",
+        role: "シナリオ担当",
+        category: "研究室グループ制作",
+        description: `人工月が照らす世界。異能とキメラの脅威が広がる中、不思議な「歌の力」を持つ少女・朔良は、暴走する人工月の謎を追う。
+
+彼女の前に現れるのは、彼女を守ろうとする者、敵として立ちはだかる者、そして彼女自身の過去を知る者――。それぞれが秘密と過酷な運命を抱える男たちとの出会いが、朔良の運命を大きく変えていく。
+
+自らの力に苦悩しながらも、朔良は彼らと共に人工月へ向かう。
+
+狂おしい愛と切ない運命の果てに、少女が掴む未来とは――。`,
+        link: "https://two-moon-zeta.vercel.app/",
+        linkText: "作品サイトを見る",
+        badge: "Group Work"
+      },
+      {
         title: "CosmoDo (コズモ・ドゥ) 〜 宇宙創成ToDo Webアプリケーション 〜",
         category: "Interactive Web Application / Front-end & UI/UX",
         description: "日々のタスク達成のエネルギーによって、画面中央の漆黒の宇宙が少しずつ成長・進化していく新感覚のゲーミフィケーションToDoアプリです。タスク完了ごとに新星・惑星が誕生し、星座ライン、鮮やかな星雲（Nebula）、小惑星帯、スパイラル大銀河へと宇宙が段階的に発展。HTML5 Canvasによる天体シミュレーション、Web Audio APIによる透明感あふれる宇宙サウンド、3Dパララックス、星図詳細カード、Zen Mode（鑑賞モード）を搭載しています。",
@@ -114,7 +139,7 @@ export default function Home() {
         linkText: "アプリを使ってみる",
         badge: "Popular"
       }
-    ],
+    ] as WorkItem[],
 
     // 連絡先
     contact: {
@@ -356,38 +381,69 @@ export default function Home() {
                   )}
                 </div>
 
-                <h3 className="text-xl font-bold">
-                  {work.link ? (
-                    <Link
-                      href={work.link}
-                      className="text-slate-900 hover:text-blue-600 transition-colors inline-flex items-center gap-1.5"
-                    >
-                      <span>{work.title}</span>
-                      <span className="text-sm">↗</span>
-                    </Link>
-                  ) : (
-                    <span className="text-slate-900">
-                      {work.title}
+                <div className="flex flex-wrap items-baseline gap-2.5">
+                  <h3 className="text-xl font-bold">
+                    {work.link ? (
+                      work.link.startsWith('http') ? (
+                        <a
+                          href={work.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-slate-900 hover:text-blue-600 transition-colors inline-flex items-center gap-1.5"
+                        >
+                          <span>{work.title}</span>
+                          <span className="text-sm text-slate-400">↗</span>
+                        </a>
+                      ) : (
+                        <Link
+                          href={work.link}
+                          className="text-slate-900 hover:text-blue-600 transition-colors inline-flex items-center gap-1.5"
+                        >
+                          <span>{work.title}</span>
+                          <span className="text-sm text-slate-400">↗</span>
+                        </Link>
+                      )
+                    ) : (
+                      <span className="text-slate-900">
+                        {work.title}
+                      </span>
+                    )}
+                  </h3>
+                  {work.role && (
+                    <span className="text-xs font-medium text-slate-600 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
+                      {work.role}
                     </span>
                   )}
-                </h3>
+                </div>
 
-                <p className="text-sm leading-relaxed text-slate-600">
+                <p className="text-sm leading-relaxed text-slate-600 whitespace-pre-line">
                   {work.description}
                 </p>
 
                 {work.link && (
                   <div className="pt-2 flex items-center justify-between flex-wrap gap-2">
-                    <Link
-                      href={work.link}
-                      className="inline-flex items-center justify-center px-4 py-2.5 text-xs font-bold rounded-lg transition-all gap-1.5 shadow-md bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      <span>{work.linkText || "使ってみる"}</span>
-                      <span>➔</span>
-                    </Link>
+                    {work.link.startsWith('http') ? (
+                      <a
+                        href={work.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center px-4 py-2.5 text-xs font-bold rounded-lg transition-all gap-1.5 shadow-md bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <span>{work.linkText || "作品サイトを見る"}</span>
+                        <span>↗</span>
+                      </a>
+                    ) : (
+                      <Link
+                        href={work.link}
+                        className="inline-flex items-center justify-center px-4 py-2.5 text-xs font-bold rounded-lg transition-all gap-1.5 shadow-md bg-blue-600 hover:bg-blue-700 text-white"
+                      >
+                        <span>{work.linkText || "使ってみる"}</span>
+                        <span>➔</span>
+                      </Link>
+                    )}
 
                     <span className="text-xs font-mono text-slate-400">
-                      アクセス先: <code className="px-1.5 py-0.5 rounded font-semibold bg-slate-100 text-blue-600">{work.link}</code>
+                      アクセス先: <code className="px-1.5 py-0.5 rounded font-semibold bg-slate-100 text-blue-600 break-all">{work.link}</code>
                     </span>
                   </div>
                 )}
