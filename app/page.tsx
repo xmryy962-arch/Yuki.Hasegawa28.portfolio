@@ -120,24 +120,21 @@ export default function Home() {
         category: "Interactive Web Application / Front-end & UI/UX",
         description: "日々のタスク達成のエネルギーによって、画面中央の漆黒の宇宙が少しずつ成長・進化していく新感覚のゲーミフィケーションToDoアプリです。タスク完了ごとに新星・惑星が誕生し、星座ライン、鮮やかな星雲（Nebula）、小惑星帯、スパイラル大銀河へと宇宙が段階的に発展。HTML5 Canvasによる天体シミュレーション、Web Audio APIによる透明感あふれる宇宙サウンド、3Dパララックス、星図詳細カード、Zen Mode（鑑賞モード）を搭載しています。",
         link: "/cosmic-todo",
-        linkText: "アプリを使ってみる",
-        badge: "Pickup / New"
+        linkText: "アプリを使ってみる"
       },
       {
         title: "創作プロジェクト管理＋アイデア整理ハブ (Creative Studio Hub)",
         category: "Web Application / Creative Tool",
         description: "イラスト集・同人誌・コミック・ゲーム企画・シナリオなどの創作活動におけるプロジェクト進捗管理と、思いついたアイデア・世界観設定・章立てプロットを一元管理できるWebアプリケーションです。創作カンバン、アイデアストック、用語事典、Markdown/JSON書き出しに対応しています。",
         link: "/creative-hub",
-        linkText: "アプリを使ってみる",
-        badge: "New Release"
+        linkText: "アプリを使ってみる"
       },
       {
         title: "キャラクター設定シート ジェネレーター",
         category: "Web Application / Creative Tool",
         description: "オリジナルキャラクターの設定・ビジュアル・性格・モチーフ・名言などを整理し、美しいカード形式でリアルタイムプレビュー＆印刷・テキスト出力できる創作支援ツールです。創作の壁打ちや設定の散らかり防止をサポートします。",
         link: "/character-sheet",
-        linkText: "アプリを使ってみる",
-        badge: "Popular"
+        linkText: "アプリを使ってみる"
       }
     ] as WorkItem[],
 
