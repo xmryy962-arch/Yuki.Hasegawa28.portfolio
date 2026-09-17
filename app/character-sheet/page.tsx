@@ -2553,33 +2553,25 @@ export default function CharacterSheetPage() {
                     <button
                       type="button"
                       onClick={handleSwapCharacters}
-                      className="text-[11px] text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 bg-blue-50 px-2.5 py-1 rounded-md hover:bg-blue-100 transition active:scale-95 border border-blue-200"
-                      title="AとBの向きを入れ替える"
+                      className="text-[11px] text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 bg-blue-50 px-2.5 py-0.5 rounded-md hover:bg-blue-100 transition active:scale-95 border border-blue-200"
+                      title="向きを反転"
                     >
-                      <span>⇄</span> AとBを入れ替える
+                      <span>⇄</span> 向きを反転
                     </button>
                   </div>
 
                   <div className="flex items-center gap-2">
                     {/* キャラクター A */}
                     <div className="flex-1">
-                      <div className="text-[11px] text-slate-700 font-bold mb-1 flex items-center justify-between">
-                        <span className="flex items-center gap-1">
-                          <span className="w-4 h-4 rounded bg-blue-600 text-white font-mono text-[10px] font-bold flex items-center justify-center">A</span>
-                          <span>発信側 (From)</span>
-                        </span>
-                        {selectedFromChar && (
-                          <span className="text-[10px] text-blue-600 font-semibold truncate max-w-[80px]">
-                            {selectedFromChar.name}
-                          </span>
-                        )}
-                      </div>
+                      <label className="text-xs font-bold text-slate-600 mb-1 block">
+                        キャラクター A
+                      </label>
                       <select
                         value={newRelFrom}
                         onChange={(e) => setNewRelFrom(e.target.value)}
                         className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-xs"
                       >
-                        <option value="">Aを選択してください</option>
+                        <option value="">選択してください</option>
                         {characters.map((c) => (
                           <option key={c.id} value={c.id}>{c.name}</option>
                         ))}
@@ -2587,12 +2579,12 @@ export default function CharacterSheetPage() {
                     </div>
 
                     {/* 中央の入れ替えボタン */}
-                    <div className="pt-4 flex flex-col items-center">
+                    <div className="pt-5 flex flex-col items-center">
                       <button
                         type="button"
                         onClick={handleSwapCharacters}
-                        className="w-8 h-8 rounded-full bg-slate-100 hover:bg-blue-600 hover:text-white border border-slate-300 flex items-center justify-center text-slate-600 text-sm font-bold shadow-sm transition-all active:scale-90"
-                        title="ワンクリックで A と B を入れ替え"
+                        className="w-7 h-7 rounded-full bg-slate-100 hover:bg-blue-600 hover:text-white border border-slate-300 flex items-center justify-center text-slate-600 text-xs font-bold shadow-sm transition-all active:scale-90"
+                        title="AとBを入れ替え"
                       >
                         ⇄
                       </button>
@@ -2600,23 +2592,15 @@ export default function CharacterSheetPage() {
 
                     {/* キャラクター B */}
                     <div className="flex-1">
-                      <div className="text-[11px] text-slate-700 font-bold mb-1 flex items-center justify-between">
-                        <span className="flex items-center gap-1">
-                          <span className="w-4 h-4 rounded bg-indigo-600 text-white font-mono text-[10px] font-bold flex items-center justify-center">B</span>
-                          <span>対象側 (To)</span>
-                        </span>
-                        {selectedToChar && (
-                          <span className="text-[10px] text-indigo-600 font-semibold truncate max-w-[80px]">
-                            {selectedToChar.name}
-                          </span>
-                        )}
-                      </div>
+                      <label className="text-xs font-bold text-slate-600 mb-1 block">
+                        キャラクター B
+                      </label>
                       <select
                         value={newRelTo}
                         onChange={(e) => setNewRelTo(e.target.value)}
                         className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white shadow-xs"
                       >
-                        <option value="">Bを選択してください</option>
+                        <option value="">選択してください</option>
                         {characters.map((c) => (
                           <option key={c.id} value={c.id} disabled={c.id === newRelFrom}>{c.name}</option>
                         ))}
@@ -2653,31 +2637,19 @@ export default function CharacterSheetPage() {
                 {/* 関係ラベル */}
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">
-                    {newRelType === 'bidirectional' ? (
-                      <span className="flex items-center gap-1.5 flex-wrap">
-                        <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200 font-bold">
-                          <span className="font-mono">A</span>（{fromName}）
-                          <span>➔</span>
-                          <span className="font-mono">B</span>（{toName}）
-                        </span>
-                        <span>への関係 / 感情 *</span>
+                    {selectedFromChar && selectedToChar ? (
+                      <span className="text-blue-700">
+                        {fromName} ➔ {toName} の関係・感情 <span className="text-red-500">*</span>
                       </span>
                     ) : (
-                      <span className="flex items-center gap-1.5 flex-wrap">
-                        <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200 font-bold">
-                          <span className="font-mono">A</span>（{fromName}）
-                          <span>➔</span>
-                          <span className="font-mono">B</span>（{toName}）
-                        </span>
-                        <span>への関係の名称 *</span>
-                      </span>
+                      <span>A ➔ B の関係・感情 <span className="text-red-500">*</span></span>
                     )}
                   </label>
                   <input
                     type="text"
                     value={newRelFromLabel}
                     onChange={(e) => setNewRelFromLabel(e.target.value)}
-                    placeholder={selectedFromChar && selectedToChar ? `例: ${fromName}から見た${toName}（相棒、ライバルなど）` : "例: 相棒、ライバル、幼馴染"}
+                    placeholder={selectedFromChar && selectedToChar ? `例: 相棒、ライバルなど` : "例: 相棒、ライバル、幼馴染"}
                     className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   {/* クイックサジェスト */}
@@ -2697,21 +2669,23 @@ export default function CharacterSheetPage() {
 
                 {newRelType === 'bidirectional' && (
                   <div>
-                    <label className="text-xs font-bold text-slate-700 block mb-1">
-                      <span className="flex items-center gap-1.5 flex-wrap">
-                        <span className="inline-flex items-center gap-1 bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-200 font-bold">
-                          <span className="font-mono">B</span>（{toName}）
-                          <span>➔</span>
-                          <span className="font-mono">A</span>（{fromName}）
-                        </span>
-                        <span>への関係 / 感情（空欄の場合は同名）</span>
-                      </span>
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-bold text-slate-700">
+                        {selectedFromChar && selectedToChar ? (
+                          <span className="text-indigo-700">
+                            {toName} ➔ {fromName} の関係・感情
+                          </span>
+                        ) : (
+                          <span>B ➔ A の関係・感情</span>
+                        )}
+                      </label>
+                      <span className="text-[10px] text-slate-400">空欄なら同名</span>
+                    </div>
                     <input
                       type="text"
                       value={newRelToLabel}
                       onChange={(e) => setNewRelToLabel(e.target.value)}
-                      placeholder={selectedFromChar && selectedToChar ? `例: ${toName}から見た${fromName}（守るべき存在、親友など）` : "例: 守るべき存在、親友"}
+                      placeholder={selectedFromChar && selectedToChar ? `例: 守るべき存在、親友など` : "空欄の場合は上記と同じになります"}
                       className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
                   </div>
@@ -2752,7 +2726,7 @@ export default function CharacterSheetPage() {
                       onClick={handleSwapCharacters}
                       className="w-full py-1.5 px-3 text-xs font-semibold text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg transition flex items-center justify-center gap-1"
                     >
-                      <span>⇄</span> 向き（A: {fromName} と B: {toName}）を反転して続けて入力
+                      <span>⇄</span> AとBの向きを反転
                     </button>
                   )}
                 </div>
@@ -2789,7 +2763,6 @@ export default function CharacterSheetPage() {
                             </span>
                           )}
                           <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1 rounded-lg shadow-xs">
-                            <span className="w-4 h-4 rounded bg-blue-600 text-white font-mono text-[10px] font-bold flex items-center justify-center shrink-0">A</span>
                             {fromChar.avatarUrl ? (
                               <img src={fromChar.avatarUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
                             ) : (
@@ -2809,7 +2782,6 @@ export default function CharacterSheetPage() {
                             {rel.type === 'bidirectional' ? '⇄' : '➔'}
                           </span>
                           <div className="flex items-center gap-1.5 bg-white border border-slate-200 px-2.5 py-1 rounded-lg shadow-xs">
-                            <span className="w-4 h-4 rounded bg-indigo-600 text-white font-mono text-[10px] font-bold flex items-center justify-center shrink-0">B</span>
                             {toChar.avatarUrl ? (
                               <img src={toChar.avatarUrl} alt="" className="w-5 h-5 rounded-full object-cover shrink-0" />
                             ) : (
@@ -2826,31 +2798,15 @@ export default function CharacterSheetPage() {
                             <span className="font-bold text-slate-800 text-xs">{toChar.name}</span>
                           </div>
 
-                          {rel.type === 'bidirectional' && rel.toLabel && rel.toLabel !== rel.fromLabel ? (
-                            <div className="flex items-center gap-1.5 flex-wrap ml-1 text-[11px] font-bold">
-                              <span 
-                                className="px-2 py-0.5 text-white rounded-md shadow-xs flex items-center gap-1"
-                                style={{ backgroundColor: rel.color || '#3b82f6' }}
-                              >
-                                <span className="text-[9px] opacity-75">A➔B:</span>
-                                <span>{rel.fromLabel}</span>
-                              </span>
-                              <span 
-                                className="px-2 py-0.5 text-white rounded-md shadow-xs flex items-center gap-1"
-                                style={{ backgroundColor: rel.color || '#3b82f6' }}
-                              >
-                                <span className="text-[9px] opacity-75">B➔A:</span>
-                                <span>{rel.toLabel}</span>
-                              </span>
-                            </div>
-                          ) : (
-                            <span 
-                              className="px-2.5 py-0.5 text-xs font-bold text-white rounded-full ml-1 shadow-xs"
-                              style={{ backgroundColor: rel.color || '#3b82f6' }}
-                            >
-                              {rel.fromLabel}
-                            </span>
-                          )}
+                          <span 
+                            className="px-2.5 py-0.5 text-xs font-bold text-white rounded-full ml-1 shadow-xs"
+                            style={{ backgroundColor: rel.color || '#3b82f6' }}
+                          >
+                            {rel.type === 'bidirectional' && rel.toLabel && rel.toLabel !== rel.fromLabel
+                              ? `${rel.fromLabel} ⇄ ${rel.toLabel}`
+                              : rel.fromLabel
+                            }
+                          </span>
                         </div>
 
                         <div className="flex items-center gap-2">
